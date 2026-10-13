@@ -26,6 +26,17 @@
   - ตอนนั่ง เมาส์วางปลายเข็มบนแขน คลิกซ้ายวาด และหัว simulator ก้มมองแขนอัตโนมัติ
   - ไม่กระทบแว่นจริง
 - **Audio Listener** อยู่บน Main Camera
+- **สเกลห้องเท่าของจริง** (ขยายรอบจุด (0.32, -1.797, -0.05) ระดับพื้นจึงไม่เปลี่ยน):
+  - `Room`, `Furniture`, `Light Probe Group` ×1.48 → เพดาน 2.66 ม., โซฟา 0.95 ม. (เบาะ 0.47), สตูล Chair43 0.65 ม.
+  - `hospital bed` + `Cushion38` ×1.39 → ยาว 1.90 สูง 0.70; `Door_7_White` ×1.55 → สูง 2.0 ม.
+  - TattooSystem ไม่ขยาย (สร้างเป็นเมตรจริงอยู่แล้ว) แค่ย้ายตำแหน่ง; XR Origin / Simulator ไม่ขยาย
+  - `seatedEyeHeight` = 1.40, `Camera Y Offset` = 1.6
+  - ไม่มี object ไหนเป็น GI static จึงไม่มี lightmap (ไฟ realtime ทั้งหมด) LightingData อยู่ที่ `Scenes/TattooRoom/`
+- **ระบบลูกค้า (placeholder Capsule สูง 1.7 ม.):**
+  - ในร้านมีได้ 3 คน: 1 คนบนเตียง + 2 คนบนโซฟารอ ลูกค้าโผล่ที่ประตูทุก `spawnInterval` จนกว่าที่จะเต็ม
+  - เดินเส้นตรง (ไม่ใช้ NavMesh) ผ่าน waypoint ของ `CustomerRoute` ถึงแล้ววาร์ปไปท่านั่ง/นอน
+  - `CompleteTattoo()` (ปุ่ม J ใน Editor): คนบนเตียงเดินออกประตูแล้วหายไป คิวเลื่อนขึ้น และมีคนใหม่มาเติม ถ้าคนบนเตียงยังไม่นอนลงจะไม่ทำงาน
+  - ล้างลายบนแขนตอนที่คนใหม่นอนลงเตียง
 
 ## สคริปต์ (`Assets/_VRTattoo/Scripts/Tattoo/`)
 | ไฟล์ | หน้าที่ |
@@ -35,6 +46,19 @@
 | `ReturnToSocket.cs` | อยู่บนเครื่องสัก ปล่อยมือ (ที่ไม่ใช่ socket) หรือตกต่ำกว่า `fallResetHeight` จะ `SelectEnter` กลับเข้า socket ในเฟรมถัดไป |
 | `TattooSeat.cs` | อยู่บน `Furniture/Chair43` (ตัวแม่) สลับนั่ง/ลุก (ปุ่ม B ขวา / F / ชี้เก้าอี้ + grip) ปิดและเปิดคืนเฉพาะ locomotion ที่เคยเปิดอยู่ และใส่/คืน `heldTool` เข้ามือ `handInteractor` |
 | `TattooDesktopTestMode.cs` | อยู่บน `Interactables/TattooSystem` โหมดทดสอบด้วยเมาส์ ปิด `trackPosition/Rotation` ของเครื่องระหว่างใช้ และหมุนหัว XR Device Simulator ผ่าน reflection (ฟิลด์ private `m_CenterEyeEuler`, `m_HMDState`) |
+
+## สคริปต์ลูกค้า (`Assets/_VRTattoo/Scripts/Customers/`)
+| ไฟล์ | หน้าที่ |
+|---|---|
+| `CustomerQueueManager.cs` | อยู่บน `CustomerSystem` มี slot 0 = เตียง, 1.. = `waitSeats` (ตัวที่ 0 เป็นคิวถัดไป) จองช่องตั้งแต่ตอนสั่งเดิน ถ้าคิวเลื่อนตอนลูกค้ายังเดินอยู่ จะเปลี่ยนเส้นทางเมื่อถึงที่ มี `CompleteTattoo()`, `IsCustomerReady`, event `onCustomerLayDown`/`onCustomerLeft` |
+| `Customer.cs` | อยู่บน prefab `PlaceAt`, `WalkTo(location, waypoints, onArrived)`, `Settle()` (วาร์ปเข้าท่าของ location) |
+| `CustomerLocation.cs` | จุดหนึ่งในร้าน: `approach` (จุดยืนบนพื้นตอนเริ่ม/จบการเดิน), `pose` (จุดนั่ง/นอน), `arrivalPose` |
+| `CustomerRoute.cs` | waypoint อ้อมระหว่าง `from`↔`to` (ลูกของมันตามลำดับ ใช้ได้ทั้งสองทิศ) ไม่มีลูก = เดินตรง |
+| `CustomerVisual.cs` | คลาสแม่ของหน้าตาลูกค้า: `SetPose(Idle/Walk/Sit/Lie)`, `SetMoveSpeed` |
+| `CapsuleCustomerVisual.cs` | placeholder: Capsule สีสุ่ม (MaterialPropertyBlock `_BaseColor`) |
+| `AnimatorCustomerVisual.cs` | สำหรับโมเดลคนจริง: ตั้ง Animator `Speed` (float), `Sit`, `Lie` (bool) ใช้แทน `CapsuleCustomerVisual` บน prefab ได้เลย ต้องจัด root ของโมเดลให้ตรง pivot (ยืน = ที่เท้า, นั่ง/นอน = ใต้สะโพกบนเบาะ/เตียง, นอนหันหัวไปทาง forward) |
+
+- Prefab: `Assets/_VRTattoo/Prefabs/Customer.prefab` (Body เป็น Capsule ไม่มี collider), Material: `Materials/Customer/CustomerPlaceholder.mat`
 
 - Shader: `Assets/_VRTattoo/Shaders/TattooBrush.shader` (แปรงกลมขอบนุ่ม)
 - Material: `Assets/_VRTattoo/Materials/Tattoo/` (TattooBrush, TattooArm_Skin, TattooMachine, TattooStand)
@@ -54,6 +78,9 @@
 - `Furniture/Chair43`: เก้าอี้ช่างสัก มี TattooSeat + XRSimpleInteractable ส่วน collider อยู่ที่ `Chair43_model`
 - `Furniture/hospital bed`: เตียง (MeshCollider)
 - `Room/Floor_Tile_3b`: พื้น มี MeshCollider + BoxCollider + TeleportationArea
+- `CustomerSystem` (มี `CustomerQueueManager` และลูกค้าที่ spawn จะเป็นลูกของมัน)
+  - `Locations/Door/DoorPoint`, `Locations/Bed/{BedApproach, BedPoint}`, `Locations/WaitArea1/{WaitSeat1Approach, WaitSeat1}` (`Chair15` ใกล้เตียงกว่า), `Locations/WaitArea2/...` (`Chair15 (1)`)
+  - `Routes/*`: เส้นทาง 5 เส้น มี waypoint แค่ `Door-WaitSeat1` (อ้อมจุดเกิดผู้เล่น) ทุกเส้นตรวจด้วย CapsuleCast แล้วว่าไม่ชน
 
 ## ปุ่มทดสอบ (XR Device Simulator)
 | ทำอะไร | ปุ่ม |
@@ -65,6 +92,7 @@
 | เปิด/ปิด Desktop Test Mode | K (ชนกับ simulator นิดหน่อยตอนกำลังคุม controller/มือ) |
 | วาดใน Desktop mode | ชี้เมาส์ที่แขน + คลิกซ้ายค้าง |
 | หันมอง | คลิกขวาค้าง + ลากเมาส์ |
+| สักเสร็จ (`CompleteTattoo`) | J (เฉพาะ Editor) |
 
 บนแว่นจริง นั่ง/ลุกใช้ปุ่ม B ขวา (ปุ่ม A ใช้กระโดดอยู่แล้ว)
 
@@ -78,9 +106,12 @@
 - **ก้มกล้องอัตโนมัติพึ่ง reflection ของ simulator:** ถ้าอัปเดต XRI แล้วชื่อฟิลด์เปลี่ยน การก้มจะไม่ทำงาน (ไม่ error)
 - **`Chair43 (1)` และ `Table44` ใน Furniture:** เป็น object ว่าง ไม่มี mesh
 - **haptics:** ยังไม่ได้ทดสอบกับแว่นจริง
+- **ลูกค้าไม่มี collider:** เดินทะลุกันเองและทะลุผู้เล่นได้
+- **แขน TattooArm ไม่ได้ติดกับตัวลูกค้า:** วางไว้ข้างลำตัวฝั่งช่าง (z = -0.40) ตอนนั่งห่างตาผู้เล่นแนวนอน 0.64 ม. และต่ำกว่าตา 0.68 ม. บนแว่นจริงอาจต้องโน้มตัว
 
 ## งานถัดไป
-- ระบบลูกค้าเดินเข้าร้าน
+- ระบบตรวจว่าสักเสร็จ (ตอนนี้ใช้ปุ่ม J เรียก `CompleteTattoo()`)
+- เปลี่ยนลูกค้าเป็นโมเดลคนจริง + แอนิเมชัน (ใช้ `AnimatorCustomerVisual`) และให้แขนที่สักเป็นส่วนของตัวลูกค้า
 - เสียงเครื่องสัก (AudioListener พร้อมแล้ว)
 - ระบบเลือกลาย
 - ป้ายภาษาไทย (ต้องมีฟอนต์ TMP ที่รองรับภาษาไทย)
