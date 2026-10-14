@@ -3,7 +3,8 @@ using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
-// Ink level as a glowing hologram ring (Shaders/InkHologram.shader) with the % in the middle.
+// Ink level as a glowing hologram ring (Shaders/InkHologram.shader) with the % in the middle,
+// and the fitted needle (TattooNeedle) named underneath.
 // It floats beside the tattoo machine in the world (not stuck to the screen, which is uncomfortable in VR),
 // always faces the player, and only shows while the machine is held in a hand.
 public class InkHologram : MonoBehaviour
@@ -13,6 +14,12 @@ public class InkHologram : MonoBehaviour
     [Tooltip("Ring quad using the InkHologram material")]
     public Renderer ring;
     public TMP_Text percentLabel;
+
+    [Tooltip("Fitted needle (leave empty to use the one on the ink's machine)")]
+    public TattooNeedle needle;
+    [Tooltip("Shows the fitted needle's name and size; while swapping, the new one blinking")]
+    public TMP_Text needleLabel;
+    public float swapBlinkRate = 8f;
 
     [Tooltip("Leave empty to use Camera.main")]
     public Camera viewCamera;
@@ -57,7 +64,11 @@ public class InkHologram : MonoBehaviour
     void Awake()
     {
         if (ink != null)
+        {
             grabInteractable = ink.GetComponent<XRGrabInteractable>();
+            if (needle == null)
+                needle = ink.GetComponent<TattooNeedle>();
+        }
         block = new MaterialPropertyBlock();
         SetVisible(false);
     }
@@ -112,6 +123,24 @@ public class InkHologram : MonoBehaviour
             labelColor.a = visibility * blink;
             percentLabel.color = labelColor;
         }
+
+        UpdateNeedleLabel();
+    }
+
+    void UpdateNeedleLabel()
+    {
+        if (needleLabel == null || needle == null)
+            return;
+
+        var target = needle.SwapTarget;
+        string text = target != null ? target.Label : needle.Label;
+        if (needleLabel.text != text)
+            needleLabel.text = text;
+
+        Color color = Color.Lerp(target != null ? target.Color : needle.color, Color.white, labelWhiten);
+        float blink = target != null && Mathf.Repeat(Time.time * swapBlinkRate, 1f) > 0.5f ? 0.3f : 1f;
+        color.a = visibility * blink;
+        needleLabel.color = color;
     }
 
     // Beside the machine from the player's point of view, smoothed so hand jitter doesn't shake it.
@@ -140,6 +169,8 @@ public class InkHologram : MonoBehaviour
             ring.enabled = visible;
         if (percentLabel != null && percentLabel.enabled != visible)
             percentLabel.enabled = visible;
+        if (needleLabel != null && needleLabel.enabled != visible)
+            needleLabel.enabled = visible;
         if (!visible)
             shownLevel = -1f;
     }

@@ -12,10 +12,11 @@
 ## สิ่งที่ทำเสร็จแล้ว
 - **ระบบสัก:**
   - เครื่องสัก (โมเดลจริง ดูหัวข้อ "เครื่องสัก") หยิบได้ กด trigger ตอนปลายเข็มแตะแขน (Capsule) จะวาดเส้นลง RenderTexture และส่ง haptics
-  - ขนาดเส้นกำหนดเป็นเมตร (5 มม.) ระบบชดเชยการยืดของ UV ให้
+  - ขนาดเส้นกำหนดเป็นเมตรตามหัวเข็มที่ใส่อยู่ (3/5/9 มม. ดูหัวข้อ "หัวเข็ม") ระบบชดเชยการยืดของ UV ให้
   - **สักลงแขนจริงของลูกค้า:** แขนท่อนล่างข้างที่หันมาฝั่งเก้าอี้ช่าง (ตอนนี้คือแขนขวา) ดูหัวข้อ "ผิวที่สัก" ล้างเองเมื่อมีลูกค้าใหม่ (canvas เป็นของลูกค้าแต่ละคน)
   - ลากเร็วแล้วเส้นไม่ขาด และตัดเส้นตอนข้ามรอยต่อ UV
   - **หมึกหลายสีและหมึกจำกัด:** ดูหัวข้อ "หมึก"
+  - **เปลี่ยนหัวเข็มได้ 3 ขนาด:** ดูหัวข้อ "หัวเข็ม"
 - **ที่วางเครื่องสัก:** ถ้วยเสียบ `MachineHolder` บนรถเข็น `InkTrolley` (`XRSocketInteractor`) เริ่มเกมเครื่องเสียบอยู่ ปล่อยมือหรือตกแมปแล้วกลับเข้าที่วางเอง (แท่นวางเดิม `TattooMachineStand` ลบแล้ว)
 - **ระบบนั่ง (Chair43):**
   - วาร์ปไปท่าทำงาน: ตาอยู่ห่างผิวด้านบนของแขน ~38 ซม. (ห่างแนวนอน 0.25 ม. ไปทางเก้าอี้ + สูงกว่าแกนแขน 0.33 ม. = `leanOverTarget`, `workHorizontalDistance`, `workEyeHeight`) เหมือนช่างที่ก้มทำงาน หันหน้าหาแขน **ไม่ซูมกล้องในแว่น**
@@ -32,7 +33,7 @@
   - ปุ่ม K เปิด/ปิด ทำงานเฉพาะใน Editor
   - ตอนนั่ง (เครื่องเข้ามือเองอยู่แล้ว) `releaseKey` P = วางคืน, คลิกซ้ายที่เครื่องบนที่วาง = หยิบเข้า `handInteractor` (`StartManualInteraction`, คลิกที่ใช้หยิบไม่นับเป็น trigger)
   - ถือเครื่องแล้ว เมาส์วางปลายเข็มบนแขน คลิกซ้ายวาด และหัว simulator ก้มมองแขนอัตโนมัติ
-  - ชี้เมาส์ที่ถ้วยหมึกได้ด้วย: ปลายเข็มลงไปอยู่ใน trigger ของถ้วย (เอียงตามเมาส์ `capTiltTowardView`) คลิกซ้ายค้าง = กด trigger → เติม/เปลี่ยนสีเหมือนในแว่น (ไม่มีปุ่ม R/1–4 แล้ว) ใช้ได้แม้ยังไม่มีลูกค้าบนเตียง หัวก้มมองแขนเมื่อผิวพร้อม (เปิดโหมดก่อนลูกค้านอนก็ได้)
+  - ชี้เมาส์ที่ถ้วยหมึกหรือหัวเข็มได้ด้วย (`RaycastTrolleyTrigger`): ปลายเข็มลงไปอยู่ใน trigger (เอียงตามเมาส์ `capTiltTowardView`) คลิกซ้ายค้าง = กด trigger → เติม/เปลี่ยนสี หรือเปลี่ยนหัวเข็ม เหมือนในแว่น ใช้ได้แม้ยังไม่มีลูกค้าบนเตียง หัวก้มมองแขนเมื่อผิวพร้อม (เปิดโหมดก่อนลูกค้านอนก็ได้) ราวหัวเข็มอยู่ขอบขวานอกมุมก้ม ต้องหันขวานิดหน่อย (คลิกขวาลาก)
   - เลื่อนลูกกลิ้งเมาส์ = ซูม (ปรับ FOV 20°–FOV เดิมของกล้อง ทีละ 4°) ระหว่างนั้นพัก scroll ของ simulator ปิดโหมดแล้วคืน FOV; ไม่ทำงานเมื่อมีแว่นจริง (`XRSettings.isDeviceActive`)
   - ไม่กระทบแว่นจริง
 - **Audio Listener** อยู่บน Main Camera
@@ -52,29 +53,40 @@
   - กดปุ่ม SUBMIT ข้างเตียง (ray/grip มือซ้าย) หรือ J (เฉพาะ Editor) เพื่อส่งงาน: คะแนน 0–100 ลอยเหนือเตียง 2.5 วิ แล้วลูกค้าเดินออก
   - คุณภาพ = 100 × Accuracy × max(0, 1 − messRatio / `messLimit`)^`messPower`
     - Accuracy = สัดส่วนเส้นลายที่มีหมึกอยู่บนหรือห่างไม่เกิน `coverTolerance` 1.5 มม.
-    - messRatio = **พื้นที่**หมึกที่ห่างจากขอบเส้นลายเกิน `messTolerance` 2 มม. (ทั้ง canvas ละเลงนอกกรอบลายก็นับ) ÷ พื้นที่ลาย
-    - `messLimit` 1 = เลอะเท่าพื้นที่ลายแล้วเหลือ 0, `messPower` 2 ทุกค่าปรับที่ `TattooJobManager.scoring`
+    - messRatio = พื้นที่หมึกนอกเส้นลาย (ทั้ง canvas ละเลงนอกกรอบลายก็นับ) ÷ พื้นที่ลาย **ถ่วงตามระยะ**: แต่ละพิกเซลหนัก clamp01((ระยะถึงเส้นลาย − tolerance) / `messFalloff` 3.2 มม.) โดย tolerance = `messTolerance` 0 + `needleSlack` 1.1 × รัศมีหัวเข็มที่ลงหมึกพิกเซลนั้น (อ่านจาก needle map ของ `TattooCanvas`) → ขอบล้นตามธรรมชาติของหัวใหญ่ไม่โดนหัก เส้นส่ายนิดหน่อยโดนหักนิดเดียว หมึกที่ไกลเส้นโดนเต็ม
+    - คุณภาพ = 100 × Accuracy × (1 − min(1, messRatio / `messLimit` 1)^`messPower` 0.58) (power < 1 = เลอะนิดเดียวก็เห็นผล แต่ไม่ดิ่งเป็น 0 เร็ว) ทุกค่าปรับที่ `TattooJobManager.scoring` (ค่าเริ่มต้น `TattooScoringRules.Default`)
+    - ระยะถึงเส้นใช้ chamfer distance (`TattooScorer.DistanceToMask`) ส่งงานหนึ่งครั้ง ~200 ms (อ่าน RenderTexture 2 อัน)
     - ป้ายคะแนนแสดง `Accuracy 92% / Mess -35` (Mess = round(100 × Accuracy) − คุณภาพ สีแดงเมื่อโดนหัก)
-  - ผลจำลอง (เมนู `VRTattoo/Simulate Tattoo Scores` ใช้ค่าจาก scene, ต่ำสุด/เฉลี่ย/สูงสุด):
+  - ผลจำลอง (เมนู `VRTattoo/Simulate Tattoo Scores` ใช้ค่าจาก scene, ต่ำสุด/เฉลี่ย/สูงสุด ทุกลาย × หัวเข็ม 3 ขนาด) ใช้เวลา ~30 วิ:
 
-    | | ตามเส้นเรียบร้อย (เข็ม 5 มม. ส่าย ±0.5 มม. ขาด 2%) | มือสั่น (ส่าย ±3 มม. ขาด 10%) | ละเลงทั้งกรอบลาย | ละเลงนอกลาย |
-    |---|---|---|---|---|
-    | easy | 99 / 99.8 / 100 | 77 / 89.6 / 98 | 0 | 0 |
-    | medium | 98 / 99.7 / 100 | 40 / 71.3 / 93 | 0 | 0 |
-    | hard | 99 / 99.8 / 100 | 71 / 77.6 / 90 | 0 | 0 |
+    | | สักเรียบร้อย (ส่าย ±0.5 มม. ขาด 2%) เป้า 90–100 | มือสั่นนิดหน่อย (±3 มม. ขาด 10%) เป้า 75–90 | เลอะพอสมควร (±4.5 มม. ขาด 15% + เส้นหลุด 40% ของพื้นที่ลาย) เป้า 45–65 | ละเลงทั้งกรอบลาย เป้า < 25 | ละเลงนอกลาย เป้า 0 |
+    |---|---|---|---|---|---|
+    | easy LINER | 99 / 99.8 / 100 | 85 / 90.0 / 94 | 41 / 49.8 / 58 | 0 | 0 |
+    | easy MEDIUM | 99 / 99.8 / 100 | 87 / 92.6 / 97 | 47 / 55.6 / 61 | 0 | 0 |
+    | easy SHADER | 99 / 99.8 / 100 | 85 / 93.4 / 98 | 51 / 64.4 / 71 | 0 | 0 |
+    | medium LINER | 100 / 100 / 100 | 75 / 83.8 / 90 | 40 / 47.3 / 53 | 0 | 0 |
+    | medium MEDIUM | 99 / 99.8 / 100 | 75 / 85.2 / 94 | 39 / 51.0 / 59 | 0 | 0 |
+    | medium SHADER | 95 / 98.8 / 100 | 71 / 84.0 / 93 | 39 / 55.3 / 65 | 0 | 0 |
+    | hard LINER | 99 / 99.8 / 100 | 82 / 85.4 / 92 | 51 / 54.6 / 61 | 0 | 0 |
+    | hard MEDIUM | 99 / 99.8 / 100 | 84 / 87.0 / 92 | 52 / 57.4 / 62 | 0 | 0 |
+    | hard SHADER | 97 / 98.6 / 100 | 83 / 86.0 / 91 | 53 / 58.4 / 65 | 0 | 0 |
+    | ลายพื้นทึบ (เส้น ≥ 6 มม.) LINER | 100 / 100 / 100 | 90 / 92.0 / 94 | 50 / 53.0 / 58 | 0 | 0 |
+    | ลายพื้นทึบ MEDIUM | 100 / 100 / 100 | 93 / 95.0 / 97 | 56 / 58.0 / 61 | 0 | 0 |
+    | ลายพื้นทึบ SHADER | 100 / 100 / 100 | 96 / 97.0 / 98 | 68 / 69.3 / 71 | 0 | 0 |
 
-    ลายที่เป็นพื้นทึบหนา (cloud, crown skull, karate kick, biohazard, royal crown) มือสั่นแล้วยังได้ 90–98 เพราะเลอะนิดเดียวเทียบกับพื้นที่ลาย ส่วน trophy (เส้นบาง 1.4 มม.) ได้ 40
+    ใช้หัว SHADER ระบายลายพื้นทึบไม่โดนหักเกินจริง (ได้สูงสุดในกลุ่ม) ส่วนใช้หัว 9 มม. ลากลายเส้นบาง (เช่น trophy 1.4 มม.) ยังได้น้อยกว่าเล็กน้อย (เลือกหัวไม่เหมาะ) ตัวจำลองพิมพ์คะแนนรายลายใน log ด้วย
   - คะแนนรวม = คุณภาพ × ตัวคูณ (easy x1, medium x1.5, hard x2) แสดงบนผนังมุมบนของห้อง
 
 ## สคริปต์ (`Assets/_VRTattoo/Scripts/Tattoo/`)
 | ไฟล์ | หน้าที่ |
 |---|---|
-| `TattooCanvas.cs` | อยู่บน collider ของผิวที่สัก (สร้างโดย `CustomerTattooSkin`) RenderTexture 1024² พื้นโปร่งใส alpha = หมึก มี `DrawStroke(uvFrom, worldFrom, uvTo, worldTo)` ปั๊มแปรงด้วย GL และ `MetersPerUV` (ผู้สร้าง UV เป็นคนตั้ง) ไม่ผูกกับ renderer |
-| `TattooMachine.cs` | อยู่บนเครื่องสัก ฟัง activate/deactivate ของ `XRGrabInteractable` raycast จาก `tip` ไปตามแนวเข็ม แล้ววาดและส่ง haptics มี `ExternalTrigger` ให้โหมดทดสอบสั่งวาดได้ |
+| `TattooCanvas.cs` | อยู่บน collider ของผิวที่สัก (สร้างโดย `CustomerTattooSkin`) RenderTexture 1024² พื้นโปร่งใส alpha = หมึก มี `DrawStroke(uvFrom, worldFrom, uvTo, worldTo, color, diameter)` ปั๊มแปรงด้วย GL (ไม่ส่ง diameter = `brushDiameter`) และ `MetersPerUV` (ผู้สร้าง UV เป็นคนตั้ง) ไม่ผูกกับ renderer; **needle map** `NeedleTexture` (R8 linear) เก็บขนาดหัวที่ใหญ่สุดที่ลงหมึกแต่ละพิกเซล (= diameter / `MaxNeedleDiameter` 1 ซม., pass 1 ของ `TattooBrush.shader` แบบ `BlendOp Max`) ให้ scorer ใช้ |
+| `TattooMachine.cs` | อยู่บนเครื่องสัก ฟัง activate/deactivate ของ `XRGrabInteractable` raycast จาก `tip` ไปตามแนวเข็ม แล้ววาด (กว้างเท่า `needle.diameter`) และส่ง haptics มี `ExternalTrigger` ให้โหมดทดสอบสั่งวาดได้ |
 | `ReturnToSocket.cs` | อยู่บนเครื่องสัก ปล่อยมือ (ที่ไม่ใช่ socket) หรือตกต่ำกว่า `fallResetHeight` จะ `SelectEnter` กลับเข้า socket ในเฟรมถัดไป |
 | `TattooSeat.cs` | อยู่บน `Furniture/Chair43` (ตัวแม่) สลับนั่ง/ลุก (ปุ่ม B ขวา / F / ชี้เก้าอี้ + grip) ปิดและเปิดคืนเฉพาะ locomotion ที่เคยเปิดอยู่ ตอนนั่งใส่ `heldTool` เข้ามือ `handInteractor` (ปล่อย grip = วางคืน) ตอนลุกปล่อยจากมือที่ถืออยู่ ตำแหน่งตาตอนนั่งคิดจาก `lookTarget` (`SeatedEyePosition()`) |
 | `SeatHeadLimit.cs` | อยู่บน `Furniture/Chair43` จำจุดตาตอนนั่ง: จอมืดตามระยะหัว (`freeRadius` 0.5, `fadeDistance` 0.15, `fadeSpeed`) ผ่าน `fadeRenderer` (Quad `Main Camera/ScreenFade` + `Shaders/ScreenFade.shader`, `Materials/ScreenFade.mat`) และ `lockSimulatorHead` เขียนตำแหน่ง `m_HMDState` ของ simulator กลับผ่าน reflection + `InputState.Change` (execution order หลัง simulator) ทำเฉพาะเมื่อ `!XRSettings.isDeviceActive` |
 | `TattooInk.cs` | อยู่บนเครื่องสัก ดูหัวข้อ "หมึก" |
+| `TattooNeedle.cs` | อยู่บนเครื่องสัก หัวเข็มที่ใส่อยู่ ดูหัวข้อ "หัวเข็ม" |
 | `InkHologram.cs` | อยู่บน `Interactables/TattooSystem/InkHologram` วงแหวนโฮโลแกรมบอกหมึก ดูหัวข้อ "หมึก" |
 | `TattooDesktopTestMode.cs` | อยู่บน `Interactables/TattooSystem` โหมดทดสอบด้วยเมาส์ ปิด `trackPosition/Rotation` ของเครื่องระหว่างใช้ และหมุนหัว XR Device Simulator ผ่าน reflection (ฟิลด์ private `m_CenterEyeEuler`, `m_HMDState`) ซูมด้วยลูกกลิ้ง (`Zoom()`, `minFieldOfView`, `zoomStep`) |
 
@@ -99,8 +111,8 @@
 | `StencilLibrary.cs` | ScriptableObject `Data/StencilLibrary.asset` รายการลาย (texture, ชื่อ, ระดับ) + `Multiplier()` + แยกชื่อไฟล์ |
 | `Editor/StencilLibraryPostprocessor.cs` | ตั้งค่า import PNG ใน `Stencils/` อัตโนมัติ (Single Channel Alpha, readable, ไม่บีบอัด) และสร้างคลังใหม่ทุกครั้งที่ไฟล์เปลี่ยน มีเมนู `VRTattoo/Rebuild Stencil Library` |
 | `StencilPlacement.cs` | struct mapping UV ของ canvas ↔ พิกัดในภาพลาย (st) ใช้ร่วมกันระหว่าง overlay shader และ scorer |
-| `TattooScorer.cs` | อ่าน RenderTexture ของ TattooCanvas ทั้งรูป (หมึก = alpha > 0.5) เทียบกับ mask ลาย (`StencilMask`) แล้วคิด accuracy/messRatio/quality ใน `ScoreMasks` (ฟังก์ชันล้วน ใช้ร่วมกับตัวจำลอง) ~50 ms ต่อการส่งงาน |
-| `Editor/TattooScoreSimulator.cs` | เมนู `VRTattoo/Simulate Tattoo Scores` สร้างหมึกจำลอง 4 แบบให้ทุกลายในคลัง แล้ว log ตารางคะแนนแยกระดับ (ทำงานใน Edit mode) |
+| `TattooScorer.cs` | อ่าน RenderTexture ของ TattooCanvas ทั้งรูป (หมึก = alpha > 0.5) + needle map เทียบกับ mask ลาย (`StencilMask`) แล้วคิด accuracy/messRatio/quality ใน `ScoreMasks` (ฟังก์ชันล้วน ใช้ร่วมกับตัวจำลอง รับ needle map และ distance field ที่คิดไว้แล้วได้) ~200 ms ต่อการส่งงาน |
+| `Editor/TattooScoreSimulator.cs` | เมนู `VRTattoo/Simulate Tattoo Scores` สร้างหมึกจำลอง 5 แบบ × หัวเข็ม 3 ขนาดให้ทุกลายในคลัง แล้ว log ตารางคะแนนแยกระดับ/หัว + แถวลายพื้นทึบ (ทำงานใน Edit mode; `Run(rules)` ใช้จูนค่าโดยไม่แก้ scene) |
 | `TattooJobManager.cs` | อยู่บน `CustomerSystem` ฟัง `onCustomerLayDown` สุ่มลาย แสดงลาย/ป้าย รับ Submit (ปุ่ม/J) ให้คะแนน แล้วเรียก `CompleteTattoo()` |
 
 - Shader: `Shaders/TattooSkinOverlay.shader` (unlit โปร่งใส: หมึกจาก `_InkTex` + ลายสีม่วงจาง), Material: `Materials/Tattoo/TattooSkinOverlay.mat`
@@ -152,23 +164,33 @@
 - `Tip` อยู่ที่ปลายเข็มจริง local (0, −0.06, 0) forward ชี้ลงตามเข็ม; ray วาดเริ่มหลังปลาย 3 ซม. ซึ่งอยู่ในตัว CapsuleCollider จึงไม่ชนตัวเอง
 - `Attach` (local (0, −0.025, 0) = ห่างปลายเข็ม 3.5 ซม.) หมุนให้ถือแบบปากกา: เข็มชี้ไปข้างหน้าแล้วก้มลง 45° จาก forward ของ controller ด้านมอเตอร์ (−X ของโมเดล) หันขึ้น
 - ตอนถือ XRI ซ่อนโมเดล controller ขวา จึงเห็นเครื่องลอยอยู่ที่ตำแหน่งมือ
+- `NeedleCollar` (ปลอกสีบนหัวครอบใส ย้อมสีตามหัวเข็ม) และ `NeedlePoint` (ปลายเข็มสีเงิน กว้าง = diameter × 0.5) เป็นลูกของเครื่อง ไม่มี collider (`TattooNeedle.ApplyVisual`)
 - `InkGauge` (ลูกของเครื่อง) ใช้คู่กับวงแหวนโฮโลแกรม: วงแหวน 5 วงรอบด้ามจับส่วนบน (`Ring0` ล่างสุด, Cylinder scale (0.0224, 0.0011, 0.0224) ห่างกัน 4.5 มม.) วงที่มีหมึกเป็นสีหมึกปัจจุบัน + เรืองแสง (`Materials/Tattoo/InkGauge.mat`, หมึกดำเรืองเป็นเทา) วงที่หมดเป็นเทาเข้ม ติด ceil(% × 5 / 100) วง เหลือ < `lowThreshold` 15% (เท่ากับวงแหวนโฮโลแกรม) วงล่างกะพริบ อ่าน `TattooInk` ตัวเดียวกับวงแหวนโฮโลแกรม ค่าและสีจึงตรงกันเสมอ
 
 ## หมึก
-- **`TattooInk` (บนเครื่อง):** `amount` 0–100%, `color`, `metersPerLoad` = 1.3 ม. ของเส้นต่อ 1 ถ้วย ลดตามระยะที่ปลายเข็มเลื่อนบนผิวจริงระหว่างวาด (อยู่กับที่ไม่ลด จุดเริ่มเส้นคิด 5 มม. ≈ 0.4%) เส้น 7 ซม. ≈ 5.4%
+- **`TattooInk` (บนเครื่อง):** `amount` 0–100%, `color`, `metersPerLoad` = 1.3 ม. ของเส้นหัว `referenceDiameter` 5 มม. ต่อ 1 ถ้วย ลดตาม**พื้นที่** = ระยะที่ปลายเข็มเลื่อนบนผิวจริง × (ขนาดหัว ÷ 5 มม.) → หัว LINER ใช้ 0.6× หัว SHADER 1.8× (อยู่กับที่ไม่ลด จุดเริ่มเส้นคิดเท่าความกว้างหัว: หัวกลาง ≈ 0.4%) เส้น 7 ซม. หัวกลาง ≈ 5.4%
   - ที่มาของ 1.3: ระยะที่ต้องสักโดยประมาณของลาย = max(พื้นที่ลาย ÷ ความกว้างแปรง 5 มม., เส้นรอบรูป ÷ 2) ในกรอบ 14 ซม. ลาย medium เฉลี่ย 0.68 ม. ≈ ครึ่งถ้วย ถ้าเพิ่ม/เปลี่ยนลายมาก ให้คำนวณใหม่
   - จุ่ม (`DippedCap`): ทุกเฟรม `OverlapSphere(tip, dipRadius 5 มม.)` หา trigger ของ `InkCap` **จุ่มเฉย ๆ ไม่เกิดอะไร** ต้องกด trigger ค้าง (`TattooMachine.TriggerPressed` = trigger จริงหรือ `ExternalTrigger`) หมึกจึงเพิ่ม 100% ต่อ `refillDuration` 1.5 วิ (`IsRefilling`) ถ้าสีถ้วยต่างจากหมึกในเครื่อง → `amount` = 0 + เปลี่ยนสีทันที แล้วค่อยเติม ระหว่างเติมสั่นเบา (`refillHapticAmplitude` 0.15 ทุก 0.1 วิ ผ่าน `TattooMachine.SendHaptic`)
-- **`TattooMachine`:** หมึกหมด = ไม่วาด + สั่นสั้นครั้งเดียวต่อการกด trigger (`emptyHapticAmplitude` 0.8, `emptyHapticDuration` 0.05 วิ) รวมถึงตอนหมดกลางเส้น ยกเว้นตอนปลายเข็มอยู่ในถ้วย (กดเพื่อเติม) ไม่มี `TattooInk` = หมึกไม่จำกัดสี `TattooCanvas.inkColor`
+- **`TattooMachine`:** หมึกหมด = ไม่วาด + สั่นสั้นครั้งเดียวต่อการกด trigger (`emptyHapticAmplitude` 0.8, `emptyHapticDuration` 0.05 วิ) รวมถึงตอนหมดกลางเส้น ยกเว้นตอนปลายเข็มอยู่ในถ้วยหรือแตะหัวเข็ม (`AtTrolley` กดเพื่อเติม/เปลี่ยนหัว) ไม่มี `TattooInk` = หมึกไม่จำกัดสี `TattooCanvas.inkColor`
 - **วงแหวนโฮโลแกรม (`InkHologram`):** object `Interactables/TattooSystem/InkHologram` (ไม่ใช่ลูกของเครื่อง) มี `Ring` (Quad 7.5 ซม. + `Materials/Tattoo/InkHologram.mat` / `Shaders/InkHologram.shader`) และ `Percent` (TMP)
   - ตามเครื่องแบบหน่วง (`followSharpness`) เยื้อง `viewOffset` (ขวา 6 ซม. บน 3.5 ซม. ในมุมมองผู้เล่น) ถ้าเครื่องอยู่ขวาของภาพเกิน `switchSideAbove` 0.7 (เช่นตอนจุ่มถ้วย) ย้ายไปฝั่งซ้าย หันหากล้องเสมอ เป็นวัตถุในโลก ไม่ติดจอ
   - วงลดต่อเนื่องตาม % (เลข/วงไล่ค่าจริงที่ `levelSpeed` 120%/วิ จึงเห็นวงเพิ่มตอนเติม) สีหมึกปัจจุบัน หมึกเข้มถูกยกความสว่างขั้นต่ำ `minBrightness` (ดำ → เทาเรือง) ตัวเลขผสมขาว `labelWhiten`
   - shader: วงเรืองแสง (ส่วนที่หมดเป็นเงาจาง) + scanline + แสงวิ่ง + ขีดทุก 10% บนแผ่นพื้นมืดจาง (`_Backing`) ให้อ่านออกบนพื้นสว่าง (premultiplied `Blend One OneMinusSrcAlpha`) `Ring.sortingOrder` = −1 ให้ตัวเลขวาดทับ
   - เหลือ < `lowThreshold` 15% กะพริบ (`blinkRate` 3) แสดงเฉพาะตอนเครื่องอยู่ในมือ (ไม่ใช่ socket) fade เข้า/ออก
+  - `NeedleLabel` (TMP ในวงใต้ตัวเลข %) แสดงหัวที่ใส่อยู่ เช่น `MEDIUM 5mm` สีของหัวผสมขาว ระหว่างกดค้างเปลี่ยนหัวแสดงชื่อหัวใหม่กะพริบ (`swapBlinkRate`)
 - **สีบนแขน:** RenderTexture ของ `TattooCanvas` เป็น premultiplied (rgb = สี × alpha, `TattooBrush.shader` ใช้ `Blend One OneMinusSrcAlpha`) แต่ละเส้นจึงเก็บสีของตัวเอง สีใหม่ทับสีเก่าได้ `TattooSkinOverlay.shader` แสดงสีจาก rgb / alpha (เลิกใช้ `_InkColor`) คะแนนยังอ่านแค่ alpha จึงไม่สนสี
 - **ถ้วยหมึกและขวด (`Prefabs/Ink/`):** `InkCap.prefab` (ถ้วยพลาสติกขาว Ø 4.5 ซม. สูง 2.5 ซม. + แผ่น `Ink` บนปากถ้วย + SphereCollider trigger r 3.4 ซม. ที่ y 2.2 ซม. ใหญ่กว่าถ้วย ~1 ซม. รอบด้าน + `InkTint` + `InkCap`) และ `InkBottle.prefab` (ขวดตกแต่ง Ø 4 ซม. สูง ~10 ซม. + ป้าย + ฝาดำ + `InkTint` ไม่มี trigger) มี variant `_Black/_Red/_Blue/_Green`
   - `InkTint` ใส่สีด้วย MaterialPropertyBlock (`_BaseColor`) ให้ `renderers` (`[ExecuteAlways]` เห็นสีใน Editor) material ใช้ร่วมกันที่ `Materials/Ink/` (`Ink` สีขาว ถูกย้อมด้วย tint)
   - **เพิ่มสีใหม่:** คลิกขวา `InkCap.prefab` → Create → Prefab Variant ตั้ง `InkTint.color` และ `InkCap.inkName` แล้ววางบน `CapRack` (ถ้าเกิน 4 ใบต้องขยายแถว/ถาด และเช็กว่ายังอยู่ในภาพมุมนั่ง)
   - **เปลี่ยนเป็นโมเดลสวยกว่า:** แก้ child ใน `InkCap.prefab`/`InkBottle.prefab` ที่เดียว variant และของใน scene จะเปลี่ยนตาม (อย่าลืมใส่ renderer ของผิวหมึกลง `InkTint.renderers` และให้ trigger อยู่ที่ผิวหมึก)
+
+## หัวเข็ม
+- 3 ขนาด: **LINER 3 มม.** (ฟ้า เลข 3), **MEDIUM 5 มม.** (ส้ม เลข 5 = ค่าเริ่มเกม), **SHADER 9 มม.** (ชมพูม่วง เลข 9)
+- **`TattooNeedle` (บนเครื่อง):** `needleName`, `diameter`, `color` ของหัวที่ใส่อยู่ (ค่าใน scene = MEDIUM) ทุกเฟรม `OverlapSphere(tip, touchRadius 5 มม.)` หา trigger ของ `NeedleCartridge` (`TouchedCartridge`) แตะหัวที่ต่างจากที่ใส่อยู่ + กด trigger ค้าง `swapHoldTime` 0.4 วิ → `Fit()` เปลี่ยนหัว + สั่นเบา (`swapHapticAmplitude` 0.3, 0.08 วิ) ระหว่างกดค้างสั่นเบามาก (0.08 ทุก 0.1 วิ) มี `SwapTarget`/`SwapProgress`/`onChanged`/`Label`
+- **`NeedleCartridge` (`Scripts/Needles/`):** `needleName`, `diameter`, สีจาก `InkTint` (ตัวเดียวกับหมึก)
+- **Prefab (`Prefabs/Needles/`):** `NeedleCartridge.prefab` หลอดพลาสติกขาว Ø 1.3 ซม. สูง 6 ซม. (`Body` ใช้ `InkCapPlastic`) + `Grip` และ `Top` สี (`Materials/Needles/NeedleGrip.mat` ย้อมด้วย `InkTint`) + `Label` TMP ตัวเลขบนหัว (หันให้อ่านได้จากเก้าอี้) + SphereCollider trigger r 1.5 ซม. ที่ปลายบน ไม่มี collider ทึบ; variant `_Liner/_Medium/_Shader`
+  - **เพิ่มขนาดใหม่:** สร้าง variant จาก `NeedleCartridge.prefab` ตั้ง `needleName`, `diameter` (≤ 1 ซม. = `TattooCanvas.MaxNeedleDiameter`), `InkTint.color`, ตัวเลขใน `Label` แล้ววางบน `NeedleRack` (และเพิ่มในรายการหัวของ `TattooScoreSimulator`)
+- **`Interactables/TattooSystem/NeedleRack`:** บล็อกสแตนเลสบน `MountArm` ของ `CapRack` (1.03, −0.949, −0.16) ต่อจากถ้วยเขียว เรียงจากใกล้ผู้เล่น: LINER (z −0.13), MEDIUM (−0.16), SHADER (−0.19) trigger ไม่ทับ trigger ถ้วย ตอนนั่งอยู่ขอบขวาของภาพ (หันขวานิดเดียว)
 
 ## รถเข็น (`Furniture/InkTrolley`)
 - โมเดล `Models/Shelf/model.fbx` (รถเข็นสแตนเลส 3 ชั้น ขนาดจริงอยู่แล้ว 0.525 × 0.895 × 0.35 ม. ไม่ย่อขยาย) material extract ไว้ `Models/Shelf/Materials/` (`steel` = สแตนเลส, `plactic`/`Material.006` = ยางล้อดำ)
@@ -177,8 +199,8 @@
 - บนชั้นบน: `Interactables/TattooSystem/MachineHolder` ถ้วยเสียบสีดำที่มุมหน้าของถาดฝั่งเตียง (0.975, z −0.07) ข้างไหล่ขวาตอนนั่ง มี `Socket` (ย้ายมาจากแท่นเดิม) เครื่องตั้งตรง ปลายเข็มเหนือพื้นถาด 1 ซม.; `Interactables/TattooSystem/Inks` ขวดตกแต่ง 4 ขวดแถวหลัง (z 0.135)
 - **ที่วางถ้วย `Inks/CapRack`:** ถาดสแตนเลสแถวเดียว (`Pad0–3` + `Bar`, ผิวบน y −0.95 สูงกว่าขอบถาดรถเข็น) ยื่นจากเสา `Post2` มุมรถเข็นฝั่งเตียง (`Clamp` + `MountArm` + `MountLink`) ไปอยู่ระหว่างขอบเตียงกับเก้าอี้ ทางขวามือตอนนั่ง ถ้วย 4 ใบเรียงซ้าย→ขวาจากมุมนั่ง: ดำ (1.235, z −0.178), แดง (1.185, −0.185), น้ำเงิน (1.135, −0.192), เขียว (1.085, −0.199) ห่าง `TattooWorkArea` 22–30 ซม. ระยะ/แนวเอียงจูนให้เห็นครบ 4 ใบในมุมก้มมองแขนของ simulator (FOV 60°) ถ้าย้ายต้องเช็กว่าไม่ทับมือลูกค้า (Tanya/Leni มือวางชิดขอบเตียงแถว x 1.15–1.25)
 
-- Shader: `Assets/_VRTattoo/Shaders/TattooBrush.shader` (แปรงกลมขอบนุ่ม)
-- Material: `Assets/_VRTattoo/Materials/Tattoo/` (TattooBrush, TattooSkinOverlay, TattooMachine, TattooStand, InkGauge, InkHologram)
+- Shader: `Assets/_VRTattoo/Shaders/TattooBrush.shader` (pass 0 แปรงกลมขอบนุ่มลง canvas, pass 1 วงกลมขอบแข็งลง needle map)
+- Material: `Assets/_VRTattoo/Materials/Tattoo/` (TattooBrush, TattooSkinOverlay, TattooMachine, TattooStand, InkGauge, InkHologram), `Materials/Needles/NeedleGrip.mat`
 - สคริปต์เก่า: `AnimeateHandonInput.cs` (คลาส `AnimateHandOnInput` สั่งอนิเมชันมือ), `InputTest.cs` (log ค่า input; GameObject `Input Test` ปิดไว้)
 
 ## ผิวที่สัก (`CustomerTattooSkin` บน `Customer.prefab`)
@@ -201,9 +223,10 @@
 - `XR Device Simulator`: ใช้ทดสอบบนคอม
 - `Interactables/TattooSystem` (มี `TattooDesktopTestMode`)
   - `TattooWorkArea`: จุดว่างที่ (1.33, −1.05, −0.325) = กลางแขนท่อนล่างขวาของลูกค้าที่นอน (เฉลี่ยทุกตัว) เป็น `lookTarget` ของเก้าอี้ (TattooArm Capsule เดิมถูกลบแล้ว)
-  - `TattooMachine`: มี XRGrabInteractable (Instantaneous) + TattooMachine + TattooInk + ReturnToSocket + Rigidbody, CapsuleCollider (หัวครอบปลาย+ด้าม) + BoxCollider (หัวเครื่อง) และ child `Model`, `Tip`, `Attach`, `InkGauge` (ดูหัวข้อ "เครื่องสัก")
+  - `TattooMachine`: มี XRGrabInteractable (Instantaneous) + TattooMachine + TattooInk + TattooNeedle + ReturnToSocket + Rigidbody, CapsuleCollider (หัวครอบปลาย+ด้าม) + BoxCollider (หัวเครื่อง) และ child `Model`, `Tip`, `Attach`, `InkGauge` (ดูหัวข้อ "เครื่องสัก")
   - `MachineHolder/Socket`: XRSocketInteractor บนรถเข็น (`SocketAttach` หมุนเท่ากับ `Attach` เครื่องจึงตั้งตรง เข็มชี้ลง ปลายเข็มลอยเหนือพื้นถาด 1 ซม.)
   - `Inks`: ขวดตกแต่งบนรถเข็น + `CapRack` ถ้วยหมึก 4 สี (ดูหัวข้อ "รถเข็น")
+  - `NeedleRack`: หัวเข็ม 3 ขนาด (ดูหัวข้อ "หัวเข็ม")
   - `InkHologram`: วงแหวนบอกหมึก (ดูหัวข้อ "หมึก")
   - `SeatHint`: ป้าย TMP บอกปุ่ม (ภาษาอังกฤษ)
   - `SubmitButton`: ปุ่มส่งงานลอยข้างเตียง (1.75, −0.85, −0.05) ซ้ายมือผู้เล่นตอนนั่ง (ย้ายออกจากจุดที่หัวผู้เล่นอยู่ตอนนั่ง) (BoxCollider + XRSimpleInteractable, child `Visual` และ `Label`)
@@ -227,6 +250,7 @@
 | เปิด/ปิด Desktop Test Mode | K (ชนกับ simulator นิดหน่อยตอนกำลังคุม controller/มือ) |
 | วาดใน Desktop mode | ชี้เมาส์ที่แขน + คลิกซ้ายค้าง |
 | เติมหมึก / เปลี่ยนสี | จุ่มปลายเข็มลงถ้วยแล้วกด trigger ค้าง (~1.5 วิจนเต็ม); Desktop mode: ชี้เมาส์ที่ถ้วย + คลิกซ้ายค้าง |
+| เปลี่ยนหัวเข็ม | จิ้มปลายเข็มที่หัวเข็มบนราว (ขวาของถ้วยเขียว) แล้วกด trigger ค้าง 0.4 วิ; Desktop mode: หันขวา (คลิกขวาลาก) ชี้เมาส์ที่หัวเข็ม + คลิกซ้ายค้าง |
 | หันมอง | คลิกขวาค้าง + ลากเมาส์ |
 | ซูม (เฉพาะ Desktop Test Mode) | ลูกกลิ้งเมาส์ |
 | ส่งงาน (ให้คะแนน แล้วลูกค้าเดินออก) | J (เฉพาะ Editor) หรือชี้ปุ่ม SUBMIT ด้วย controller ซ้าย + G |
@@ -240,7 +264,8 @@
 - **รอยสักไม่ถาวร:** หายเมื่อลูกค้าลุกจากเตียง และทุกครั้งที่กด Play
 - **Socket ไม่ได้กรอง interaction layer:** ถ้ามีของอื่นที่หยิบได้ อาจไปเสียบที่วางได้
 - **หยิบ/วางเครื่องตอนนั่ง:** ระยะเอื้อมถึงที่วางคิดจากตำแหน่งตา (ไหล่ประมาณ) ยังไม่ได้ลองกับแว่นจริง; Near-Far Interactor หยิบจากระยะไกลด้วย ray ได้ด้วย; ตอนเครื่องเข้ามือเองถ้าผู้เล่นกำ grip ค้างแล้วปล่อย เครื่องจะกลับที่วาง (ตั้งใจให้เป็นวิธีวางคืน) หยิบด้วย grip จริงจาก simulator ยังไม่ได้ลอง (ทดสอบผ่าน interaction manager)
-- **คะแนนกับลายพื้นทึบหนา:** มือสั่นแล้วโดนหักน้อยกว่าลายเส้นบาง เพราะเทียบพื้นที่เลอะกับพื้นที่ลาย
+- **คะแนนกับลายพื้นทึบหนา:** มือสั่นแล้วยังได้มากกว่าลายเส้นบางเล็กน้อย (มือสั่นนิดหน่อย 92–97 เทียบกับ 84–93) เพราะเทียบพื้นที่เลอะกับพื้นที่ลาย แต่ห่างกันน้อยลงมากจากการถ่วงตามระยะ
+- **หัวเข็ม:** สั่นตอนเปลี่ยนหัวยังไม่ได้ลองกับแว่นจริง; ทดสอบใน Desktop Test Mode ด้วย mouse event ผ่าน Input System; ราวหัวเข็มอยู่นอกมุมก้มมองแขนของ simulator (ต้องหันขวา) ระยะเอื้อมยังไม่ได้ลองกับแว่นจริง; needle map เก็บหัวที่ใหญ่สุดต่อพิกเซล ถ้าเอาหัวเล็กเก็บขอบทับรอยหัวใหญ่ พิกเซลนั้นยังได้ความผ่อนปรนของหัวใหญ่
 - **ล็อกหัวใน simulator พึ่ง reflection (`m_HMDState`):** ถ้าอัปเดต XRI แล้วชื่อฟิลด์เปลี่ยน หัวจะไม่ถูกล็อก (ไม่ error) แต่จอมืดยังทำงาน
 - **จอมืดตอนออกนอกรัศมี** ทดสอบใน simulator แล้ว ยังไม่ได้ทดสอบกับแว่นจริง
 - **ท่าจับเครื่อง (45°, ห่างปลาย 3.5 ซม.)** จูนจากภาพใน simulator ยังไม่ได้ลองกับมือจริง ถ้าไม่ถนัดปรับที่ `Attach` (และหมุน `SocketAttach` ให้เท่ากัน ไม่งั้นเครื่องบนที่วางจะเอียง)
@@ -263,7 +288,7 @@
 - **โมเดลไม่อยู่ใน git** (ดูหัวข้อ "ตัวละครลูกค้า") clone ใหม่แล้ว prefab ตัวละครจะว่าง จนกว่าจะก๊อปโมเดลมาใส่
 
 ## งานถัดไป (ทำตามลำดับ)
-1. ระบบเปลี่ยนหัวเข็ม (เส้นเล็ก/ใหญ่) วางหัวเข็มบนรถเข็น และปรับระบบคะแนนรองรับ (รวมถึงสีถ้าลายกำหนดสี)
+1. ลายที่กำหนดสี และให้คะแนนตามสี
 2. เสียงเครื่องสัก (AudioListener พร้อมแล้ว), ป้ายภาษาไทย (ต้องมีฟอนต์ TMP ที่รองรับภาษาไทย)
 3. เปลี่ยนจุดสักได้หลายส่วนของร่างกาย เช่น ต้นแขน หลัง (อาจต้องมีท่านอนคว่ำ) รวมถึงให้ลูกค้าเปลี่ยนท่าแขน/ยื่นแขนให้ช่าง
 

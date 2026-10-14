@@ -3,7 +3,7 @@ using UnityEngine;
 public struct TattooScore
 {
     public float accuracy;   // fraction of the stencil lines that got ink on or near them (0..1)
-    public float messRatio;  // area of ink outside the design ÷ area of the design (0..)
+    public float messRatio;  // weighted area of ink outside the design ÷ area of the design (0..)
     public int messPenalty;  // points taken off for the mess (shown to the player)
     public int quality;      // 0..100
 }
@@ -14,29 +14,42 @@ public struct TattooScoringRules
     [Tooltip("A line pixel counts as inked when ink is this close to it (m)")]
     public float coverTolerance;
 
-    [Tooltip("Ink further than this outside the edge of a design line is mess (m)")]
+    [Tooltip("Ink further than this (plus the needle slack) outside the edge of a design line is mess (m)")]
     public float messTolerance;
+
+    [Tooltip("Mess counts more the further it is: from nothing at the tolerance to full at this much further out (m). " +
+             "A slightly wobbly edge costs little, ink far from the design costs fully.")]
+    public float messFalloff;
+
+    [Tooltip("Extra mess tolerance per metre of radius of the needle that inked the pixel: a wide needle " +
+             "naturally overflows the edge, so it gets more room (0 = same for every needle)")]
+    public float needleSlack;
 
     [Tooltip("Mess area (as a multiple of the design's area) that brings the score to 0")]
     public float messLimit;
 
-    [Tooltip("quality = accuracy × (1 − messRatio / messLimit)^messPower; higher = small messes already cost more")]
+    [Tooltip("quality = accuracy × (1 − min(1, messRatio / messLimit)^messPower); below 1 = small messes already cost noticeably, " +
+             "large ones level off before reaching messLimit")]
     public float messPower;
 
+    // Tuned with VRTattoo/Simulate Tattoo Scores (see CLAUDE.md for the table).
     public static TattooScoringRules Default => new TattooScoringRules
     {
         coverTolerance = 0.0015f,
-        messTolerance = 0.002f,
+        messTolerance = 0f,
+        needleSlack = 1.1f,
+        messFalloff = 0.0032f,
         messLimit = 1f,
-        messPower = 2f,
+        messPower = 0.58f,
     };
 }
 
 // Compares the ink on a TattooCanvas with the stencil that was shown on it.
 //   accuracy  = share of the stencil lines with ink on or within coverTolerance of them
-//   messRatio = area of ink further than messTolerance from the lines ÷ area of the lines,
-//               counted over the whole canvas, so smearing outside the design is never free
-//   quality   = 100 × accuracy × max(0, 1 − messRatio / messLimit)^messPower
+//   messRatio = area of ink outside the lines ÷ area of the lines, counted over the whole canvas so smearing
+//               outside the design is never free. Each ink pixel weighs clamp01((distance to the lines − tolerance) / messFalloff),
+//               tolerance = messTolerance + needleSlack × radius of the needle that inked it
+//   quality   = 100 × accuracy × (1 − min(1, messRatio / messLimit)^messPower)
 // All areas are pixel counts on the same canvas (every pixel covers the same skin area).
 public static class TattooScorer
 {
@@ -61,8 +74,19 @@ public static class TattooScorer
         for (int i = 0; i < ink.Length; i++)
             ink[i] = pixels[i].a > InkAlpha;
 
+        // Needle map: R = needle diameter ÷ TattooCanvas.MaxNeedleDiameter.
+        byte[] needle = null;
+        var needleRT = canvas.NeedleTexture;
+        if (needleRT != null && needleRT.width == size && needleRT.height == size)
+        {
+            Color32[] needlePixels = ReadRegion(needleRT, 0, 0, size, size);
+            needle = new byte[size * size];
+            for (int i = 0; i < needle.Length; i++)
+                needle[i] = needlePixels[i].r;
+        }
+
         bool[] line = StencilMask(stencil, placement, size);
-        return ScoreMasks(ink, line, size, size, metersPerPixel, rules);
+        return ScoreMasks(ink, line, size, size, metersPerPixel, rules, needle);
     }
 
     // Stencil lines drawn into a size × size canvas grid (only the stencil's own square is sampled).
@@ -93,8 +117,15 @@ public static class TattooScorer
         return line;
     }
 
+    // Needle map value (0..255) for a needle of this diameter (m).
+    public static byte NeedleValue(float diameter) =>
+        (byte)Mathf.RoundToInt(Mathf.Clamp01(diameter / TattooCanvas.MaxNeedleDiameter) * 255f);
+
     // The scoring itself, on ink / line masks of the same w × h grid. Also used by the score simulator.
-    public static TattooScore ScoreMasks(bool[] ink, bool[] line, int w, int h, Vector2 metersPerPixel, TattooScoringRules rules)
+    // needle (optional) = per-pixel NeedleValue of the needle that inked it; null = no needle slack.
+    // lineDistance (optional) = DistanceToMask(line), passed in when scoring many inks against one design.
+    public static TattooScore ScoreMasks(bool[] ink, bool[] line, int w, int h, Vector2 metersPerPixel, TattooScoringRules rules,
+        byte[] needle = null, float[] lineDistance = null)
     {
         var result = new TattooScore();
         int lineCount = 0;
@@ -104,25 +135,30 @@ public static class TattooScorer
         if (lineCount == 0)
             return result;
 
-        int messX = Mathf.CeilToInt(rules.messTolerance / metersPerPixel.x);
-        int messY = Mathf.CeilToInt(rules.messTolerance / metersPerPixel.y);
         int coverX = Mathf.CeilToInt(rules.coverTolerance / metersPerPixel.x);
         int coverY = Mathf.CeilToInt(rules.coverTolerance / metersPerPixel.y);
 
-        bool[] allowed = Dilate(line, w, h, messX, messY);
+        // Mess is weighed by how far the ink is from the lines, past a tolerance that grows with the needle that put it there.
+        float[] distance = lineDistance ?? DistanceToMask(line, w, h, metersPerPixel);
         bool[] nearInk = Dilate(ink, w, h, coverX, coverY);
-        int covered = 0, mess = 0;
+        float falloff = Mathf.Max(rules.messFalloff, 0.0001f);
+        int covered = 0;
+        float mess = 0f;
         for (int i = 0; i < line.Length; i++)
         {
             if (line[i] && nearInk[i])
                 covered++;
-            if (ink[i] && !allowed[i])
-                mess++;
+            if (ink[i] && !line[i])
+            {
+                float needleRadius = needle != null ? needle[i] / 255f * TattooCanvas.MaxNeedleDiameter * 0.5f : 0f;
+                float tolerance = rules.messTolerance + rules.needleSlack * needleRadius;
+                mess += Mathf.Clamp01((distance[i] - tolerance) / falloff);
+            }
         }
 
         result.accuracy = covered / (float)lineCount;
         result.messRatio = mess / (float)lineCount;
-        float messFactor = Mathf.Pow(Mathf.Clamp01(1f - result.messRatio / Mathf.Max(rules.messLimit, 0.0001f)), rules.messPower);
+        float messFactor = 1f - Mathf.Pow(Mathf.Clamp01(result.messRatio / Mathf.Max(rules.messLimit, 0.0001f)), rules.messPower);
         result.quality = Mathf.RoundToInt(100f * Mathf.Clamp01(result.accuracy * messFactor));
         result.messPenalty = Mathf.Max(0, Mathf.RoundToInt(100f * result.accuracy) - result.quality);
         return result;
@@ -139,6 +175,50 @@ public static class TattooScorer
         var pixels = tex.GetPixels32();
         Object.Destroy(tex);
         return pixels;
+    }
+
+    // Distance (m) from every pixel to the nearest true pixel of the mask: two-pass chamfer (8 neighbours),
+    // within a few % of the true distance.
+    public static float[] DistanceToMask(bool[] mask, int w, int h, Vector2 metersPerPixel)
+    {
+        float dx = metersPerPixel.x, dy = metersPerPixel.y, dd = Mathf.Sqrt(dx * dx + dy * dy);
+        var d = new float[mask.Length];
+        for (int i = 0; i < d.Length; i++)
+            d[i] = mask[i] ? 0f : float.MaxValue;
+
+        for (int y = 0; y < h; y++)
+        {
+            for (int x = 0; x < w; x++)
+            {
+                int i = y * w + x;
+                float v = d[i];
+                if (x > 0) v = Mathf.Min(v, d[i - 1] + dx);
+                if (y > 0)
+                {
+                    v = Mathf.Min(v, d[i - w] + dy);
+                    if (x > 0) v = Mathf.Min(v, d[i - w - 1] + dd);
+                    if (x < w - 1) v = Mathf.Min(v, d[i - w + 1] + dd);
+                }
+                d[i] = v;
+            }
+        }
+        for (int y = h - 1; y >= 0; y--)
+        {
+            for (int x = w - 1; x >= 0; x--)
+            {
+                int i = y * w + x;
+                float v = d[i];
+                if (x < w - 1) v = Mathf.Min(v, d[i + 1] + dx);
+                if (y < h - 1)
+                {
+                    v = Mathf.Min(v, d[i + w] + dy);
+                    if (x < w - 1) v = Mathf.Min(v, d[i + w + 1] + dd);
+                    if (x > 0) v = Mathf.Min(v, d[i + w - 1] + dd);
+                }
+                d[i] = v;
+            }
+        }
+        return d;
     }
 
     // Rectangular dilation (separable running count).

@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.Events;
 
-// Ink held by the tattoo machine. Used up by the length of line tattooed (not by time).
+// Ink held by the tattoo machine. Used up by the area tattooed (line length × needle width, not by time).
 // Refilled by dipping the needle tip into an InkCap and holding the trigger: the ink rises over refillDuration.
 // A cap of another colour first empties the old ink, then fills with the new colour.
 public class TattooInk : MonoBehaviour
@@ -14,8 +14,11 @@ public class TattooInk : MonoBehaviour
 
     public Color color = new Color(0.02f, 0.02f, 0.02f);
 
-    [Tooltip("Length of line one full load of ink draws (m). A medium stencil takes about half a load.")]
+    [Tooltip("Length of line one full load of ink draws with a referenceDiameter needle (m). A medium stencil takes about half a load.")]
     public float metersPerLoad = 1.3f;
+
+    [Tooltip("Needle width metersPerLoad is measured with (m). Wider needles use ink faster, in proportion.")]
+    public float referenceDiameter = 0.005f;
 
     [Tooltip("The tip counts as dipped when an ink cap's trigger is within this distance (m)")]
     public float dipRadius = 0.005f;
@@ -88,13 +91,17 @@ public class TattooInk : MonoBehaviour
         return null;
     }
 
-    // Uses the ink for a line of this length. Returns false when there was no ink.
-    public bool Consume(float meters)
+    // Uses the ink for a line of this length drawn with a referenceDiameter needle. Returns false when there was no ink.
+    public bool Consume(float meters) => Consume(meters, referenceDiameter);
+
+    // Uses the ink for a line of this length and width (m). Returns false when there was no ink.
+    public bool Consume(float meters, float diameter)
     {
         if (IsEmpty)
             return false;
 
-        amount = Mathf.Max(0f, amount - 100f * meters / Mathf.Max(metersPerLoad, 0.0001f));
+        float widthFactor = diameter / Mathf.Max(referenceDiameter, 0.0001f);
+        amount = Mathf.Max(0f, amount - 100f * meters * widthFactor / Mathf.Max(metersPerLoad, 0.0001f));
         onChanged?.Invoke();
         return true;
     }

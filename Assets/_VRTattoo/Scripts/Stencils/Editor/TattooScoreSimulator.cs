@@ -3,8 +3,8 @@ using System.Text;
 using UnityEditor;
 using UnityEngine;
 
-// Menu VRTattoo/Simulate Tattoo Scores: scores made-up ink for every design in the library, so the
-// scoring rules (TattooJobManager.scoring in the open scene) can be tuned without playing.
+// Menu VRTattoo/Simulate Tattoo Scores: scores made-up ink for every design in the library with every
+// needle size, so the scoring rules (TattooJobManager.scoring in the open scene) can be tuned without playing.
 // The canvas and stencil placement match CustomerTattooSkin (20 cm canvas, 14 cm design, 1024 px).
 public static class TattooScoreSimulator
 {
@@ -12,23 +12,34 @@ public static class TattooScoreSimulator
     const float CanvasSize = 0.20f;
     const float StencilSize = 0.14f;
     const int Seed = 12345;
-    const float NeedleDiameter = 0.005f;  // CustomerTattooSkin.brushDiameter
 
-    enum Case { Clean, Shaky, SmearDesign, SmearOutside }
+    // The needle cartridges on the trolley (Prefabs/Needles).
+    static readonly string[] NeedleNames = { "LINER", "MEDIUM", "SHADER" };
+    static readonly float[] NeedleDiameters = { 0.003f, 0.005f, 0.009f };
 
-    static readonly string[] CaseNames = { "Clean lines", "Shaky hand", "Smear over design", "Smear outside" };
+    // Designs whose typical line is at least this wide are "solid" (filled areas, a job for the shader needle).
+    const float SolidHalfWidth = 0.003f;
+
+    enum Case { Clean, SlightShake, Messy, SmearDesign, SmearOutside }
+
+    static readonly string[] CaseNames = { "Clean", "Slight shake", "Messy", "Smear design", "Smear outside" };
+    static readonly string[] CaseTargets = { "90-100", "75-90", "45-65", "< 25", "0" };
+    const int CaseCount = 5;
 
     [MenuItem("VRTattoo/Simulate Tattoo Scores")]
     static void Menu() => Debug.Log(Run());
 
-    public static string Run()
+    public static string Run() => Run(null);
+
+    // rulesOverride: score with these rules instead of the scene's (for tuning).
+    public static string Run(TattooScoringRules? rulesOverride)
     {
         var library = AssetDatabase.LoadAssetAtPath<StencilLibrary>("Assets/_VRTattoo/Data/StencilLibrary.asset");
         if (library == null)
             return "[TattooScoreSimulator] StencilLibrary.asset not found";
 
         var manager = Object.FindFirstObjectByType<TattooJobManager>();
-        var rules = manager != null ? manager.scoring : TattooScoringRules.Default;
+        var rules = rulesOverride ?? (manager != null ? manager.scoring : TattooScoringRules.Default);
 
         float k = CanvasSize / StencilSize;
         var placement = new StencilPlacement
@@ -41,11 +52,17 @@ public static class TattooScoreSimulator
         float metersPerPixel = CanvasSize / Size;
         Vector2 mpp = new Vector2(metersPerPixel, metersPerPixel);
 
-        // results[difficulty][case] = list of scores
-        var results = new Dictionary<StencilDifficulty, List<TattooScore>[]>();
+        // results[(difficulty, needle)][case] = scores; solid[needle, case] = scores of solid designs only
+        var results = new Dictionary<(StencilDifficulty, int), List<int>[]>();
+        var solid = new List<int>[NeedleNames.Length, CaseCount];
+        for (int n = 0; n < NeedleNames.Length; n++)
+            for (int c = 0; c < CaseCount; c++)
+                solid[n, c] = new List<int>();
+
         var report = new StringBuilder();
-        report.AppendLine($"[TattooScoreSimulator] rules: cover {rules.coverTolerance * 1000f:0.#} mm, mess tolerance {rules.messTolerance * 1000f:0.#} mm, " +
-                          $"messLimit {rules.messLimit:0.##}, messPower {rules.messPower:0.##}");
+        report.AppendLine($"[TattooScoreSimulator] rules: cover {rules.coverTolerance * 1000f:0.#} mm, mess tolerance {rules.messTolerance * 1000f:0.#} mm " +
+                          $"+ {rules.needleSlack:0.##} x needle radius, falloff {rules.messFalloff * 1000f:0.#} mm, messLimit {rules.messLimit:0.##}, messPower {rules.messPower:0.##}");
+        report.AppendLine($"  per design (quality LINER MEDIUM SHADER): {string.Join(" | ", CaseNames)}");
 
         foreach (var entry in library.stencils)
         {
@@ -53,63 +70,106 @@ public static class TattooScoreSimulator
                 continue;
 
             bool[] line = TattooScorer.StencilMask(entry.texture, placement, Size);
-            if (!results.TryGetValue(entry.difficulty, out var perCase))
-            {
-                perCase = new List<TattooScore>[4];
-                for (int c = 0; c < 4; c++)
-                    perCase[c] = new List<TattooScore>();
-                results[entry.difficulty] = perCase;
-            }
+            float halfWidth = HalfWidth(line, metersPerPixel);
+            float[] lineDistance = TattooScorer.DistanceToMask(line, Size, Size, mpp);
+            bool isSolid = halfWidth >= SolidHalfWidth;
+            report.Append($"  {entry.difficulty,-6} {entry.displayName,-18} line {halfWidth * 2000f,4:0.0}mm{(isSolid ? " solid" : "      ")}");
 
-            report.Append($"  {entry.difficulty,-6} {entry.displayName,-20}");
-            for (int c = 0; c < 4; c++)
+            for (int c = 0; c < CaseCount; c++)
             {
-                bool[] ink = MakeInk((Case)c, line, placement, metersPerPixel);
-                var score = TattooScorer.ScoreMasks(ink, line, Size, Size, mpp, rules);
-                perCase[c].Add(score);
-                report.Append($" | {score.quality,3} (acc {score.accuracy:P0}, mess {score.messRatio:0.00}x)");
+                report.Append(" |");
+                for (int n = 0; n < NeedleNames.Length; n++)
+                {
+                    if (!results.TryGetValue((entry.difficulty, n), out var perCase))
+                    {
+                        perCase = new List<int>[CaseCount];
+                        for (int i = 0; i < CaseCount; i++)
+                            perCase[i] = new List<int>();
+                        results[(entry.difficulty, n)] = perCase;
+                    }
+
+                    float diameter = NeedleDiameters[n];
+                    bool[] ink = MakeInk((Case)c, line, placement, metersPerPixel, diameter, halfWidth);
+                    var needle = new byte[ink.Length];
+                    byte value = TattooScorer.NeedleValue(diameter);
+                    for (int i = 0; i < ink.Length; i++)
+                        if (ink[i])
+                            needle[i] = value;
+
+                    var score = TattooScorer.ScoreMasks(ink, line, Size, Size, mpp, rules, needle, lineDistance);
+                    perCase[c].Add(score.quality);
+                    if (isSolid)
+                        solid[n, c].Add(score.quality);
+                    report.Append($" {score.quality,3}");
+                }
             }
             report.AppendLine();
         }
 
         var table = new StringBuilder();
         table.AppendLine("Quality min / avg / max");
-        table.AppendLine($"{"",-8}| {CaseNames[0],-17}| {CaseNames[1],-17}| {CaseNames[2],-17}| {CaseNames[3],-17}");
+        table.Append($"{"",-15}");
+        for (int c = 0; c < CaseCount; c++)
+            table.Append($"| {CaseNames[c] + " (" + CaseTargets[c] + ")",-22}");
+        table.AppendLine();
         foreach (StencilDifficulty difficulty in System.Enum.GetValues(typeof(StencilDifficulty)))
         {
-            if (!results.TryGetValue(difficulty, out var perCase))
-                continue;
-            table.Append($"{difficulty,-8}");
-            for (int c = 0; c < 4; c++)
+            for (int n = 0; n < NeedleNames.Length; n++)
             {
-                int min = int.MaxValue, max = int.MinValue;
-                float sum = 0f;
-                foreach (var s in perCase[c])
-                {
-                    min = Mathf.Min(min, s.quality);
-                    max = Mathf.Max(max, s.quality);
-                    sum += s.quality;
-                }
-                table.Append($"| {min,3} / {sum / perCase[c].Count,5:0.0} / {max,3}  ");
+                if (!results.TryGetValue((difficulty, n), out var perCase))
+                    continue;
+                table.Append($"{difficulty + " " + NeedleNames[n],-15}");
+                for (int c = 0; c < CaseCount; c++)
+                    table.Append($"| {Summary(perCase[c]),-22}");
+                table.AppendLine();
             }
+        }
+        for (int n = 0; n < NeedleNames.Length; n++)
+        {
+            table.Append($"{"solid " + NeedleNames[n],-15}");
+            for (int c = 0; c < CaseCount; c++)
+                table.Append($"| {Summary(solid[n, c]),-22}");
             table.AppendLine();
         }
 
         return report + "\n" + table;
     }
 
-    static bool[] MakeInk(Case c, bool[] line, StencilPlacement placement, float metersPerPixel)
+    static string Summary(List<int> scores)
+    {
+        if (scores.Count == 0)
+            return "-";
+        int min = int.MaxValue, max = int.MinValue;
+        float sum = 0f;
+        foreach (int s in scores)
+        {
+            min = Mathf.Min(min, s);
+            max = Mathf.Max(max, s);
+            sum += s;
+        }
+        return $"{min,3} / {sum / scores.Count,5:0.0} / {max,3}";
+    }
+
+    static bool[] MakeInk(Case c, bool[] line, StencilPlacement placement, float metersPerPixel, float needle, float halfWidth)
     {
         var random = new System.Random(Seed);
 
         switch (c)
         {
             case Case.Clean:
-                // A 5 mm needle run along the lines with a steady hand (±0.5 mm), a few short gaps.
-                return Trace(line, metersPerPixel, 0.0005f, 0.02f, random);
-            case Case.Shaky:
-                // The same, but the hand wobbles up to ±3 mm and skips more.
-                return Trace(line, metersPerPixel, 0.003f, 0.10f, random);
+                // The needle run along the lines with a steady hand (±0.5 mm), a few short gaps.
+                return Trace(line, metersPerPixel, needle, halfWidth, 0.0005f, 0.02f, random);
+            case Case.SlightShake:
+                // An unsteady hand: wobbles up to ±3 mm, 10% skipped.
+                return Trace(line, metersPerPixel, needle, halfWidth, 0.003f, 0.10f, random);
+            case Case.Messy:
+            {
+                // A very shaky hand (±4.5 mm, 15% skipped) plus stray strokes off the lines (slips of the needle)
+                // adding 40% of the design's area.
+                bool[] ink = Trace(line, metersPerPixel, needle, halfWidth, 0.0045f, 0.15f, random);
+                AddStrayStrokes(ink, line, metersPerPixel, needle, 0.4f, random);
+                return ink;
+            }
             case Case.SmearDesign:
             {
                 // Ink rubbed over the whole design square.
@@ -123,9 +183,7 @@ public static class TattooScoreSimulator
             default:
             {
                 // As much ink as the design has, but in the margin beside the design square.
-                int lineCount = 0;
-                foreach (bool l in line)
-                    if (l) lineCount++;
+                int lineCount = Count(line);
                 var ink = new bool[line.Length];
                 int width = Mathf.Max(1, Mathf.FloorToInt(placement.uvBounds.xMin * Size) - 4);
                 int rows = Mathf.Min(Size, Mathf.CeilToInt(lineCount / (float)width));
@@ -137,10 +195,16 @@ public static class TattooScoreSimulator
         }
     }
 
-    // Ink from a needle of NeedleDiameter run along the design lines: each line widened to the needle's
-    // width (thin lines get overflow, wide areas none), shifted by smooth noise of up to ±jitter,
-    // with gapChance of 5 mm patches left out.
-    static bool[] Trace(bool[] line, float metersPerPixel, float jitter, float gapChance, System.Random random)
+    static int Count(bool[] mask)
+    {
+        int count = 0;
+        foreach (bool b in mask)
+            if (b) count++;
+        return count;
+    }
+
+    // Half the typical line width of a design: area ÷ outline length.
+    static float HalfWidth(bool[] line, float metersPerPixel)
     {
         int area = 0, edge = 0;
         for (int y = 1; y < Size - 1; y++)
@@ -155,9 +219,14 @@ public static class TattooScoreSimulator
                     edge++;
             }
         }
-        // Half the typical line width: area ÷ outline length for strokes.
-        float halfWidth = edge > 0 ? area / (float)edge * metersPerPixel : 0f;
-        int overflow = Mathf.RoundToInt(Mathf.Max(0f, NeedleDiameter * 0.5f - halfWidth) / metersPerPixel);
+        return edge > 0 ? area / (float)edge * metersPerPixel : 0f;
+    }
+
+    // Ink from a needle run along the design lines: each line widened to the needle's width (thin lines
+    // get overflow, wide areas none), shifted by smooth noise of up to ±jitter, with gapChance of 5 mm patches left out.
+    static bool[] Trace(bool[] line, float metersPerPixel, float needle, float halfWidth, float jitter, float gapChance, System.Random random)
+    {
+        int overflow = Mathf.RoundToInt(Mathf.Max(0f, needle * 0.5f - halfWidth) / metersPerPixel);
         bool[] traced = TattooScorer.Dilate(line, Size, Size, overflow, overflow);
 
         var ink = new bool[traced.Length];
@@ -176,6 +245,48 @@ public static class TattooScoreSimulator
         }
         DropCells(ink, Mathf.RoundToInt(0.005f / metersPerPixel), gapChance, random);
         return ink;
+    }
+
+    // Short straight strokes (1.5 cm, needle wide) starting on the design and heading off in a random
+    // direction, until they add share × the design's area of ink.
+    static void AddStrayStrokes(bool[] ink, bool[] line, float metersPerPixel, float needle, float share, System.Random random)
+    {
+        var linePixels = new List<int>();
+        for (int i = 0; i < line.Length; i++)
+            if (line[i])
+                linePixels.Add(i);
+        if (linePixels.Count == 0)
+            return;
+
+        int target = Mathf.RoundToInt(linePixels.Count * share);
+        int radius = Mathf.Max(1, Mathf.RoundToInt(needle * 0.5f / metersPerPixel));
+        int length = Mathf.RoundToInt(0.015f / metersPerPixel);
+        int added = 0;
+        for (int stroke = 0; stroke < 2000 && added < target; stroke++)
+        {
+            int start = linePixels[random.Next(linePixels.Count)];
+            float angle = (float)(random.NextDouble() * Mathf.PI * 2f);
+            float sx = start % Size, sy = start / Size;
+            for (int s = 0; s <= length && added < target; s++)
+            {
+                int cx = Mathf.RoundToInt(sx + Mathf.Cos(angle) * s);
+                int cy = Mathf.RoundToInt(sy + Mathf.Sin(angle) * s);
+                for (int y = cy - radius; y <= cy + radius; y++)
+                {
+                    for (int x = cx - radius; x <= cx + radius; x++)
+                    {
+                        if (x < 0 || y < 0 || x >= Size || y >= Size || (x - cx) * (x - cx) + (y - cy) * (y - cy) > radius * radius)
+                            continue;
+                        int i = y * Size + x;
+                        if (!ink[i] && !line[i])
+                        {
+                            ink[i] = true;
+                            added++;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     // Smooth noise stretched to use the whole −1..1 range (Perlin noise rarely leaves 0.2..0.8).

@@ -50,7 +50,7 @@ public class TattooDesktopTestMode : MonoBehaviour
     [Tooltip("Leave empty to find it in the scene")]
     public XRDeviceSimulator deviceSimulator;
 
-    [Tooltip("Needle direction in a cap: 0 = straight down, 1 = along the mouse ray")]
+    [Tooltip("Needle direction in an ink cap or on a needle cartridge: 0 = straight down, 1 = along the mouse ray")]
     [Range(0f, 1f)] public float capTiltTowardView = 0.3f;
 
     [Header("Zoom (desktop only)")]
@@ -111,7 +111,7 @@ public class TattooDesktopTestMode : MonoBehaviour
         if (seated)
             HandlePickUp(keyboard);
 
-        // No customer needed: the ink caps can still be used.
+        // No customer needed: the ink caps and needle cartridges can still be used.
         bool active = seated && HeldInHand;
 
         SetOverride(active);
@@ -140,11 +140,11 @@ public class TattooDesktopTestMode : MonoBehaviour
         var skin = SkinCollider;
         RaycastHit skinHit = default;
         bool onSkin = skin != null && skin.Raycast(ray, out skinHit, 10f);
-        var cap = RaycastInkCap(ray, out Collider capTrigger, out float capDistance);
+        var capTrigger = RaycastTrolleyTrigger(ray, out float capDistance);
 
-        if (cap != null && (!onSkin || capDistance < skinHit.distance))
+        if (capTrigger != null && (!onSkin || capDistance < skinHit.distance))
         {
-            // Needle into the middle of the cap's dip trigger, pointing down into the ink.
+            // Needle into the middle of the cap's / cartridge's trigger, pointing down: the trigger refills or swaps.
             Vector3 needleDirection = Vector3.Slerp(Vector3.down, ray.direction, capTiltTowardView).normalized;
             PlaceTip(capTrigger.bounds.center, needleDirection);
             machine.ExternalTrigger = triggerPressed;
@@ -204,26 +204,23 @@ public class TattooDesktopTestMode : MonoBehaviour
             grabInteractable.interactionManager.SelectExit(holder, (IXRSelectInteractable)grabInteractable);
     }
 
-    // Nearest ink cap trigger under the mouse.
-    InkCap RaycastInkCap(Ray ray, out Collider trigger, out float distance)
+    // Nearest ink cap or needle cartridge trigger under the mouse.
+    Collider RaycastTrolleyTrigger(Ray ray, out float distance)
     {
-        trigger = null;
+        Collider trigger = null;
         distance = float.MaxValue;
-        InkCap nearest = null;
         int count = Physics.RaycastNonAlloc(ray, capHits, 10f, ~0, QueryTriggerInteraction.Collide);
         for (int i = 0; i < count; i++)
         {
             var hit = capHits[i];
             if (!hit.collider.isTrigger || hit.distance >= distance)
                 continue;
-            var cap = hit.collider.GetComponentInParent<InkCap>();
-            if (cap == null)
+            if (hit.collider.GetComponentInParent<InkCap>() == null && hit.collider.GetComponentInParent<NeedleCartridge>() == null)
                 continue;
-            nearest = cap;
             trigger = hit.collider;
             distance = hit.distance;
         }
-        return nearest;
+        return trigger;
     }
 
     void PlaceTip(Vector3 tipPosition, Vector3 needleDirection)

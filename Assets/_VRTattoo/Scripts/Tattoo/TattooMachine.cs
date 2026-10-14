@@ -4,7 +4,8 @@ using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 // Draws on a TattooCanvas while held, trigger pressed, and the needle tip touches the skin.
-// With a TattooInk it draws in the ink's colour, uses ink by line length and stops (with a warning buzz) when empty.
+// With a TattooInk it draws in the ink's colour, uses ink by area inked and stops (with a warning buzz) when empty.
+// With a TattooNeedle the line is as wide as the fitted needle (otherwise the canvas' brushDiameter).
 [RequireComponent(typeof(XRGrabInteractable))]
 public class TattooMachine : MonoBehaviour
 {
@@ -21,6 +22,9 @@ public class TattooMachine : MonoBehaviour
 
     [Tooltip("Ink supply (leave empty to use the one on this object; none = unlimited ink in the canvas colour)")]
     public TattooInk ink;
+
+    [Tooltip("Fitted needle (leave empty to use the one on this object; none = the canvas' brush width)")]
+    public TattooNeedle needle;
 
     [Header("Haptics")]
     [Range(0f, 1f)] public float hapticAmplitude = 0.4f;
@@ -63,7 +67,12 @@ public class TattooMachine : MonoBehaviour
         grabInteractable = GetComponent<XRGrabInteractable>();
         if (ink == null)
             ink = GetComponent<TattooInk>();
+        if (needle == null)
+            needle = GetComponent<TattooNeedle>();
     }
+
+    // The trigger is pressed for a refill or a needle swap here, not to draw.
+    bool AtTrolley => (ink != null && ink.DippedCap != null) || (needle != null && needle.TouchedCartridge != null);
 
     void OnEnable()
     {
@@ -85,7 +94,7 @@ public class TattooMachine : MonoBehaviour
         triggerHeld = true;
         activeInteractor = args.interactorObject as XRBaseInputInteractor;
         emptyWarned = false;
-        if (ink != null && ink.IsEmpty && ink.DippedCap == null)
+        if (ink != null && ink.IsEmpty && !AtTrolley)
             WarnEmpty();
     }
 
@@ -128,8 +137,8 @@ public class TattooMachine : MonoBehaviour
         {
             lastCanvas = null;
             IsDrawing = false;
-            // In a cap the trigger refills instead, so no empty buzz there.
-            if (ink.DippedCap == null)
+            // In a cap (or on a needle cartridge) the trigger refills / swaps instead, so no empty buzz there.
+            if (!AtTrolley)
                 WarnEmpty();
             return;
         }
@@ -143,14 +152,15 @@ public class TattooMachine : MonoBehaviour
             Vector2 uv = hit.textureCoord;
             bool continueStroke = canvas == lastCanvas && Time.time - lastContactTime <= strokeGapTolerance;
             Color color = ink != null ? ink.color : canvas.inkColor;
+            float diameter = needle != null ? needle.diameter : canvas.brushDiameter;
             if (continueStroke)
-                canvas.DrawStroke(lastUV, lastPoint, uv, hit.point, color);
+                canvas.DrawStroke(lastUV, lastPoint, uv, hit.point, color, diameter);
             else
-                canvas.DrawStroke(uv, hit.point, uv, hit.point, color);
+                canvas.DrawStroke(uv, hit.point, uv, hit.point, color, diameter);
 
-            // Ink goes by the length of line drawn: holding still uses none, a new dot costs one brush width.
+            // Ink goes by the area inked: holding still uses none, a new dot costs one needle width.
             if (ink != null)
-                ink.Consume(continueStroke ? Vector3.Distance(lastPoint, hit.point) : canvas.brushDiameter);
+                ink.Consume(continueStroke ? Vector3.Distance(lastPoint, hit.point) : diameter, diameter);
 
             lastCanvas = canvas;
             lastUV = uv;
