@@ -20,8 +20,9 @@
 - **ระบบนั่ง (Chair43):**
   - วาร์ปไปท่าทำงาน: ตาอยู่ห่างผิวด้านบนของแขน ~38 ซม. (ห่างแนวนอน 0.25 ม. ไปทางเก้าอี้ + สูงกว่าแกนแขน 0.33 ม. = `leanOverTarget`, `workHorizontalDistance`, `workEyeHeight`) เหมือนช่างที่ก้มทำงาน หันหน้าหาแขน **ไม่ซูมกล้องในแว่น**
   - ปิด: Move, Teleportation, Climb, Jump, Gravity, Grab Move ×3, Teleport Interactor (ray ซ้าย/ขวา), Climb Teleport และ CharacterController (หมุนตัวยังได้) ลุกแล้วเปิดคืนเฉพาะตัวที่เคยเปิดอยู่
-  - เครื่องสักเข้ามือขวาอัตโนมัติ (`StartManualInteraction`)
-  - ลุกแล้วเครื่องกลับที่วาง
+  - นั่งแล้วเครื่องสักเข้ามือขวาอัตโนมัติ (`handInteractor.StartManualInteraction`) ถ้ายังไม่ได้ถืออยู่
+  - ระหว่างนั่ง กด grip แล้วปล่อย = วางเครื่องคืนที่วาง (`TattooSeat.Update` เห็น `selectInput.ReadWasCompletedThisFrame` → `EndManualInteraction` → `ReturnToSocket`) แล้วหยิบใหม่จากที่วางด้วย grip ได้ (ที่วางอยู่ข้างไหล่ขวา ~15 ซม.) หยิบเองแบบนี้เป็นการถือปกติ ปล่อย grip = กลับที่วาง
+  - ลุกแล้วเครื่องกลับที่วาง (`TattooSeat.heldTool` ถูกปล่อยจากมือที่ถืออยู่)
   - **ล็อกหัวตอนนั่ง (`SeatHeadLimit`):** ที่เดินได้ตอนนั่งมาจาก simulator ขยับตำแหน่ง HMD (WASD/Q/E/ลูกกลิ้ง) ไม่ใช่ locomotion (ปิดครบแล้ว) ใน simulator จึงล็อกตำแหน่งหัวไว้ หันมองได้ปกติ controller ยังขยับได้; บนแว่นจริงขยับหัวได้อิสระในรัศมี 50 ซม. จากจุดตาตอนนั่ง เกินแล้วจอค่อย ๆ มืด (มืดสนิทที่ 65 ซม.) กลับเข้ามาแล้วสว่างคืน ไม่ย้ายกล้องเอง
 - **Collider / แก้การตก:**
   - ย้าย XR Origin ขึ้นมาบนพื้น (y = -1.797)
@@ -29,8 +30,9 @@
   - ใส่ BoxCollider ให้ผนัง เพดาน ตู้ และเฟอร์นิเจอร์ เตียงใช้ MeshCollider
 - **Desktop Test Mode:**
   - ปุ่ม K เปิด/ปิด ทำงานเฉพาะใน Editor
-  - ตอนนั่ง เมาส์วางปลายเข็มบนแขน คลิกซ้ายวาด และหัว simulator ก้มมองแขนอัตโนมัติ
-  - เปิดโหมดแล้ว: R = เติมหมึกเต็ม (สีเดิม), 1–4 = เปลี่ยนเป็นสีของถ้วยลำดับนั้น (`inkCaps`: ดำ/แดง/น้ำเงิน/เขียว) + เติมเต็ม ระหว่างเปิดโหมดพัก action ของ simulator ที่ใช้ R/1–4 อยู่ (Toggle Mouse Transformation Mode, Toggle Primary/Secondary 2D Axis Target, Toggle Device Position Target, Primary 2D Axis Click) ปิดโหมดแล้วเปิดคืน
+  - ตอนนั่ง (เครื่องเข้ามือเองอยู่แล้ว) `releaseKey` P = วางคืน, คลิกซ้ายที่เครื่องบนที่วาง = หยิบเข้า `handInteractor` (`StartManualInteraction`, คลิกที่ใช้หยิบไม่นับเป็น trigger)
+  - ถือเครื่องแล้ว เมาส์วางปลายเข็มบนแขน คลิกซ้ายวาด และหัว simulator ก้มมองแขนอัตโนมัติ
+  - ชี้เมาส์ที่ถ้วยหมึกได้ด้วย: ปลายเข็มลงไปอยู่ใน trigger ของถ้วย (เอียงตามเมาส์ `capTiltTowardView`) คลิกซ้ายค้าง = กด trigger → เติม/เปลี่ยนสีเหมือนในแว่น (ไม่มีปุ่ม R/1–4 แล้ว) ใช้ได้แม้ยังไม่มีลูกค้าบนเตียง หัวก้มมองแขนเมื่อผิวพร้อม (เปิดโหมดก่อนลูกค้านอนก็ได้)
   - เลื่อนลูกกลิ้งเมาส์ = ซูม (ปรับ FOV 20°–FOV เดิมของกล้อง ทีละ 4°) ระหว่างนั้นพัก scroll ของ simulator ปิดโหมดแล้วคืน FOV; ไม่ทำงานเมื่อมีแว่นจริง (`XRSettings.isDeviceActive`)
   - ไม่กระทบแว่นจริง
 - **Audio Listener** อยู่บน Main Camera
@@ -48,8 +50,20 @@
 - **ลายสักและคะแนน:**
   - ลูกค้านอนลงแล้วสุ่มลายจากคลัง (ช่วงแรกได้ easy บ่อย ยิ่งเสร็จหลายคนยิ่งเจอ hard บ่อยขึ้น ไม่ซ้ำกับคนก่อน) แสดงเป็นลายเส้นสีม่วงจางบนแขนท่อนล่าง (กรอบลาย 14 ซม. ตั้งตามแนวแขน หัวลายชี้ไปทางข้อศอก ด้านกว้างพันรอบแขน) แยกจากหมึกจริง พร้อมป้ายชื่อลายและระดับ
   - กดปุ่ม SUBMIT ข้างเตียง (ray/grip มือซ้าย) หรือ J (เฉพาะ Editor) เพื่อส่งงาน: คะแนน 0–100 ลอยเหนือเตียง 2.5 วิ แล้วลูกค้าเดินออก
-  - คุณภาพ = 100 × coverage × (1 − spill)² โดย coverage = สัดส่วนเส้นลายที่มีหมึกอยู่บนหรือห่างไม่เกิน 1.5 มม., spill = สัดส่วนของ**หมึกทั้งหมด**ที่ห่างจากเส้นลายเกิน รัศมีเข็ม + 2 มม. นับเฉพาะหมึกในกรอบลาย + 2 ซม. ปรับได้ที่ `TattooJobManager.scoring` (`spillTolerance`, `coverTolerance`, `spillPower`)
-  - ผลจำลอง (ลาย easy/medium/hard): ตามเส้นดี ≈ 100, ส่ายไม่เกิน 3 มม. ≈ 95–98, ส่าย 5 มม. ขาด 20% ≈ 79–86, ส่าย 8 มม. ขาด 35% ≈ 47–63, ระบายมั่วทั้งกรอบ ≈ 24–29
+  - คุณภาพ = 100 × Accuracy × max(0, 1 − messRatio / `messLimit`)^`messPower`
+    - Accuracy = สัดส่วนเส้นลายที่มีหมึกอยู่บนหรือห่างไม่เกิน `coverTolerance` 1.5 มม.
+    - messRatio = **พื้นที่**หมึกที่ห่างจากขอบเส้นลายเกิน `messTolerance` 2 มม. (ทั้ง canvas ละเลงนอกกรอบลายก็นับ) ÷ พื้นที่ลาย
+    - `messLimit` 1 = เลอะเท่าพื้นที่ลายแล้วเหลือ 0, `messPower` 2 ทุกค่าปรับที่ `TattooJobManager.scoring`
+    - ป้ายคะแนนแสดง `Accuracy 92% / Mess -35` (Mess = round(100 × Accuracy) − คุณภาพ สีแดงเมื่อโดนหัก)
+  - ผลจำลอง (เมนู `VRTattoo/Simulate Tattoo Scores` ใช้ค่าจาก scene, ต่ำสุด/เฉลี่ย/สูงสุด):
+
+    | | ตามเส้นเรียบร้อย (เข็ม 5 มม. ส่าย ±0.5 มม. ขาด 2%) | มือสั่น (ส่าย ±3 มม. ขาด 10%) | ละเลงทั้งกรอบลาย | ละเลงนอกลาย |
+    |---|---|---|---|---|
+    | easy | 99 / 99.8 / 100 | 77 / 89.6 / 98 | 0 | 0 |
+    | medium | 98 / 99.7 / 100 | 40 / 71.3 / 93 | 0 | 0 |
+    | hard | 99 / 99.8 / 100 | 71 / 77.6 / 90 | 0 | 0 |
+
+    ลายที่เป็นพื้นทึบหนา (cloud, crown skull, karate kick, biohazard, royal crown) มือสั่นแล้วยังได้ 90–98 เพราะเลอะนิดเดียวเทียบกับพื้นที่ลาย ส่วน trophy (เส้นบาง 1.4 มม.) ได้ 40
   - คะแนนรวม = คุณภาพ × ตัวคูณ (easy x1, medium x1.5, hard x2) แสดงบนผนังมุมบนของห้อง
 
 ## สคริปต์ (`Assets/_VRTattoo/Scripts/Tattoo/`)
@@ -58,8 +72,10 @@
 | `TattooCanvas.cs` | อยู่บน collider ของผิวที่สัก (สร้างโดย `CustomerTattooSkin`) RenderTexture 1024² พื้นโปร่งใส alpha = หมึก มี `DrawStroke(uvFrom, worldFrom, uvTo, worldTo)` ปั๊มแปรงด้วย GL และ `MetersPerUV` (ผู้สร้าง UV เป็นคนตั้ง) ไม่ผูกกับ renderer |
 | `TattooMachine.cs` | อยู่บนเครื่องสัก ฟัง activate/deactivate ของ `XRGrabInteractable` raycast จาก `tip` ไปตามแนวเข็ม แล้ววาดและส่ง haptics มี `ExternalTrigger` ให้โหมดทดสอบสั่งวาดได้ |
 | `ReturnToSocket.cs` | อยู่บนเครื่องสัก ปล่อยมือ (ที่ไม่ใช่ socket) หรือตกต่ำกว่า `fallResetHeight` จะ `SelectEnter` กลับเข้า socket ในเฟรมถัดไป |
-| `TattooSeat.cs` | อยู่บน `Furniture/Chair43` (ตัวแม่) สลับนั่ง/ลุก (ปุ่ม B ขวา / F / ชี้เก้าอี้ + grip) ปิดและเปิดคืนเฉพาะ locomotion ที่เคยเปิดอยู่ และใส่/คืน `heldTool` เข้ามือ `handInteractor` ตำแหน่งตาตอนนั่งคิดจาก `lookTarget` (`SeatedEyePosition()`) |
+| `TattooSeat.cs` | อยู่บน `Furniture/Chair43` (ตัวแม่) สลับนั่ง/ลุก (ปุ่ม B ขวา / F / ชี้เก้าอี้ + grip) ปิดและเปิดคืนเฉพาะ locomotion ที่เคยเปิดอยู่ ตอนนั่งใส่ `heldTool` เข้ามือ `handInteractor` (ปล่อย grip = วางคืน) ตอนลุกปล่อยจากมือที่ถืออยู่ ตำแหน่งตาตอนนั่งคิดจาก `lookTarget` (`SeatedEyePosition()`) |
 | `SeatHeadLimit.cs` | อยู่บน `Furniture/Chair43` จำจุดตาตอนนั่ง: จอมืดตามระยะหัว (`freeRadius` 0.5, `fadeDistance` 0.15, `fadeSpeed`) ผ่าน `fadeRenderer` (Quad `Main Camera/ScreenFade` + `Shaders/ScreenFade.shader`, `Materials/ScreenFade.mat`) และ `lockSimulatorHead` เขียนตำแหน่ง `m_HMDState` ของ simulator กลับผ่าน reflection + `InputState.Change` (execution order หลัง simulator) ทำเฉพาะเมื่อ `!XRSettings.isDeviceActive` |
+| `TattooInk.cs` | อยู่บนเครื่องสัก ดูหัวข้อ "หมึก" |
+| `InkHologram.cs` | อยู่บน `Interactables/TattooSystem/InkHologram` วงแหวนโฮโลแกรมบอกหมึก ดูหัวข้อ "หมึก" |
 | `TattooDesktopTestMode.cs` | อยู่บน `Interactables/TattooSystem` โหมดทดสอบด้วยเมาส์ ปิด `trackPosition/Rotation` ของเครื่องระหว่างใช้ และหมุนหัว XR Device Simulator ผ่าน reflection (ฟิลด์ private `m_CenterEyeEuler`, `m_HMDState`) ซูมด้วยลูกกลิ้ง (`Zoom()`, `minFieldOfView`, `zoomStep`) |
 
 ## สคริปต์ลูกค้า (`Assets/_VRTattoo/Scripts/Customers/`)
@@ -83,7 +99,8 @@
 | `StencilLibrary.cs` | ScriptableObject `Data/StencilLibrary.asset` รายการลาย (texture, ชื่อ, ระดับ) + `Multiplier()` + แยกชื่อไฟล์ |
 | `Editor/StencilLibraryPostprocessor.cs` | ตั้งค่า import PNG ใน `Stencils/` อัตโนมัติ (Single Channel Alpha, readable, ไม่บีบอัด) และสร้างคลังใหม่ทุกครั้งที่ไฟล์เปลี่ยน มีเมนู `VRTattoo/Rebuild Stencil Library` |
 | `StencilPlacement.cs` | struct mapping UV ของ canvas ↔ พิกัดในภาพลาย (st) ใช้ร่วมกันระหว่าง overlay shader และ scorer |
-| `TattooScorer.cs` | อ่าน RenderTexture ของ TattooCanvas เฉพาะบริเวณลาย (หมึก = alpha > 0.5) เทียบกับ alpha ของลาย แล้วคิด coverage/spill/quality ตาม `TattooScoringRules` |
+| `TattooScorer.cs` | อ่าน RenderTexture ของ TattooCanvas ทั้งรูป (หมึก = alpha > 0.5) เทียบกับ mask ลาย (`StencilMask`) แล้วคิด accuracy/messRatio/quality ใน `ScoreMasks` (ฟังก์ชันล้วน ใช้ร่วมกับตัวจำลอง) ~50 ms ต่อการส่งงาน |
+| `Editor/TattooScoreSimulator.cs` | เมนู `VRTattoo/Simulate Tattoo Scores` สร้างหมึกจำลอง 4 แบบให้ทุกลายในคลัง แล้ว log ตารางคะแนนแยกระดับ (ทำงานใน Edit mode) |
 | `TattooJobManager.cs` | อยู่บน `CustomerSystem` ฟัง `onCustomerLayDown` สุ่มลาย แสดงลาย/ป้าย รับ Submit (ปุ่ม/J) ให้คะแนน แล้วเรียก `CompleteTattoo()` |
 
 - Shader: `Shaders/TattooSkinOverlay.shader` (unlit โปร่งใส: หมึกจาก `_InkTex` + ลายสีม่วงจาง), Material: `Materials/Tattoo/TattooSkinOverlay.mat`
@@ -135,27 +152,33 @@
 - `Tip` อยู่ที่ปลายเข็มจริง local (0, −0.06, 0) forward ชี้ลงตามเข็ม; ray วาดเริ่มหลังปลาย 3 ซม. ซึ่งอยู่ในตัว CapsuleCollider จึงไม่ชนตัวเอง
 - `Attach` (local (0, −0.025, 0) = ห่างปลายเข็ม 3.5 ซม.) หมุนให้ถือแบบปากกา: เข็มชี้ไปข้างหน้าแล้วก้มลง 45° จาก forward ของ controller ด้านมอเตอร์ (−X ของโมเดล) หันขึ้น
 - ตอนถือ XRI ซ่อนโมเดล controller ขวา จึงเห็นเครื่องลอยอยู่ที่ตำแหน่งมือ
-- `InkGauge` (ลูกของเครื่อง): วงแหวน 5 วงรอบด้ามจับส่วนบน (`Ring0` ล่างสุด) วงที่มีหมึกเป็นสีหมึกปัจจุบัน + เรืองแสง (`Materials/Tattoo/InkGauge.mat`, หมึกดำเรืองเป็นเทา) วงที่หมดเป็นเทาเข้ม ติด ceil(% × 5 / 100) วง เหลือ < 10% วงล่างกะพริบ
+- `InkGauge` (ลูกของเครื่อง) ใช้คู่กับวงแหวนโฮโลแกรม: วงแหวน 5 วงรอบด้ามจับส่วนบน (`Ring0` ล่างสุด, Cylinder scale (0.0224, 0.0011, 0.0224) ห่างกัน 4.5 มม.) วงที่มีหมึกเป็นสีหมึกปัจจุบัน + เรืองแสง (`Materials/Tattoo/InkGauge.mat`, หมึกดำเรืองเป็นเทา) วงที่หมดเป็นเทาเข้ม ติด ceil(% × 5 / 100) วง เหลือ < `lowThreshold` 15% (เท่ากับวงแหวนโฮโลแกรม) วงล่างกะพริบ อ่าน `TattooInk` ตัวเดียวกับวงแหวนโฮโลแกรม ค่าและสีจึงตรงกันเสมอ
 
 ## หมึก
-- **`TattooInk` (บนเครื่อง):** `amount` 0–100%, `color`, `metersPerLoad` = 0.45 ม. ของเส้นต่อ 1 ถ้วย ลดตามระยะที่ปลายเข็มเลื่อนบนผิวจริงระหว่างวาด (อยู่กับที่ไม่ลด จุดเริ่มเส้นคิด 5 มม.) ทดสอบแล้ว: เส้น 7 ซม. ใช้ 16.8%
-  - ที่มาของ 0.45: ระยะที่ต้องสักโดยประมาณของลาย = max(พื้นที่ลาย ÷ ความกว้างแปรง 5 มม., เส้นรอบรูป ÷ 2) ในกรอบ 14 ซม. ลาย medium เฉลี่ย 0.68 ม. ÷ 1.5 ถ้วย ถ้าเพิ่ม/เปลี่ยนลายมาก ให้คำนวณใหม่
-  - จุ่ม: ทุกเฟรม `OverlapSphere(tip, dipRadius 5 มม.)` เจอ trigger ของ `InkCap` → เติม 100% + เปลี่ยนเป็นสีถ้วย
-- **`TattooMachine`:** หมึกหมด = ไม่วาด + สั่นสั้นครั้งเดียวต่อการกด trigger (`emptyHapticAmplitude` 0.8, `emptyHapticDuration` 0.05 วิ) รวมถึงตอนหมดกลางเส้น ไม่มี `TattooInk` = หมึกไม่จำกัดสี `TattooCanvas.inkColor`
+- **`TattooInk` (บนเครื่อง):** `amount` 0–100%, `color`, `metersPerLoad` = 1.3 ม. ของเส้นต่อ 1 ถ้วย ลดตามระยะที่ปลายเข็มเลื่อนบนผิวจริงระหว่างวาด (อยู่กับที่ไม่ลด จุดเริ่มเส้นคิด 5 มม. ≈ 0.4%) เส้น 7 ซม. ≈ 5.4%
+  - ที่มาของ 1.3: ระยะที่ต้องสักโดยประมาณของลาย = max(พื้นที่ลาย ÷ ความกว้างแปรง 5 มม., เส้นรอบรูป ÷ 2) ในกรอบ 14 ซม. ลาย medium เฉลี่ย 0.68 ม. ≈ ครึ่งถ้วย ถ้าเพิ่ม/เปลี่ยนลายมาก ให้คำนวณใหม่
+  - จุ่ม (`DippedCap`): ทุกเฟรม `OverlapSphere(tip, dipRadius 5 มม.)` หา trigger ของ `InkCap` **จุ่มเฉย ๆ ไม่เกิดอะไร** ต้องกด trigger ค้าง (`TattooMachine.TriggerPressed` = trigger จริงหรือ `ExternalTrigger`) หมึกจึงเพิ่ม 100% ต่อ `refillDuration` 1.5 วิ (`IsRefilling`) ถ้าสีถ้วยต่างจากหมึกในเครื่อง → `amount` = 0 + เปลี่ยนสีทันที แล้วค่อยเติม ระหว่างเติมสั่นเบา (`refillHapticAmplitude` 0.15 ทุก 0.1 วิ ผ่าน `TattooMachine.SendHaptic`)
+- **`TattooMachine`:** หมึกหมด = ไม่วาด + สั่นสั้นครั้งเดียวต่อการกด trigger (`emptyHapticAmplitude` 0.8, `emptyHapticDuration` 0.05 วิ) รวมถึงตอนหมดกลางเส้น ยกเว้นตอนปลายเข็มอยู่ในถ้วย (กดเพื่อเติม) ไม่มี `TattooInk` = หมึกไม่จำกัดสี `TattooCanvas.inkColor`
+- **วงแหวนโฮโลแกรม (`InkHologram`):** object `Interactables/TattooSystem/InkHologram` (ไม่ใช่ลูกของเครื่อง) มี `Ring` (Quad 7.5 ซม. + `Materials/Tattoo/InkHologram.mat` / `Shaders/InkHologram.shader`) และ `Percent` (TMP)
+  - ตามเครื่องแบบหน่วง (`followSharpness`) เยื้อง `viewOffset` (ขวา 6 ซม. บน 3.5 ซม. ในมุมมองผู้เล่น) ถ้าเครื่องอยู่ขวาของภาพเกิน `switchSideAbove` 0.7 (เช่นตอนจุ่มถ้วย) ย้ายไปฝั่งซ้าย หันหากล้องเสมอ เป็นวัตถุในโลก ไม่ติดจอ
+  - วงลดต่อเนื่องตาม % (เลข/วงไล่ค่าจริงที่ `levelSpeed` 120%/วิ จึงเห็นวงเพิ่มตอนเติม) สีหมึกปัจจุบัน หมึกเข้มถูกยกความสว่างขั้นต่ำ `minBrightness` (ดำ → เทาเรือง) ตัวเลขผสมขาว `labelWhiten`
+  - shader: วงเรืองแสง (ส่วนที่หมดเป็นเงาจาง) + scanline + แสงวิ่ง + ขีดทุก 10% บนแผ่นพื้นมืดจาง (`_Backing`) ให้อ่านออกบนพื้นสว่าง (premultiplied `Blend One OneMinusSrcAlpha`) `Ring.sortingOrder` = −1 ให้ตัวเลขวาดทับ
+  - เหลือ < `lowThreshold` 15% กะพริบ (`blinkRate` 3) แสดงเฉพาะตอนเครื่องอยู่ในมือ (ไม่ใช่ socket) fade เข้า/ออก
 - **สีบนแขน:** RenderTexture ของ `TattooCanvas` เป็น premultiplied (rgb = สี × alpha, `TattooBrush.shader` ใช้ `Blend One OneMinusSrcAlpha`) แต่ละเส้นจึงเก็บสีของตัวเอง สีใหม่ทับสีเก่าได้ `TattooSkinOverlay.shader` แสดงสีจาก rgb / alpha (เลิกใช้ `_InkColor`) คะแนนยังอ่านแค่ alpha จึงไม่สนสี
-- **ถ้วยหมึกและขวด (`Prefabs/Ink/`):** `InkCap.prefab` (ถ้วยพลาสติกขาว Ø 3 ซม. สูง 2 ซม. + แผ่น `Ink` + SphereCollider trigger r 2 ซม. + `InkTint` + `InkCap`) และ `InkBottle.prefab` (ขวดตกแต่ง Ø 4 ซม. สูง ~10 ซม. + ป้าย + ฝาดำ + `InkTint` ไม่มี trigger) มี variant `_Black/_Red/_Blue/_Green`
+- **ถ้วยหมึกและขวด (`Prefabs/Ink/`):** `InkCap.prefab` (ถ้วยพลาสติกขาว Ø 4.5 ซม. สูง 2.5 ซม. + แผ่น `Ink` บนปากถ้วย + SphereCollider trigger r 3.4 ซม. ที่ y 2.2 ซม. ใหญ่กว่าถ้วย ~1 ซม. รอบด้าน + `InkTint` + `InkCap`) และ `InkBottle.prefab` (ขวดตกแต่ง Ø 4 ซม. สูง ~10 ซม. + ป้าย + ฝาดำ + `InkTint` ไม่มี trigger) มี variant `_Black/_Red/_Blue/_Green`
   - `InkTint` ใส่สีด้วย MaterialPropertyBlock (`_BaseColor`) ให้ `renderers` (`[ExecuteAlways]` เห็นสีใน Editor) material ใช้ร่วมกันที่ `Materials/Ink/` (`Ink` สีขาว ถูกย้อมด้วย tint)
-  - **เพิ่มสีใหม่:** คลิกขวา `InkCap.prefab` → Create → Prefab Variant ตั้ง `InkTint.color` และ `InkCap.inkName` แล้ววางบนรถเข็น (ถ้าจะใช้กับปุ่มตัวเลขใน Desktop Test Mode ให้เพิ่มลง `inkCaps` ด้วย ใช้ได้ถึงปุ่ม 9)
+  - **เพิ่มสีใหม่:** คลิกขวา `InkCap.prefab` → Create → Prefab Variant ตั้ง `InkTint.color` และ `InkCap.inkName` แล้ววางบน `CapRack` (ถ้าเกิน 4 ใบต้องขยายแถว/ถาด และเช็กว่ายังอยู่ในภาพมุมนั่ง)
   - **เปลี่ยนเป็นโมเดลสวยกว่า:** แก้ child ใน `InkCap.prefab`/`InkBottle.prefab` ที่เดียว variant และของใน scene จะเปลี่ยนตาม (อย่าลืมใส่ renderer ของผิวหมึกลง `InkTint.renderers` และให้ trigger อยู่ที่ผิวหมึก)
 
 ## รถเข็น (`Furniture/InkTrolley`)
 - โมเดล `Models/Shelf/model.fbx` (รถเข็นสแตนเลส 3 ชั้น ขนาดจริงอยู่แล้ว 0.525 × 0.895 × 0.35 ม. ไม่ย่อขยาย) material extract ไว้ `Models/Shelf/Materials/` (`steel` = สแตนเลส, `plactic`/`Material.006` = ยางล้อดำ)
 - อยู่ใต้ `Furniture` (scale 1.48) จึงตั้ง localScale = 1/1.48 ให้ lossyScale = 1 วางที่ (0.78, −1.797, 0.05) ข้างเก้าอี้ฝั่ง −X = มือขวาตอนนั่ง ห่างเก้าอี้ 3 ซม. ห่างทางเดินลูกค้าทุกเส้น ≥ 0.5 ม.
 - ชั้นเป็นถาดมีขอบสูง 6 ซม. พื้นถาดชั้นบนอยู่ที่ y = −1.0187 (ขอบบน −0.957) collider: `ShelfTop/Middle/Bottom` (พื้นถาด) + `Rim*` (ขอบถาดละ 4 ด้าน) + `Post0–3` (BoxCollider ทั้งหมด)
-- บนชั้นบน: `Interactables/TattooSystem/MachineHolder` ถ้วยเสียบสีดำที่ (0.97, z 0.03) มี `Socket` (ย้ายมาจากแท่นเดิม) เครื่องตั้งตรง ปลายเข็มเหนือพื้นถาด 1 ซม.; `Interactables/TattooSystem/Inks` ถ้วย 4 ใบแถวหน้า (z −0.055, x 0.85 ดำ → 0.64 เขียว เรียงซ้าย→ขวาจากมุมผู้เล่น) และขวด 4 ขวดแถวหลัง (z 0.135)
+- บนชั้นบน: `Interactables/TattooSystem/MachineHolder` ถ้วยเสียบสีดำที่มุมหน้าของถาดฝั่งเตียง (0.975, z −0.07) ข้างไหล่ขวาตอนนั่ง มี `Socket` (ย้ายมาจากแท่นเดิม) เครื่องตั้งตรง ปลายเข็มเหนือพื้นถาด 1 ซม.; `Interactables/TattooSystem/Inks` ขวดตกแต่ง 4 ขวดแถวหลัง (z 0.135)
+- **ที่วางถ้วย `Inks/CapRack`:** ถาดสแตนเลสแถวเดียว (`Pad0–3` + `Bar`, ผิวบน y −0.95 สูงกว่าขอบถาดรถเข็น) ยื่นจากเสา `Post2` มุมรถเข็นฝั่งเตียง (`Clamp` + `MountArm` + `MountLink`) ไปอยู่ระหว่างขอบเตียงกับเก้าอี้ ทางขวามือตอนนั่ง ถ้วย 4 ใบเรียงซ้าย→ขวาจากมุมนั่ง: ดำ (1.235, z −0.178), แดง (1.185, −0.185), น้ำเงิน (1.135, −0.192), เขียว (1.085, −0.199) ห่าง `TattooWorkArea` 22–30 ซม. ระยะ/แนวเอียงจูนให้เห็นครบ 4 ใบในมุมก้มมองแขนของ simulator (FOV 60°) ถ้าย้ายต้องเช็กว่าไม่ทับมือลูกค้า (Tanya/Leni มือวางชิดขอบเตียงแถว x 1.15–1.25)
 
 - Shader: `Assets/_VRTattoo/Shaders/TattooBrush.shader` (แปรงกลมขอบนุ่ม)
-- Material: `Assets/_VRTattoo/Materials/Tattoo/` (TattooBrush, TattooSkinOverlay, TattooMachine, TattooStand, InkGauge)
+- Material: `Assets/_VRTattoo/Materials/Tattoo/` (TattooBrush, TattooSkinOverlay, TattooMachine, TattooStand, InkGauge, InkHologram)
 - สคริปต์เก่า: `AnimeateHandonInput.cs` (คลาส `AnimateHandOnInput` สั่งอนิเมชันมือ), `InputTest.cs` (log ค่า input; GameObject `Input Test` ปิดไว้)
 
 ## ผิวที่สัก (`CustomerTattooSkin` บน `Customer.prefab`)
@@ -180,7 +203,8 @@
   - `TattooWorkArea`: จุดว่างที่ (1.33, −1.05, −0.325) = กลางแขนท่อนล่างขวาของลูกค้าที่นอน (เฉลี่ยทุกตัว) เป็น `lookTarget` ของเก้าอี้ (TattooArm Capsule เดิมถูกลบแล้ว)
   - `TattooMachine`: มี XRGrabInteractable (Instantaneous) + TattooMachine + TattooInk + ReturnToSocket + Rigidbody, CapsuleCollider (หัวครอบปลาย+ด้าม) + BoxCollider (หัวเครื่อง) และ child `Model`, `Tip`, `Attach`, `InkGauge` (ดูหัวข้อ "เครื่องสัก")
   - `MachineHolder/Socket`: XRSocketInteractor บนรถเข็น (`SocketAttach` หมุนเท่ากับ `Attach` เครื่องจึงตั้งตรง เข็มชี้ลง ปลายเข็มลอยเหนือพื้นถาด 1 ซม.)
-  - `Inks`: ถ้วยหมึก 4 สี + ขวดตกแต่ง บนรถเข็น (ดูหัวข้อ "หมึก")
+  - `Inks`: ขวดตกแต่งบนรถเข็น + `CapRack` ถ้วยหมึก 4 สี (ดูหัวข้อ "รถเข็น")
+  - `InkHologram`: วงแหวนบอกหมึก (ดูหัวข้อ "หมึก")
   - `SeatHint`: ป้าย TMP บอกปุ่ม (ภาษาอังกฤษ)
   - `SubmitButton`: ปุ่มส่งงานลอยข้างเตียง (1.75, −0.85, −0.05) ซ้ายมือผู้เล่นตอนนั่ง (ย้ายออกจากจุดที่หัวผู้เล่นอยู่ตอนนั่ง) (BoxCollider + XRSimpleInteractable, child `Visual` และ `Label`)
   - `TattooJobUI/{OrderLabel, ScoreLabel, TotalScoreLabel}`: ป้ายชื่อลาย/ระดับ (หลังเตียง), คะแนน (เหนือเตียง), คะแนนรวม (มุมบนผนังด้าน −z)
@@ -196,12 +220,13 @@
 |---|---|
 | คุม controller ขวา | กด Space ค้าง (หรือกด Y เพื่อล็อก), Tab สลับอุปกรณ์ |
 | หยิบ / ปล่อย | G |
+| วางคืน / หยิบเครื่องจากที่วาง ตอนนั่ง (Desktop mode) | P วางคืน (ไม่ใช้ G เพราะชน grip ของ simulator); หันไปทางรถเข็น (คลิกขวาลาก) + คลิกซ้ายที่เครื่อง = หยิบ |
+| วางคืนตอนนั่ง (simulator) | คุม controller ขวา (Y) แล้วกด G แล้วปล่อย |
 | วาด (trigger) | คลิกซ้าย |
 | นั่ง / ลุก | F, หรือ N ตอนคุม controller ขวา (= ปุ่ม B), หรือชี้เก้าอี้ + G (ต้องห่างเก้าอี้ไม่เกิน 1.5 ม.) |
 | เปิด/ปิด Desktop Test Mode | K (ชนกับ simulator นิดหน่อยตอนกำลังคุม controller/มือ) |
 | วาดใน Desktop mode | ชี้เมาส์ที่แขน + คลิกซ้ายค้าง |
-| เติมหมึก / เปลี่ยนสี (เฉพาะตอนเปิด Desktop mode) | R / 1 ดำ, 2 แดง, 3 น้ำเงิน, 4 เขียว |
-| เติมหมึก/เปลี่ยนสีแบบในเกม | จุ่มปลายเข็มลงถ้วยหมึกบนรถเข็น |
+| เติมหมึก / เปลี่ยนสี | จุ่มปลายเข็มลงถ้วยแล้วกด trigger ค้าง (~1.5 วิจนเต็ม); Desktop mode: ชี้เมาส์ที่ถ้วย + คลิกซ้ายค้าง |
 | หันมอง | คลิกขวาค้าง + ลากเมาส์ |
 | ซูม (เฉพาะ Desktop Test Mode) | ลูกกลิ้งเมาส์ |
 | ส่งงาน (ให้คะแนน แล้วลูกค้าเดินออก) | J (เฉพาะ Editor) หรือชี้ปุ่ม SUBMIT ด้วย controller ซ้าย + G |
@@ -209,11 +234,13 @@
 บนแว่นจริง นั่ง/ลุกใช้ปุ่ม B ขวา (ปุ่ม A ใช้กระโดดอยู่แล้ว)
 
 ## ข้อจำกัดที่ค้างอยู่
-- **หมึก:** สั่นเตือนตอนหมึกหมดยังไม่ได้ลองกับแว่นจริง; ปุ่ม R/1–4 และการจุ่มทดสอบโดยเรียกเมธอด/ย้ายเครื่องด้วยสคริปต์ (ปุ่มที่ส่งผ่านสคริปต์ไม่ถึง Game view) ยังไม่ได้กดจากแป้นจริง; หมึกที่เหลือติดเครื่องข้ามลูกค้า (ไม่รีเซ็ตต่อคน); ถ้วยหมึกเล็ก (3 ซม.) อยู่ในถาดลึก 6 ซม. จากมุมข้าง ๆ จะมองไม่ค่อยเห็น (จากมุมนั่งเห็นชัด)
+- **หมึก:** สั่นเตือนตอนหมึกหมดและสั่นตอนเติมยังไม่ได้ลองกับแว่นจริง; การเติม/เปลี่ยนสี ทดสอบใน Desktop Test Mode ด้วย mouse event ที่ส่งผ่าน Input System (ยังไม่ได้คลิกเมาส์จริง); หมึกที่เหลือติดเครื่องข้ามลูกค้า (ไม่รีเซ็ตต่อคน); ระยะเอื้อมถึงถ้วยและตำแหน่งวงแหวนจูนจากภาพ simulator ยังไม่ได้ลองกับแว่นจริง
+- **ภาพจาก MCP screenshot ตอน Play ดูซีดขาว** (เป็นทั้งฉาก ไม่เกี่ยวกับวงแหวน) และการจับภาพบางครั้งขึ้น error "PlayerLoop internal function has been called recursively" ทำให้ Error Pause หยุดเกม ต้องสั่ง unpause
 - **ขอบเส้นยังขรุขระ:** ตอนเปลี่ยนเป็นโมเดลแขนจริงให้เพิ่ม RenderTexture เป็น 2048 และทำเส้นให้เนียน
 - **รอยสักไม่ถาวร:** หายเมื่อลูกค้าลุกจากเตียง และทุกครั้งที่กด Play
 - **Socket ไม่ได้กรอง interaction layer:** ถ้ามีของอื่นที่หยิบได้ อาจไปเสียบที่วางได้
-- **ระหว่างนั่ง:** ถือเครื่องค้างไว้ตลอด (ปล่อยด้วย grip ไม่ได้)
+- **หยิบ/วางเครื่องตอนนั่ง:** ระยะเอื้อมถึงที่วางคิดจากตำแหน่งตา (ไหล่ประมาณ) ยังไม่ได้ลองกับแว่นจริง; Near-Far Interactor หยิบจากระยะไกลด้วย ray ได้ด้วย; ตอนเครื่องเข้ามือเองถ้าผู้เล่นกำ grip ค้างแล้วปล่อย เครื่องจะกลับที่วาง (ตั้งใจให้เป็นวิธีวางคืน) หยิบด้วย grip จริงจาก simulator ยังไม่ได้ลอง (ทดสอบผ่าน interaction manager)
+- **คะแนนกับลายพื้นทึบหนา:** มือสั่นแล้วโดนหักน้อยกว่าลายเส้นบาง เพราะเทียบพื้นที่เลอะกับพื้นที่ลาย
 - **ล็อกหัวใน simulator พึ่ง reflection (`m_HMDState`):** ถ้าอัปเดต XRI แล้วชื่อฟิลด์เปลี่ยน หัวจะไม่ถูกล็อก (ไม่ error) แต่จอมืดยังทำงาน
 - **จอมืดตอนออกนอกรัศมี** ทดสอบใน simulator แล้ว ยังไม่ได้ทดสอบกับแว่นจริง
 - **ท่าจับเครื่อง (45°, ห่างปลาย 3.5 ซม.)** จูนจากภาพใน simulator ยังไม่ได้ลองกับมือจริง ถ้าไม่ถนัดปรับที่ `Attach` (และหมุน `SocketAttach` ให้เท่ากัน ไม่งั้นเครื่องบนที่วางจะเอียง)

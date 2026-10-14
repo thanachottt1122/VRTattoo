@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -7,9 +6,10 @@ using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
-// Desktop-only testing aid: while seated with the machine in hand, the mouse places the needle
-// on the skin and holding the left mouse button draws. R refills the ink, 1-4 switch to the ink caps' colours.
-// Does nothing in headset builds.
+// Desktop-only testing aid. While seated: click the machine on its holder to pick it up, P puts it back.
+// With the machine in hand the mouse places the needle on the skin (or in an ink cap) and holding the
+// left mouse button presses the trigger: draws on skin, refills / changes colour in a cap, just like in
+// the headset. Does nothing in headset builds.
 [DefaultExecutionOrder(-10)] // place the needle before TattooMachine raycasts this frame
 public class TattooDesktopTestMode : MonoBehaviour
 {
@@ -35,6 +35,13 @@ public class TattooDesktopTestMode : MonoBehaviour
     [Tooltip("Gap between the needle tip and the skin (m)")]
     public float hoverOffset = 0.001f;
 
+    [Header("Pick up / put back")]
+    [Tooltip("Hand that holds the machine when it is clicked on its holder (right Near-Far Interactor)")]
+    public XRBaseInteractor handInteractor;
+
+    [Tooltip("Puts the machine back on its holder. Not G: the XR Device Simulator uses G for grip.")]
+    public Key releaseKey = Key.P;
+
     [Header("Simulator camera")]
     [Tooltip("When the mode becomes active, tilt the XR Device Simulator head to look at the skin. " +
              "Only the simulated head is moved; a real headset is never rotated.")]
@@ -43,11 +50,8 @@ public class TattooDesktopTestMode : MonoBehaviour
     [Tooltip("Leave empty to find it in the scene")]
     public XRDeviceSimulator deviceSimulator;
 
-    [Header("Ink (while the mode is on)")]
-    public Key refillKey = Key.R;
-
-    [Tooltip("Number keys 1, 2, 3... switch to these caps' colours (and refill)")]
-    public InkCap[] inkCaps;
+    [Tooltip("Needle direction in a cap: 0 = straight down, 1 = along the mouse ray")]
+    [Range(0f, 1f)] public float capTiltTowardView = 0.3f;
 
     [Header("Zoom (desktop only)")]
     [Tooltip("Mouse wheel changes the camera's field of view while the mode is active. " +
@@ -69,14 +73,14 @@ public class TattooDesktopTestMode : MonoBehaviour
 
     XRGrabInteractable grabInteractable;
     bool overriding;
+    bool waitForButtonUp;  // the click that picked the machine up is not a trigger press
     float? pitchBeforeLook;
 
     // Zoom state: the camera's own FOV is the zoomed-out limit and is put back when the mode ends.
     Camera zoomCamera;
     float? fovBeforeZoom;
     InputAction simulatorScrollAction;
-    readonly List<InputAction> pausedSimulatorKeys = new List<InputAction>();
-    static readonly Key[] InkKeys = { Key.Digit1, Key.Digit2, Key.Digit3, Key.Digit4, Key.Digit5, Key.Digit6, Key.Digit7, Key.Digit8, Key.Digit9 };
+    readonly RaycastHit[] capHits = new RaycastHit[16];
 
     bool IsAllowed => !editorOnly || Application.isEditor;
 
@@ -89,11 +93,7 @@ public class TattooDesktopTestMode : MonoBehaviour
             grabInteractable = machine.GetComponent<XRGrabInteractable>();
     }
 
-    void OnDisable()
-    {
-        SetOverride(false);
-        PauseSimulatorKeys(false);
-    }
+    void OnDisable() => SetOverride(false);
 
     void Update()
     {
@@ -107,18 +107,20 @@ public class TattooDesktopTestMode : MonoBehaviour
             Debug.Log($"[TattooDesktopTestMode] {(enabledMode ? "ON" : "OFF")}");
         }
 
-        PauseSimulatorKeys(enabledMode);
-        if (enabledMode && keyboard != null)
-            HandleInkKeys(keyboard);
+        bool seated = enabledMode && seat != null && seat.IsSeated;
+        if (seated)
+            HandlePickUp(keyboard);
 
-        bool heldInHand = grabInteractable != null && grabInteractable.isSelected
-            && !(grabInteractable.firstInteractorSelecting is XRSocketInteractor);
-        var skin = SkinCollider;
-        bool active = enabledMode && seat != null && seat.IsSeated && heldInHand && skin != null;
+        // No customer needed: the ink caps can still be used.
+        bool active = seated && HeldInHand;
 
         SetOverride(active);
         if (!active)
             return;
+
+        // The mode can start before a customer lies down; look at the skin once it appears.
+        if (!pitchBeforeLook.HasValue && SkinCollider != null)
+            LookAtSkin();
 
         var cam = viewCamera != null ? viewCamera : Camera.main;
         var mouse = Mouse.current;
@@ -130,17 +132,98 @@ public class TattooDesktopTestMode : MonoBehaviour
 
         UpdateZoom(cam, mouse);
 
+        if (waitForButtonUp && !mouse.leftButton.isPressed)
+            waitForButtonUp = false;
+        bool triggerPressed = mouse.leftButton.isPressed && !waitForButtonUp;
+
         Ray ray = cam.ScreenPointToRay(mouse.position.ReadValue());
-        if (skin.Raycast(ray, out RaycastHit hit, 10f))
+        var skin = SkinCollider;
+        RaycastHit skinHit = default;
+        bool onSkin = skin != null && skin.Raycast(ray, out skinHit, 10f);
+        var cap = RaycastInkCap(ray, out Collider capTrigger, out float capDistance);
+
+        if (cap != null && (!onSkin || capDistance < skinHit.distance))
         {
-            Vector3 needleDirection = Vector3.Slerp(-hit.normal, ray.direction, tiltTowardView).normalized;
-            PlaceTip(hit.point + hit.normal * hoverOffset, needleDirection);
-            machine.ExternalTrigger = mouse.leftButton.isPressed;
+            // Needle into the middle of the cap's dip trigger, pointing down into the ink.
+            Vector3 needleDirection = Vector3.Slerp(Vector3.down, ray.direction, capTiltTowardView).normalized;
+            PlaceTip(capTrigger.bounds.center, needleDirection);
+            machine.ExternalTrigger = triggerPressed;
+        }
+        else if (onSkin)
+        {
+            Vector3 needleDirection = Vector3.Slerp(-skinHit.normal, ray.direction, tiltTowardView).normalized;
+            PlaceTip(skinHit.point + skinHit.normal * hoverOffset, needleDirection);
+            machine.ExternalTrigger = triggerPressed;
         }
         else
         {
             machine.ExternalTrigger = false;
         }
+    }
+
+    bool HeldInHand => grabInteractable != null && grabInteractable.isSelected
+        && !(grabInteractable.firstInteractorSelecting is XRSocketInteractor);
+
+    // Click the machine (on its holder) to take it in hand; the release key puts it back.
+    void HandlePickUp(Keyboard keyboard)
+    {
+        if (grabInteractable == null || handInteractor == null)
+            return;
+
+        if (HeldInHand)
+        {
+            if (keyboard != null && keyboard[releaseKey].wasPressedThisFrame)
+                PutBack();
+            return;
+        }
+
+        var cam = viewCamera != null ? viewCamera : Camera.main;
+        var mouse = Mouse.current;
+        if (cam == null || mouse == null || !mouse.leftButton.wasPressedThisFrame)
+            return;
+
+        Ray ray = cam.ScreenPointToRay(mouse.position.ReadValue());
+        foreach (var c in grabInteractable.colliders)
+        {
+            if (c != null && c.enabled && c.Raycast(ray, out _, 10f))
+            {
+                handInteractor.StartManualInteraction((IXRSelectInteractable)grabInteractable);
+                waitForButtonUp = true;
+                return;
+            }
+        }
+    }
+
+    // ReturnToSocket puts the released machine back on its holder.
+    void PutBack()
+    {
+        var holder = grabInteractable.firstInteractorSelecting;
+        if (holder is XRBaseInteractor interactor && interactor.isPerformingManualInteraction)
+            interactor.EndManualInteraction();
+        else if (grabInteractable.interactionManager != null)
+            grabInteractable.interactionManager.SelectExit(holder, (IXRSelectInteractable)grabInteractable);
+    }
+
+    // Nearest ink cap trigger under the mouse.
+    InkCap RaycastInkCap(Ray ray, out Collider trigger, out float distance)
+    {
+        trigger = null;
+        distance = float.MaxValue;
+        InkCap nearest = null;
+        int count = Physics.RaycastNonAlloc(ray, capHits, 10f, ~0, QueryTriggerInteraction.Collide);
+        for (int i = 0; i < count; i++)
+        {
+            var hit = capHits[i];
+            if (!hit.collider.isTrigger || hit.distance >= distance)
+                continue;
+            var cap = hit.collider.GetComponentInParent<InkCap>();
+            if (cap == null)
+                continue;
+            nearest = cap;
+            trigger = hit.collider;
+            distance = hit.distance;
+        }
+        return nearest;
     }
 
     void PlaceTip(Vector3 tipPosition, Vector3 needleDirection)
@@ -207,76 +290,6 @@ public class TattooDesktopTestMode : MonoBehaviour
         fovBeforeZoom = null;
         zoomCamera = null;
         PauseSimulatorScroll(false);
-    }
-
-    void HandleInkKeys(Keyboard keyboard)
-    {
-        if (keyboard[refillKey].wasPressedThisFrame)
-            RefillInk();
-
-        int count = inkCaps != null ? Mathf.Min(inkCaps.Length, InkKeys.Length) : 0;
-        for (int i = 0; i < count; i++)
-        {
-            if (keyboard[InkKeys[i]].wasPressedThisFrame)
-                SelectInk(i);
-        }
-    }
-
-    TattooInk Ink => machine != null ? machine.ink : null;
-
-    // Fills the machine with its current colour.
-    public void RefillInk()
-    {
-        if (Ink == null)
-            return;
-        Ink.Refill();
-        Debug.Log("[TattooDesktopTestMode] Ink refilled");
-    }
-
-    // Same as dipping into inkCaps[index].
-    public void SelectInk(int index)
-    {
-        if (Ink == null || inkCaps == null || index < 0 || index >= inkCaps.Length || inkCaps[index] == null)
-            return;
-        Ink.Refill(inkCaps[index].Color);
-        Debug.Log($"[TattooDesktopTestMode] Ink: {inkCaps[index].inkName}");
-    }
-
-    // The simulator also uses R and 1-4, so those actions are paused while the mode is on.
-    void PauseSimulatorKeys(bool pause)
-    {
-        if (pause == pausedSimulatorKeys.Count > 0)
-            return;
-
-        if (!pause)
-        {
-            foreach (var action in pausedSimulatorKeys)
-                action.Enable();
-            pausedSimulatorKeys.Clear();
-            return;
-        }
-
-        if (deviceSimulator == null)
-            deviceSimulator = FindFirstObjectByType<XRDeviceSimulator>();
-        if (deviceSimulator == null)
-            return;
-
-        foreach (var reference in new[]
-        {
-            deviceSimulator.toggleMouseTransformationModeAction,  // R
-            deviceSimulator.togglePrimary2DAxisTargetAction,      // 1
-            deviceSimulator.toggleSecondary2DAxisTargetAction,    // 2
-            deviceSimulator.toggleDevicePositionTargetAction,     // 3
-            deviceSimulator.primary2DAxisClickAction,             // 4
-        })
-        {
-            var action = reference != null ? reference.action : null;
-            if (action != null && action.enabled)
-            {
-                action.Disable();
-                pausedSimulatorKeys.Add(action);
-            }
-        }
     }
 
     void PauseSimulatorScroll(bool pause)

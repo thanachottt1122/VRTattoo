@@ -110,9 +110,13 @@ public class TattooJobManager : MonoBehaviour
         float multiplier = StencilLibrary.Multiplier(current.difficulty);
         int points = Mathf.RoundToInt(score.quality * multiplier);
         TotalScore += points;
-        Debug.Log($"[TattooJob] {current.displayName}: coverage {score.coverage:P0}, spill {score.spill:P0}, quality {score.quality}, +{points}");
+        Debug.Log($"[TattooJob] {current.displayName}: accuracy {score.accuracy:P0}, mess area {score.messRatio:0.00}x design (-{score.messPenalty}), quality {score.quality}, +{points}");
 
-        SetText(scoreLabel, $"{score.quality}<size=50%> / 100</size>\n<size=45%>x{multiplier:0.#} = +{points}</size>");
+        // Why the score is what it is: how much of the design was inked, and what the mess cost.
+        string mess = score.messPenalty > 0 ? $"<color=#FF5050>Mess -{score.messPenalty}</color>" : "Mess 0";
+        SetText(scoreLabel, $"{score.quality}<size=50%> / 100</size>\n" +
+                            $"<size=38%>Accuracy {Mathf.RoundToInt(score.accuracy * 100f)}%  /  {mess}</size>\n" +
+                            $"<size=45%>x{multiplier:0.#} = +{points}</size>");
         UpdateTotal();
 
         yield return new WaitForSeconds(scoreDisplaySeconds);

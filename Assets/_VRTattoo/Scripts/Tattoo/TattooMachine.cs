@@ -51,6 +51,13 @@ public class TattooMachine : MonoBehaviour
     // Lets non-XR input (Desktop Test Mode) press the trigger.
     public bool ExternalTrigger { get; set; }
 
+    // Trigger held by the hand or by ExternalTrigger (TattooInk refills while this is held in a cap).
+    public bool TriggerPressed => triggerHeld || ExternalTrigger;
+
+    // Haptics on the hand pressing the trigger (nothing without one, e.g. Desktop Test Mode).
+    public bool SendHaptic(float amplitude, float duration) =>
+        activeInteractor != null && activeInteractor.SendHapticImpulse(amplitude, duration);
+
     void Awake()
     {
         grabInteractable = GetComponent<XRGrabInteractable>();
@@ -78,7 +85,7 @@ public class TattooMachine : MonoBehaviour
         triggerHeld = true;
         activeInteractor = args.interactorObject as XRBaseInputInteractor;
         emptyWarned = false;
-        if (ink != null && ink.IsEmpty)
+        if (ink != null && ink.IsEmpty && ink.DippedCap == null)
             WarnEmpty();
     }
 
@@ -101,8 +108,7 @@ public class TattooMachine : MonoBehaviour
         if (emptyWarned)
             return;
         emptyWarned = true;
-        if (activeInteractor != null)
-            activeInteractor.SendHapticImpulse(emptyHapticAmplitude, emptyHapticDuration);
+        SendHaptic(emptyHapticAmplitude, emptyHapticDuration);
         if (debugLog)
             Debug.Log("[TattooMachine] Out of ink");
     }
@@ -122,7 +128,9 @@ public class TattooMachine : MonoBehaviour
         {
             lastCanvas = null;
             IsDrawing = false;
-            WarnEmpty();
+            // In a cap the trigger refills instead, so no empty buzz there.
+            if (ink.DippedCap == null)
+                WarnEmpty();
             return;
         }
 
@@ -152,7 +160,7 @@ public class TattooMachine : MonoBehaviour
 
             if (Time.time >= nextHapticTime)
             {
-                bool sent = activeInteractor != null && activeInteractor.SendHapticImpulse(hapticAmplitude, hapticDuration);
+                bool sent = SendHaptic(hapticAmplitude, hapticDuration);
                 nextHapticTime = Time.time + hapticInterval;
                 if (debugLog)
                     Debug.Log($"[TattooMachine] Drawing at UV {uv}, haptic sent: {sent}");

@@ -43,7 +43,8 @@ public class TattooSeat : MonoBehaviour
     public CharacterController characterController;
 
     [Header("Tool")]
-    [Tooltip("Put into the hand automatically while seated (the tattoo machine)")]
+    [Tooltip("Put into the hand automatically when sitting down and dropped (back to its holder) when standing up " +
+             "(the tattoo machine). If it is put back while seated, the player picks it up from the holder.")]
     public XRGrabInteractable heldTool;
 
     [Tooltip("Interactor that holds the tool while seated (right hand Near-Far Interactor)")]
@@ -85,6 +86,16 @@ public class TattooSeat : MonoBehaviour
 
         if (chairInteractable != null)
             chairInteractable.selectEntered.RemoveListener(OnChairSelected);
+    }
+
+    // The automatic hold ignores the grip, so releasing the grip puts the tool back on its holder
+    // (the player can pick it up from there again).
+    void Update()
+    {
+        if (!IsSeated || handInteractor == null || !handInteractor.isPerformingManualInteraction)
+            return;
+        if (handInteractor is XRBaseInputInteractor input && input.selectInput.ReadWasCompletedThisFrame())
+            handInteractor.EndManualInteraction();
     }
 
     void OnTogglePerformed(InputAction.CallbackContext context)
@@ -130,7 +141,8 @@ public class TattooSeat : MonoBehaviour
         }
         xrOrigin.MoveCameraToWorldLocation(eyePosition);
 
-        if (heldTool != null && handInteractor != null && !handInteractor.isPerformingManualInteraction)
+        bool inHand = heldTool != null && heldTool.isSelected && !(heldTool.firstInteractorSelecting is XRSocketInteractor);
+        if (heldTool != null && handInteractor != null && !inHand && !handInteractor.isPerformingManualInteraction)
             handInteractor.StartManualInteraction((IXRSelectInteractable)heldTool);
 
         IsSeated = true;
@@ -152,9 +164,7 @@ public class TattooSeat : MonoBehaviour
         if (!IsSeated || xrOrigin == null)
             return;
 
-        // Releasing hands the tool to ReturnToSocket, which puts it back on its stand.
-        if (handInteractor != null && handInteractor.isPerformingManualInteraction)
-            handInteractor.EndManualInteraction();
+        DropTool();
 
         Vector3 away = lookTarget != null ? transform.position - lookTarget.position : -transform.forward;
         away.y = 0f;
@@ -169,6 +179,22 @@ public class TattooSeat : MonoBehaviour
         SetBehavioursEnabled(true);
 
         IsSeated = false;
+    }
+
+    // Releasing hands the tool to ReturnToSocket, which puts it back on its holder.
+    void DropTool()
+    {
+        if (heldTool == null || !heldTool.isSelected)
+            return;
+
+        var holder = heldTool.firstInteractorSelecting;
+        if (holder is XRSocketInteractor)
+            return;
+
+        if (holder is XRBaseInteractor interactor && interactor.isPerformingManualInteraction)
+            interactor.EndManualInteraction();
+        else if (heldTool.interactionManager != null)
+            heldTool.interactionManager.SelectExit(holder, (IXRSelectInteractable)heldTool);
     }
 
     void SetBehavioursEnabled(bool enabled)
