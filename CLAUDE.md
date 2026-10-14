@@ -11,7 +11,7 @@
 
 ## สิ่งที่ทำเสร็จแล้ว
 - **ระบบสัก:**
-  - เครื่องสัก (Cylinder) หยิบได้ กด trigger ตอนปลายเข็มแตะแขน (Capsule) จะวาดเส้นลง RenderTexture และส่ง haptics
+  - เครื่องสัก (โมเดลจริง ดูหัวข้อ "เครื่องสัก") หยิบได้ กด trigger ตอนปลายเข็มแตะแขน (Capsule) จะวาดเส้นลง RenderTexture และส่ง haptics
   - ขนาดเส้นกำหนดเป็นเมตร (5 มม.) ระบบชดเชยการยืดของ UV ให้
   - **สักลงแขนจริงของลูกค้า:** แขนท่อนล่างข้างที่หันมาฝั่งเก้าอี้ช่าง (ตอนนี้คือแขนขวา) ดูหัวข้อ "ผิวที่สัก" ล้างเองเมื่อมีลูกค้าใหม่ (canvas เป็นของลูกค้าแต่ละคน)
   - ลากเร็วแล้วเส้นไม่ขาด และตัดเส้นตอนข้ามรอยต่อ UV
@@ -21,6 +21,7 @@
   - ปิด: Move, Teleportation, Climb, Jump, Gravity, Grab Move ×3, Teleport Interactor (ray ซ้าย/ขวา), Climb Teleport และ CharacterController (หมุนตัวยังได้) ลุกแล้วเปิดคืนเฉพาะตัวที่เคยเปิดอยู่
   - เครื่องสักเข้ามือขวาอัตโนมัติ (`StartManualInteraction`)
   - ลุกแล้วเครื่องกลับที่วาง
+  - **ล็อกหัวตอนนั่ง (`SeatHeadLimit`):** ที่เดินได้ตอนนั่งมาจาก simulator ขยับตำแหน่ง HMD (WASD/Q/E/ลูกกลิ้ง) ไม่ใช่ locomotion (ปิดครบแล้ว) ใน simulator จึงล็อกตำแหน่งหัวไว้ หันมองได้ปกติ controller ยังขยับได้; บนแว่นจริงขยับหัวได้อิสระในรัศมี 50 ซม. จากจุดตาตอนนั่ง เกินแล้วจอค่อย ๆ มืด (มืดสนิทที่ 65 ซม.) กลับเข้ามาแล้วสว่างคืน ไม่ย้ายกล้องเอง
 - **Collider / แก้การตก:**
   - ย้าย XR Origin ขึ้นมาบนพื้น (y = -1.797)
   - เพิ่ม BoxCollider ใต้พื้นปิดรอยแยกของ MeshCollider และเพิ่มเข้า TeleportationArea แล้ว
@@ -56,6 +57,7 @@
 | `TattooMachine.cs` | อยู่บนเครื่องสัก ฟัง activate/deactivate ของ `XRGrabInteractable` raycast จาก `tip` ไปตามแนวเข็ม แล้ววาดและส่ง haptics มี `ExternalTrigger` ให้โหมดทดสอบสั่งวาดได้ |
 | `ReturnToSocket.cs` | อยู่บนเครื่องสัก ปล่อยมือ (ที่ไม่ใช่ socket) หรือตกต่ำกว่า `fallResetHeight` จะ `SelectEnter` กลับเข้า socket ในเฟรมถัดไป |
 | `TattooSeat.cs` | อยู่บน `Furniture/Chair43` (ตัวแม่) สลับนั่ง/ลุก (ปุ่ม B ขวา / F / ชี้เก้าอี้ + grip) ปิดและเปิดคืนเฉพาะ locomotion ที่เคยเปิดอยู่ และใส่/คืน `heldTool` เข้ามือ `handInteractor` ตำแหน่งตาตอนนั่งคิดจาก `lookTarget` (`SeatedEyePosition()`) |
+| `SeatHeadLimit.cs` | อยู่บน `Furniture/Chair43` จำจุดตาตอนนั่ง: จอมืดตามระยะหัว (`freeRadius` 0.5, `fadeDistance` 0.15, `fadeSpeed`) ผ่าน `fadeRenderer` (Quad `Main Camera/ScreenFade` + `Shaders/ScreenFade.shader`, `Materials/ScreenFade.mat`) และ `lockSimulatorHead` เขียนตำแหน่ง `m_HMDState` ของ simulator กลับผ่าน reflection + `InputState.Change` (execution order หลัง simulator) ทำเฉพาะเมื่อ `!XRSettings.isDeviceActive` |
 | `TattooDesktopTestMode.cs` | อยู่บน `Interactables/TattooSystem` โหมดทดสอบด้วยเมาส์ ปิด `trackPosition/Rotation` ของเครื่องระหว่างใช้ และหมุนหัว XR Device Simulator ผ่าน reflection (ฟิลด์ private `m_CenterEyeEuler`, `m_HMDState`) ซูมด้วยลูกกลิ้ง (`Zoom()`, `minFieldOfView`, `zoomStep`) |
 
 ## สคริปต์ลูกค้า (`Assets/_VRTattoo/Scripts/Customers/`)
@@ -125,6 +127,13 @@
 6. เพิ่มลง `characters` ของ `CustomerCharacterPicker` บน `Customer.prefab`
 7. Play แล้วจูนรายตัว: `sitOffset` (สะโพกแตะเบาะ ไม่ถอยลึกจนจมพนักพิง ตอนนี้ทุกตัวใช้ z = 0.07; เท้าแตะพื้น ขาไม่ทะลุหน้าเบาะ) และ `lieOffset` (y: หลังแตะเตียง; x: กึ่งกลางลำตัวอยู่กลางที่นอน z ≈ −0.56; z: กระดูก Head อยู่ที่ x ≈ 1.77 หัวจึงวางบนหมอน) แขน/ขาตรงด้วย IK อัตโนมัติ
 
+## เครื่องสัก (`Interactables/TattooSystem/TattooMachine`)
+- โมเดล `Models/TattooMachine/tattoo.fbx` (เครื่องคอยล์ ไม่มี texture ฝัง) เป็นลูก `Model` scale 0.02533 → ยาว 13.5 ซม. (ในไฟล์ยาว 5.33 หน่วยตามแกน Y เข็มชี้ −Y ปลายเข็มคือ mesh `Plane` ที่ y = 0.18) ตัวแม่ scale 1
+- Material extract ไว้ที่ `Models/TattooMachine/Materials/Material.00x.mat` (URP Lit, ใส่ metallic ให้เป็นโลหะ: ด้ามดำ, เงิน, คอยล์ทองแดง; `Material.001` หัวครอบปลายเป็นพลาสติกใส Transparent อันอื่นเป็น Opaque)
+- `Tip` อยู่ที่ปลายเข็มจริง local (0, −0.06, 0) forward ชี้ลงตามเข็ม; ray วาดเริ่มหลังปลาย 3 ซม. ซึ่งอยู่ในตัว CapsuleCollider จึงไม่ชนตัวเอง
+- `Attach` (local (0, −0.025, 0) = ห่างปลายเข็ม 3.5 ซม.) หมุนให้ถือแบบปากกา: เข็มชี้ไปข้างหน้าแล้วก้มลง 45° จาก forward ของ controller ด้านมอเตอร์ (−X ของโมเดล) หันขึ้น
+- ตอนถือ XRI ซ่อนโมเดล controller ขวา จึงเห็นเครื่องลอยอยู่ที่ตำแหน่งมือ
+
 - Shader: `Assets/_VRTattoo/Shaders/TattooBrush.shader` (แปรงกลมขอบนุ่ม)
 - Material: `Assets/_VRTattoo/Materials/Tattoo/` (TattooBrush, TattooSkinOverlay, TattooMachine, TattooStand)
 - สคริปต์เก่า: `AnimeateHandonInput.cs` (คลาส `AnimateHandOnInput` สั่งอนิเมชันมือ), `InputTest.cs` (log ค่า input; GameObject `Input Test` ปิดไว้)
@@ -149,8 +158,8 @@
 - `XR Device Simulator`: ใช้ทดสอบบนคอม
 - `Interactables/TattooSystem` (มี `TattooDesktopTestMode`)
   - `TattooWorkArea`: จุดว่างที่ (1.33, −1.05, −0.325) = กลางแขนท่อนล่างขวาของลูกค้าที่นอน (เฉลี่ยทุกตัว) เป็น `lookTarget` ของเก้าอี้ (TattooArm Capsule เดิมถูกลบแล้ว)
-  - `TattooMachine`: มี XRGrabInteractable (Instantaneous) + TattooMachine + ReturnToSocket และ child `Tip` กับ `Attach`
-  - `TattooMachineStand/Socket`: XRSocketInteractor (`SocketAttach` ให้เข็มชี้ลง)
+  - `TattooMachine`: มี XRGrabInteractable (Instantaneous) + TattooMachine + ReturnToSocket + Rigidbody, CapsuleCollider (หัวครอบปลาย+ด้าม) + BoxCollider (หัวเครื่อง) และ child `Model`, `Tip`, `Attach` (ดูหัวข้อ "เครื่องสัก")
+  - `TattooMachineStand/Socket`: XRSocketInteractor (`SocketAttach` หมุนเท่ากับ `Attach` เครื่องจึงตั้งตรง เข็มชี้ลง ปลายเข็มลอยเหนือหัวเสา `Pillar` 1 ซม.)
   - `SeatHint`: ป้าย TMP บอกปุ่ม (ภาษาอังกฤษ)
   - `SubmitButton`: ปุ่มส่งงานลอยข้างเตียง (1.75, −0.85, −0.05) ซ้ายมือผู้เล่นตอนนั่ง (ย้ายออกจากจุดที่หัวผู้เล่นอยู่ตอนนั่ง) (BoxCollider + XRSimpleInteractable, child `Visual` และ `Label`)
   - `TattooJobUI/{OrderLabel, ScoreLabel, TotalScoreLabel}`: ป้ายชื่อลาย/ระดับ (หลังเตียง), คะแนน (เหนือเตียง), คะแนนรวม (มุมบนผนังด้าน −z)
@@ -181,6 +190,9 @@
 - **รอยสักไม่ถาวร:** หายเมื่อลูกค้าลุกจากเตียง และทุกครั้งที่กด Play
 - **Socket ไม่ได้กรอง interaction layer:** ถ้ามีของอื่นที่หยิบได้ อาจไปเสียบที่วางได้
 - **ระหว่างนั่ง:** ถือเครื่องค้างไว้ตลอด (ปล่อยด้วย grip ไม่ได้)
+- **ล็อกหัวใน simulator พึ่ง reflection (`m_HMDState`):** ถ้าอัปเดต XRI แล้วชื่อฟิลด์เปลี่ยน หัวจะไม่ถูกล็อก (ไม่ error) แต่จอมืดยังทำงาน
+- **จอมืดตอนออกนอกรัศมี** ทดสอบใน simulator แล้ว ยังไม่ได้ทดสอบกับแว่นจริง
+- **ท่าจับเครื่อง (45°, ห่างปลาย 3.5 ซม.)** จูนจากภาพใน simulator ยังไม่ได้ลองกับมือจริง ถ้าไม่ถนัดปรับที่ `Attach` (และหมุน `SocketAttach` ให้เท่ากัน ไม่งั้นเครื่องบนที่วางจะเอียง)
 - **ป้ายใช้ภาษาอังกฤษ:** ฟอนต์ TMP ที่มีไม่มีตัวอักษรไทย
 - **ก้มกล้องอัตโนมัติพึ่ง reflection ของ simulator:** ถ้าอัปเดต XRI แล้วชื่อฟิลด์เปลี่ยน การก้มจะไม่ทำงาน (ไม่ error)
 - **`Chair43 (1)` และ `Table44` ใน Furniture:** เป็น object ว่าง ไม่มี mesh
@@ -200,11 +212,10 @@
 - **โมเดลไม่อยู่ใน git** (ดูหัวข้อ "ตัวละครลูกค้า") clone ใหม่แล้ว prefab ตัวละครจะว่าง จนกว่าจะก๊อปโมเดลมาใส่
 
 ## งานถัดไป (ทำตามลำดับ)
-1. ล็อกการเดินตอนนั่ง + เปลี่ยนเครื่องสักเป็นโมเดลจริง (ตอนนี้เป็น Cylinder)
-2. โต๊ะ/รถเข็นข้างเตียงสำหรับวางเครื่องสัก ถ้วยหมึก และหัวเข็ม (แทนแท่นวางเดิม `TattooMachineStand`)
-3. ระบบเปลี่ยนหัวเข็ม (เส้นเล็ก/ใหญ่) และจุ่มเข็มในถ้วยหมึกเพื่อเปลี่ยนสี ทำพร้อมกัน และปรับระบบคะแนนรองรับ
-4. เสียงเครื่องสัก (AudioListener พร้อมแล้ว), ป้ายภาษาไทย (ต้องมีฟอนต์ TMP ที่รองรับภาษาไทย)
-5. เปลี่ยนจุดสักได้หลายส่วนของร่างกาย เช่น ต้นแขน หลัง (อาจต้องมีท่านอนคว่ำ) รวมถึงให้ลูกค้าเปลี่ยนท่าแขน/ยื่นแขนให้ช่าง
+1. โต๊ะ/รถเข็นข้างเตียงสำหรับวางเครื่องสัก ถ้วยหมึก และหัวเข็ม (แทนแท่นวางเดิม `TattooMachineStand`)
+2. ระบบเปลี่ยนหัวเข็ม (เส้นเล็ก/ใหญ่) และจุ่มเข็มในถ้วยหมึกเพื่อเปลี่ยนสี ทำพร้อมกัน และปรับระบบคะแนนรองรับ
+3. เสียงเครื่องสัก (AudioListener พร้อมแล้ว), ป้ายภาษาไทย (ต้องมีฟอนต์ TMP ที่รองรับภาษาไทย)
+4. เปลี่ยนจุดสักได้หลายส่วนของร่างกาย เช่น ต้นแขน หลัง (อาจต้องมีท่านอนคว่ำ) รวมถึงให้ลูกค้าเปลี่ยนท่าแขน/ยื่นแขนให้ช่าง
 
 ค้างไว้ (ยังไม่จัดลำดับ):
 - เปลี่ยนโมเดลทดสอบเป็นโมเดลที่ใช้ได้ถูกต้องก่อนเผยแพร่
