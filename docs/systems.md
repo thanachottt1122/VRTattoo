@@ -30,11 +30,11 @@
   - ไม่กระทบแว่นจริง
 - **Audio Listener** อยู่บน Main Camera
 - **สเกลห้องเท่าของจริง** (ขยายรอบจุด (0.32, -1.797, -0.05) ระดับพื้นจึงไม่เปลี่ยน):
-  - `Room`, `Furniture`, `Light Probe Group` ×1.48 → เพดาน 2.66 ม., โซฟา 0.95 ม. (เบาะ 0.47), สตูล Chair43 0.65 ม.
+  - `Room`, `Furniture` ×1.48 (`Light Probe Group` สร้างใหม่เป็นกริดพิกัดโลก ดู [lighting.md](lighting.md)) → เพดาน 2.66 ม., โซฟา 0.95 ม. (เบาะ 0.47), สตูล Chair43 0.65 ม.
   - `hospital bed` + `Cushion38` ×1.39 → ยาว 1.90 สูง 0.70; `Door_7_White` ×1.55 → สูง 2.0 ม.
   - TattooSystem ไม่ขยาย (สร้างเป็นเมตรจริงอยู่แล้ว) แค่ย้ายตำแหน่ง; XR Origin / Simulator ไม่ขยาย
   - `seatedEyeHeight` = 1.40 (ใช้เฉพาะเมื่อปิด `leanOverTarget`), `Camera Y Offset` = 1.6
-  - ไม่มี object ไหนเป็น GI static จึงไม่มี lightmap (ไฟ realtime ทั้งหมด) LightingData อยู่ที่ `Scenes/TattooRoom/`
+  - แสงเป็นแบบ bake (Room/Furniture/ประตูเป็น GI static) ไฟ realtime ดวงเดียวคือโคมเหนือเตียง ดู [lighting.md](lighting.md); LightingData + lightmap อยู่ที่ `Scenes/TattooRoom/`
 - **ระบบลูกค้า (โมเดลคน 4 ตัว สุ่มไม่ซ้ำคนก่อนหน้า มีท่าเดิน/นั่ง/นอน ดูหัวข้อ "ตัวละครลูกค้า"):**
   - ในร้านมีได้ 3 คน: 1 คนบนเตียง + 2 คนบนโซฟารอ ลูกค้าโผล่ที่ประตูทุก `spawnInterval` จนกว่าที่จะเต็ม
   - เดินเส้นตรง (ไม่ใช้ NavMesh) ผ่าน waypoint ของ `CustomerRoute` ถึงแล้ววาร์ปไปท่านั่ง/นอน

@@ -14,6 +14,7 @@
 ## โครงสร้าง (`Assets/_VRTattoo/`)
 - `Scenes/TattooRoom.unity` scene หลัก
 - `Scripts/Tattoo/` เครื่องสัก canvas หมึก หัวเข็ม เก้าอี้ test mode · `Scripts/Ink/` · `Scripts/Needles/` · `Scripts/Customers/` · `Scripts/Stencils/` ลาย+คะแนน (มี `Editor/`)
+- `Materials/Shop/` วัสดุห้อง · `Textures/FlashArt/` (`Tools/flash/make_flash_art.py`) · `Lighting/` lighting settings
 - `UI/Emotes/` PNG อิโมจิ (`Tools/emotes/draw_emotes.py`) · `Data/Voices/` ชุดเสียงลูกค้า
 - `Prefabs/` (`Customer`, `Characters/`, `Ink/`, `Needles/`) · `Characters/` (โมเดลไม่อยู่ใน git) · `Stencils/` PNG ลาย · `Data/StencilLibrary.asset` · `Shaders/` · `Materials/` · `Models/`
 - นอก Assets: `docs/` · `Tools/stencils/extract_stencils.py` · `SourceArt/`
@@ -28,6 +29,7 @@
 - **ลูกค้า:** สูงสุด 3 คน (เตียง 1 + โซฟา 2) เดินตาม waypoint แล้ววาร์ปเข้าท่า ตัวละคร 4 ตัวสุ่มไม่ซ้ำ
 - **ความพึงพอใจ:** ส่งงานแล้วอิโมจิเด้งเหนือหัวตามคะแนน (≥90 ตาหัวใจ / ≥70 ยิ้ม / ≥40 เฉย / ต่ำกว่าโกรธ, ปรับ `moods` ได้) ค้างจนเดินออกประตู; เสียงลูกค้า (ทักทาย ร้องเจ็บ ตามอารมณ์) แยกชาย/หญิง/รายตัว ยังไม่มีไฟล์ → [วิธีใส่เสียง](docs/customer-reactions.md)
 - **ลายและคะแนน:** นอนแล้วสุ่มลาย ส่งงาน (SUBMIT / J) → คุณภาพ 0–100 = Accuracy × ตัวหักความเลอะ (ถ่วงตามระยะ ผ่อนตามขนาดหัว) × ตัวคูณระดับ
+- **ห้อง/แสง:** ร้านสักโทนมืด แสง bake (ไฟ realtime ดวงเดียว = โคม spot เหนือเตียง), นีออน TATTOO, LED ชมพูใต้ขอบเพดาน, ภาพ flash art จากคลังลาย; ย้ายของ static/ไฟ baked ต้อง bake ใหม่ → [lighting.md](docs/lighting.md)
 - **Desktop Test Mode (K, Editor):** เมาส์คุมเครื่อง วาด เติมหมึก เปลี่ยนหัว ซูม
 
 ## สคริปต์สำคัญ
@@ -47,6 +49,7 @@
 - [characters.md](docs/characters.md) ตัวละคร Animator วิธีเพิ่มตัวละคร
 - [tattoo-skin.md](docs/tattoo-skin.md) ผิวที่สักบนแขน
 - [scene-objects.md](docs/scene-objects.md) GameObject และตำแหน่ง
+- [lighting.md](docs/lighting.md) วัสดุห้อง ไฟ ป้ายนีออน การ bake
 - [customer-reactions.md](docs/customer-reactions.md) อิโมจิความพึงพอใจ, **วิธีใส่เสียงลูกค้า**
 - [known-issues.md](docs/known-issues.md) ข้อจำกัดแบบละเอียด
 
@@ -71,6 +74,7 @@
 - คะแนน: ลายพื้นทึบได้เปรียบเล็กน้อยตอนมือสั่น, ส่งงาน ~200 ms
 - หมึกค้างข้ามลูกค้า, รอยสักไม่ถาวร, ขอบเส้นขรุขระ (RT 1024), ผิวที่สักเป็นภาพนิ่ง, ลายบิดใกล้ข้อมือ/ข้อศอก
 - ยังไม่มีไฟล์เสียงลูกค้า (ช่องว่างอยู่)
+- แสงใหม่ยังไม่ได้ลองบนแว่นจริง (ความมืด/ความลื่น)
 - ลูกค้าไม่มี collider และไม่มีท่าลุก/นั่งลง, socket ไม่กรอง layer, ป้ายเป็นภาษาอังกฤษ
 - **ก่อนเผยแพร่:** โมเดลตัวละครติดลิขสิทธิ์และไม่อยู่ใน git (ก๊อป `Characters/Models/` + `SourceArt/Characters/` รวม `.meta`); ลายติดลิขสิทธิ์ `angry_duck`, `ghost_monster`, `trophy`, `cloud`
 
