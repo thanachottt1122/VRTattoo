@@ -29,6 +29,7 @@ public class CustomerTattooSkin : MonoBehaviour
 
     [Tooltip("Line width on the skin (m)")]
     public float brushDiameter = 0.005f;
+    [Tooltip("Ink colour used when the tattoo machine has no TattooInk (the machine passes its own colour)")]
     public Color inkColor = new Color(0.02f, 0.02f, 0.02f);
 
     [Header("Stencil")]
@@ -59,7 +60,6 @@ public class CustomerTattooSkin : MonoBehaviour
     public bool UsesLeftArm { get; private set; }
 
     static readonly int InkTexId = Shader.PropertyToID("_InkTex");
-    static readonly int InkColorId = Shader.PropertyToID("_InkColor");
     static readonly int StencilTexId = Shader.PropertyToID("_StencilTex");
     static readonly int StencilColorId = Shader.PropertyToID("_StencilColor");
     static readonly int CenterId = Shader.PropertyToID("_Center");
@@ -325,7 +325,6 @@ public class CustomerTattooSkin : MonoBehaviour
 
         overlayInstance = new Material(overlayMaterial);
         overlayInstance.SetTexture(InkTexId, Canvas.TattooTexture);
-        overlayInstance.SetColor(InkColorId, inkColor);
         overlay.sharedMaterial = overlayInstance;
     }
 

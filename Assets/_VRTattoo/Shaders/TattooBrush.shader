@@ -15,8 +15,9 @@ Shader "VRTattoo/TattooBrush"
             ZTest Always
             ZWrite Off
             Cull Off
-            // The canvas starts transparent; alpha accumulates as ink coverage.
-            Blend SrcAlpha OneMinusSrcAlpha, One OneMinusSrcAlpha
+            // Premultiplied: the canvas starts transparent, alpha accumulates as ink coverage and
+            // rgb holds colour x alpha, so a new colour covers an old one correctly.
+            Blend One OneMinusSrcAlpha
 
             HLSLPROGRAM
             #pragma vertex vert
@@ -50,7 +51,8 @@ Shader "VRTattoo/TattooBrush"
             {
                 float d = length(i.uv - 0.5) * 2.0;
                 float alpha = 1.0 - smoothstep(_Hardness, 1.0, d);
-                return float4(_Color.rgb, _Color.a * alpha);
+                float a = _Color.a * alpha;
+                return float4(_Color.rgb * a, a);
             }
             ENDHLSL
         }

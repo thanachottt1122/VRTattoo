@@ -1,6 +1,6 @@
 using UnityEngine;
 
-// Paintable skin: owns a transparent RenderTexture that holds the ink (alpha = ink) in the UV space
+// Paintable skin: owns a transparent RenderTexture that holds the ink (alpha = ink, rgb = colour x alpha) in the UV space
 // of the collider it sits on. Something else displays it (CustomerTattooSkin's overlay mesh), and
 // TattooMachine finds it through the collider it hits.
 public class TattooCanvas : MonoBehaviour
@@ -22,6 +22,7 @@ public class TattooCanvas : MonoBehaviour
 
     RenderTexture tattooTexture;
     Vector2 metersPerUV = Vector2.one;
+    Material brushInstance; // own copy, so changing the ink colour never edits the material asset
 
     public RenderTexture TattooTexture => tattooTexture;
 
@@ -52,6 +53,8 @@ public class TattooCanvas : MonoBehaviour
             tattooTexture.Release();
             Destroy(tattooTexture);
         }
+        if (brushInstance != null)
+            Destroy(brushInstance);
     }
 
     public void Clear()
@@ -64,6 +67,10 @@ public class TattooCanvas : MonoBehaviour
 
     // Draws a continuous line between two contact points. Pass the same point twice to start a stroke.
     public void DrawStroke(Vector2 uvFrom, Vector3 worldFrom, Vector2 uvTo, Vector3 worldTo)
+        => DrawStroke(uvFrom, worldFrom, uvTo, worldTo, inkColor);
+
+    // Same, in the given ink colour. The texture is premultiplied (rgb = colour x alpha), so strokes keep their own colour.
+    public void DrawStroke(Vector2 uvFrom, Vector3 worldFrom, Vector2 uvTo, Vector3 worldTo, Color color)
     {
         if (brushMaterial == null || tattooTexture == null)
             return;
@@ -83,13 +90,19 @@ public class TattooCanvas : MonoBehaviour
         float halfU = brushDiameter * 0.5f / metersPerUV.x;
         float halfV = brushDiameter * 0.5f / metersPerUV.y;
 
-        brushMaterial.SetColor(ColorId, inkColor);
+        if (brushInstance == null || brushInstance.shader != brushMaterial.shader)
+        {
+            if (brushInstance != null)
+                Destroy(brushInstance);
+            brushInstance = new Material(brushMaterial);
+        }
+        brushInstance.SetColor(ColorId, color);
 
         var previous = RenderTexture.active;
         RenderTexture.active = tattooTexture;
         GL.PushMatrix();
         GL.LoadOrtho();
-        brushMaterial.SetPass(0);
+        brushInstance.SetPass(0);
         GL.Begin(GL.QUADS);
         for (int i = 1; i <= stamps; i++)
         {

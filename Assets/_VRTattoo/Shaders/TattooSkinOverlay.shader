@@ -1,14 +1,13 @@
 // Ink and stencil drawn over a customer's forearm. CustomerTattooSkin renders it on a copy of the
 // forearm triangles (same bones, so it sits exactly on the skin) whose UVs are skin coordinates:
 // metres around × along the arm, scaled into the 0..1 canvas.
-//   ink:     _InkTex alpha (TattooCanvas), coloured _InkColor
+//   ink:     _InkTex (TattooCanvas, premultiplied: rgb = colour x alpha, so each stroke keeps its own colour)
 //   stencil: st = 0.5 + (dot(uv - center, axisX), dot(uv - center, axisY)), visible where st is in [0,1]
 Shader "VRTattoo/TattooSkinOverlay"
 {
     Properties
     {
-        _InkTex ("Ink (alpha)", 2D) = "black" {}
-        _InkColor ("Ink Color", Color) = (0.02, 0.02, 0.02, 1)
+        _InkTex ("Ink (premultiplied)", 2D) = "black" {}
         _StencilTex ("Stencil (alpha)", 2D) = "black" {}
         _StencilColor ("Stencil Color", Color) = (0.4, 0.1, 0.8, 0.8)
         _Center ("Center UV", Vector) = (0.5, 0.5, 0, 0)
@@ -39,7 +38,6 @@ Shader "VRTattoo/TattooSkinOverlay"
             SAMPLER(sampler_StencilTex);
 
             CBUFFER_START(UnityPerMaterial)
-                float4 _InkColor;
                 float4 _StencilColor;
                 float4 _Center;
                 float4 _AxisX;
@@ -76,9 +74,11 @@ Shader "VRTattoo/TattooSkinOverlay"
                 half inStencil = step(0.0, min(min(st.x, st.y), min(1.0 - st.x, 1.0 - st.y)));
                 half stencilA = SAMPLE_TEXTURE2D(_StencilTex, sampler_StencilTex, saturate(st)).a * inStencil * _StencilColor.a;
 
-                half inkA = SAMPLE_TEXTURE2D(_InkTex, sampler_InkTex, i.uv).a * _InkColor.a;
+                half4 ink = SAMPLE_TEXTURE2D(_InkTex, sampler_InkTex, i.uv);
+                half inkA = ink.a;
+                half3 inkRGB = ink.rgb / max(inkA, 0.001);
 
-                half3 color = lerp(_StencilColor.rgb, _InkColor.rgb, inkA);
+                half3 color = lerp(_StencilColor.rgb, inkRGB, inkA);
                 half alpha = max(inkA, stencilA);
                 clip(alpha - 0.004);
                 return half4(color, alpha);

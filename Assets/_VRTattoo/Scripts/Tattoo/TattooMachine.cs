@@ -4,6 +4,7 @@ using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 // Draws on a TattooCanvas while held, trigger pressed, and the needle tip touches the skin.
+// With a TattooInk it draws in the ink's colour, uses ink by line length and stops (with a warning buzz) when empty.
 [RequireComponent(typeof(XRGrabInteractable))]
 public class TattooMachine : MonoBehaviour
 {
@@ -18,10 +19,17 @@ public class TattooMachine : MonoBehaviour
 
     public LayerMask skinLayers = ~0;
 
+    [Tooltip("Ink supply (leave empty to use the one on this object; none = unlimited ink in the canvas colour)")]
+    public TattooInk ink;
+
     [Header("Haptics")]
     [Range(0f, 1f)] public float hapticAmplitude = 0.4f;
     public float hapticDuration = 0.1f;
     public float hapticInterval = 0.08f;
+
+    [Tooltip("Short buzz when the trigger is pressed (or the ink runs out) with no ink")]
+    [Range(0f, 1f)] public float emptyHapticAmplitude = 0.8f;
+    public float emptyHapticDuration = 0.05f;
 
     [Tooltip("Losing contact for less than this long keeps the stroke connected (s)")]
     public float strokeGapTolerance = 0.1f;
@@ -36,6 +44,7 @@ public class TattooMachine : MonoBehaviour
     Vector3 lastPoint;
     float lastContactTime;
     float nextHapticTime;
+    bool emptyWarned;
 
     public bool IsDrawing { get; private set; }
 
@@ -45,6 +54,8 @@ public class TattooMachine : MonoBehaviour
     void Awake()
     {
         grabInteractable = GetComponent<XRGrabInteractable>();
+        if (ink == null)
+            ink = GetComponent<TattooInk>();
     }
 
     void OnEnable()
@@ -66,6 +77,9 @@ public class TattooMachine : MonoBehaviour
     {
         triggerHeld = true;
         activeInteractor = args.interactorObject as XRBaseInputInteractor;
+        emptyWarned = false;
+        if (ink != null && ink.IsEmpty)
+            WarnEmpty();
     }
 
     void OnDeactivated(DeactivateEventArgs args) => StopDrawing();
@@ -78,6 +92,19 @@ public class TattooMachine : MonoBehaviour
         activeInteractor = null;
         lastCanvas = null;
         IsDrawing = false;
+        emptyWarned = false;
+    }
+
+    // One short buzz per trigger press: no ink comes out.
+    void WarnEmpty()
+    {
+        if (emptyWarned)
+            return;
+        emptyWarned = true;
+        if (activeInteractor != null)
+            activeInteractor.SendHapticImpulse(emptyHapticAmplitude, emptyHapticDuration);
+        if (debugLog)
+            Debug.Log("[TattooMachine] Out of ink");
     }
 
     void Update()
@@ -86,6 +113,16 @@ public class TattooMachine : MonoBehaviour
         {
             lastCanvas = null;
             IsDrawing = false;
+            if (!triggerHeld)
+                emptyWarned = false;
+            return;
+        }
+
+        if (ink != null && ink.IsEmpty)
+        {
+            lastCanvas = null;
+            IsDrawing = false;
+            WarnEmpty();
             return;
         }
 
@@ -97,10 +134,15 @@ public class TattooMachine : MonoBehaviour
         {
             Vector2 uv = hit.textureCoord;
             bool continueStroke = canvas == lastCanvas && Time.time - lastContactTime <= strokeGapTolerance;
+            Color color = ink != null ? ink.color : canvas.inkColor;
             if (continueStroke)
-                canvas.DrawStroke(lastUV, lastPoint, uv, hit.point);
+                canvas.DrawStroke(lastUV, lastPoint, uv, hit.point, color);
             else
-                canvas.DrawStroke(uv, hit.point, uv, hit.point);
+                canvas.DrawStroke(uv, hit.point, uv, hit.point, color);
+
+            // Ink goes by the length of line drawn: holding still uses none, a new dot costs one brush width.
+            if (ink != null)
+                ink.Consume(continueStroke ? Vector3.Distance(lastPoint, hit.point) : canvas.brushDiameter);
 
             lastCanvas = canvas;
             lastUV = uv;

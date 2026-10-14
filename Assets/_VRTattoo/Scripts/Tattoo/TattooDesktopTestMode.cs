@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -7,7 +8,8 @@ using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 // Desktop-only testing aid: while seated with the machine in hand, the mouse places the needle
-// on the skin and holding the left mouse button draws. Does nothing in headset builds.
+// on the skin and holding the left mouse button draws. R refills the ink, 1-4 switch to the ink caps' colours.
+// Does nothing in headset builds.
 [DefaultExecutionOrder(-10)] // place the needle before TattooMachine raycasts this frame
 public class TattooDesktopTestMode : MonoBehaviour
 {
@@ -41,6 +43,12 @@ public class TattooDesktopTestMode : MonoBehaviour
     [Tooltip("Leave empty to find it in the scene")]
     public XRDeviceSimulator deviceSimulator;
 
+    [Header("Ink (while the mode is on)")]
+    public Key refillKey = Key.R;
+
+    [Tooltip("Number keys 1, 2, 3... switch to these caps' colours (and refill)")]
+    public InkCap[] inkCaps;
+
     [Header("Zoom (desktop only)")]
     [Tooltip("Mouse wheel changes the camera's field of view while the mode is active. " +
              "Never applied when a headset is running: zooming in VR causes motion sickness.")]
@@ -67,6 +75,8 @@ public class TattooDesktopTestMode : MonoBehaviour
     Camera zoomCamera;
     float? fovBeforeZoom;
     InputAction simulatorScrollAction;
+    readonly List<InputAction> pausedSimulatorKeys = new List<InputAction>();
+    static readonly Key[] InkKeys = { Key.Digit1, Key.Digit2, Key.Digit3, Key.Digit4, Key.Digit5, Key.Digit6, Key.Digit7, Key.Digit8, Key.Digit9 };
 
     bool IsAllowed => !editorOnly || Application.isEditor;
 
@@ -82,6 +92,7 @@ public class TattooDesktopTestMode : MonoBehaviour
     void OnDisable()
     {
         SetOverride(false);
+        PauseSimulatorKeys(false);
     }
 
     void Update()
@@ -95,6 +106,10 @@ public class TattooDesktopTestMode : MonoBehaviour
             enabledMode = !enabledMode;
             Debug.Log($"[TattooDesktopTestMode] {(enabledMode ? "ON" : "OFF")}");
         }
+
+        PauseSimulatorKeys(enabledMode);
+        if (enabledMode && keyboard != null)
+            HandleInkKeys(keyboard);
 
         bool heldInHand = grabInteractable != null && grabInteractable.isSelected
             && !(grabInteractable.firstInteractorSelecting is XRSocketInteractor);
@@ -192,6 +207,76 @@ public class TattooDesktopTestMode : MonoBehaviour
         fovBeforeZoom = null;
         zoomCamera = null;
         PauseSimulatorScroll(false);
+    }
+
+    void HandleInkKeys(Keyboard keyboard)
+    {
+        if (keyboard[refillKey].wasPressedThisFrame)
+            RefillInk();
+
+        int count = inkCaps != null ? Mathf.Min(inkCaps.Length, InkKeys.Length) : 0;
+        for (int i = 0; i < count; i++)
+        {
+            if (keyboard[InkKeys[i]].wasPressedThisFrame)
+                SelectInk(i);
+        }
+    }
+
+    TattooInk Ink => machine != null ? machine.ink : null;
+
+    // Fills the machine with its current colour.
+    public void RefillInk()
+    {
+        if (Ink == null)
+            return;
+        Ink.Refill();
+        Debug.Log("[TattooDesktopTestMode] Ink refilled");
+    }
+
+    // Same as dipping into inkCaps[index].
+    public void SelectInk(int index)
+    {
+        if (Ink == null || inkCaps == null || index < 0 || index >= inkCaps.Length || inkCaps[index] == null)
+            return;
+        Ink.Refill(inkCaps[index].Color);
+        Debug.Log($"[TattooDesktopTestMode] Ink: {inkCaps[index].inkName}");
+    }
+
+    // The simulator also uses R and 1-4, so those actions are paused while the mode is on.
+    void PauseSimulatorKeys(bool pause)
+    {
+        if (pause == pausedSimulatorKeys.Count > 0)
+            return;
+
+        if (!pause)
+        {
+            foreach (var action in pausedSimulatorKeys)
+                action.Enable();
+            pausedSimulatorKeys.Clear();
+            return;
+        }
+
+        if (deviceSimulator == null)
+            deviceSimulator = FindFirstObjectByType<XRDeviceSimulator>();
+        if (deviceSimulator == null)
+            return;
+
+        foreach (var reference in new[]
+        {
+            deviceSimulator.toggleMouseTransformationModeAction,  // R
+            deviceSimulator.togglePrimary2DAxisTargetAction,      // 1
+            deviceSimulator.toggleSecondary2DAxisTargetAction,    // 2
+            deviceSimulator.toggleDevicePositionTargetAction,     // 3
+            deviceSimulator.primary2DAxisClickAction,             // 4
+        })
+        {
+            var action = reference != null ? reference.action : null;
+            if (action != null && action.enabled)
+            {
+                action.Disable();
+                pausedSimulatorKeys.Add(action);
+            }
+        }
     }
 
     void PauseSimulatorScroll(bool pause)
