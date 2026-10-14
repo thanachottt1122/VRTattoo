@@ -25,7 +25,8 @@ public class CustomerQueueManager : MonoBehaviour
     public float spawnInterval = 1.5f;
 
     [Header("Testing (Unity Editor only)")]
-    public Key completeKey = Key.J;
+    [Tooltip("None when another script (TattooJobManager) decides when the tattoo is done")]
+    public Key completeKey = Key.None;
 
     [Header("Events")]
     public UnityEvent<Customer> onCustomerLayDown;
@@ -59,7 +60,7 @@ public class CustomerQueueManager : MonoBehaviour
     {
 #if UNITY_EDITOR
         var keyboard = Keyboard.current;
-        if (keyboard != null && keyboard[completeKey].wasPressedThisFrame)
+        if (completeKey != Key.None && keyboard != null && keyboard[completeKey].wasPressedThisFrame)
             CompleteTattoo();
 #endif
 

@@ -1,0 +1,63 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 46121a0642be51a48a80a092ff3faf3c, type: 3}
+  m_Name: StencilLibrary
+  m_EditorClassIdentifier: Assembly-CSharp::StencilLibrary
+  stencils:
+  - texture: {fileID: 2800000, guid: bf7397dca4360c14b963de979501971b, type: 3}
+    displayName: cloud
+    difficulty: 0
+  - texture: {fileID: 2800000, guid: 07c808f73d1cd4843bad974e99db4869, type: 3}
+    displayName: crown skull
+    difficulty: 0
+  - texture: {fileID: 2800000, guid: af2f9915e98e1c34eb07ab3413327e57, type: 3}
+    displayName: karate kick
+    difficulty: 0
+  - texture: {fileID: 2800000, guid: ebbffd591ba2a2c4f845b94b3aa8a6e9, type: 3}
+    displayName: melting smiley
+    difficulty: 0
+  - texture: {fileID: 2800000, guid: 6d01b63ccf370624db14ff14c9d4f827, type: 3}
+    displayName: x eyes face
+    difficulty: 0
+  - texture: {fileID: 2800000, guid: 0ceb0ec7f82365b4f9b5f5102907ea3d, type: 3}
+    displayName: angry duck
+    difficulty: 1
+  - texture: {fileID: 2800000, guid: 39929e4389b3fab4b83c0f4347d25cc0, type: 3}
+    displayName: biohazard
+    difficulty: 1
+  - texture: {fileID: 2800000, guid: 7f1df475dde8f884fa6ad66f1afb57cf, type: 3}
+    displayName: crown seven
+    difficulty: 1
+  - texture: {fileID: 2800000, guid: e850af0e704c96b4f821669a6c09bd1c, type: 3}
+    displayName: dollar crown
+    difficulty: 1
+  - texture: {fileID: 2800000, guid: e12be68d7a4a0f8428973a04e297e551, type: 3}
+    displayName: ghost monster
+    difficulty: 1
+  - texture: {fileID: 2800000, guid: fadda458318cdfe4f99602373005309d, type: 3}
+    displayName: trophy
+    difficulty: 1
+  - texture: {fileID: 2800000, guid: e7c6833b59255b44f8cc4b2d649b7610, type: 3}
+    displayName: flying money
+    difficulty: 2
+  - texture: {fileID: 2800000, guid: 834ebdaef82d5224d9a7f30d18581798, type: 3}
+    displayName: royal crown
+    difficulty: 2
+  - texture: {fileID: 2800000, guid: f8edee1ccd75f4d4a8d22df0af4b895a, type: 3}
+    displayName: sad boy
+    difficulty: 2
+  - texture: {fileID: 2800000, guid: c7889389a414d024aa02196295fce5bb, type: 3}
+    displayName: skull crossbones
+    difficulty: 2
+  - texture: {fileID: 2800000, guid: 93d8adaf1d052c64f8e6eebd15e3b275, type: 3}
+    displayName: teddy bear
+    difficulty: 2
