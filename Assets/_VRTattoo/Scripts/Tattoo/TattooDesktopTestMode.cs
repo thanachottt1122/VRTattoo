@@ -1,6 +1,7 @@
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.XR;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
@@ -39,6 +40,17 @@ public class TattooDesktopTestMode : MonoBehaviour
     [Tooltip("Leave empty to find it in the scene")]
     public XRDeviceSimulator deviceSimulator;
 
+    [Header("Zoom (desktop only)")]
+    [Tooltip("Mouse wheel changes the camera's field of view while the mode is active. " +
+             "Never applied when a headset is running: zooming in VR causes motion sickness.")]
+    public bool scrollZoom = true;
+
+    [Tooltip("Narrowest field of view when zoomed in (degrees)")]
+    public float minFieldOfView = 20f;
+
+    [Tooltip("Degrees per mouse wheel notch")]
+    public float zoomStep = 4f;
+
     // The simulator keeps its head rotation in private fields, so it is set by reflection.
     static readonly FieldInfo SimulatorEulerField =
         typeof(XRDeviceSimulator).GetField("m_CenterEyeEuler", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -49,6 +61,11 @@ public class TattooDesktopTestMode : MonoBehaviour
     XRGrabInteractable grabInteractable;
     bool overriding;
     float? pitchBeforeLook;
+
+    // Zoom state: the camera's own FOV is the zoomed-out limit and is put back when the mode ends.
+    Camera zoomCamera;
+    float? fovBeforeZoom;
+    InputAction simulatorScrollAction;
 
     bool IsAllowed => !editorOnly || Application.isEditor;
 
@@ -91,6 +108,8 @@ public class TattooDesktopTestMode : MonoBehaviour
             return;
         }
 
+        UpdateZoom(cam, mouse);
+
         Ray ray = cam.ScreenPointToRay(mouse.position.ReadValue());
         if (skinCollider.Raycast(ray, out RaycastHit hit, 10f))
         {
@@ -126,9 +145,69 @@ public class TattooDesktopTestMode : MonoBehaviour
         if (on)
             LookAtSkin();
         else
+        {
             RestoreSimulatorPitch();
+            EndZoom();
+        }
 
         overriding = on;
+    }
+
+    // Mouse wheel = field of view. The simulator also listens to the wheel (moves the simulated
+    // device), so its scroll action is paused while zooming is possible.
+    void UpdateZoom(Camera cam, Mouse mouse)
+    {
+        if (!scrollZoom || XRSettings.isDeviceActive)
+            return;
+
+        if (fovBeforeZoom == null)
+        {
+            zoomCamera = cam;
+            fovBeforeZoom = cam.fieldOfView;
+            PauseSimulatorScroll(true);
+        }
+
+        Zoom(mouse.scroll.ReadValue().y);
+    }
+
+    // Positive = wheel forward = zoom in. Only between minFieldOfView and the camera's own FOV.
+    public void Zoom(float wheel)
+    {
+        if (zoomCamera == null || fovBeforeZoom == null || Mathf.Abs(wheel) < 0.01f)
+            return;
+
+        float maxFov = Mathf.Max(fovBeforeZoom.Value, minFieldOfView);
+        zoomCamera.fieldOfView = Mathf.Clamp(zoomCamera.fieldOfView - Mathf.Sign(wheel) * zoomStep, minFieldOfView, maxFov);
+    }
+
+    void EndZoom()
+    {
+        if (fovBeforeZoom.HasValue && zoomCamera != null)
+            zoomCamera.fieldOfView = fovBeforeZoom.Value;
+        fovBeforeZoom = null;
+        zoomCamera = null;
+        PauseSimulatorScroll(false);
+    }
+
+    void PauseSimulatorScroll(bool pause)
+    {
+        if (pause)
+        {
+            if (deviceSimulator == null)
+                deviceSimulator = FindFirstObjectByType<XRDeviceSimulator>();
+            var action = deviceSimulator != null && deviceSimulator.mouseScrollAction != null
+                ? deviceSimulator.mouseScrollAction.action : null;
+            if (action != null && action.enabled)
+            {
+                action.Disable();
+                simulatorScrollAction = action;
+            }
+        }
+        else if (simulatorScrollAction != null)
+        {
+            simulatorScrollAction.Enable();
+            simulatorScrollAction = null;
+        }
     }
 
     void LookAtSkin()

@@ -23,7 +23,7 @@ public class StencilOverlay : MonoBehaviour
     public Material overlayMaterial;
 
     [Tooltip("Width and height of the stencil on the skin (m)")]
-    public float sizeMeters = 0.10f;
+    public float sizeMeters = 0.14f;
 
     [Tooltip("World direction the top of the stencil points to (away from the tattoo chair)")]
     public Vector3 stencilUp = Vector3.back;

@@ -1,0 +1,231 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &2123375609007876713
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -8803045977340059181, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_UpdateWhenOffscreen
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.95
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.95
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.95
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8599736033624931606, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_UpdateWhenOffscreen
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8538974089989482454, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_UpdateWhenOffscreen
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8534901526378557894, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_UpdateWhenOffscreen
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8126749341016490596, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_UpdateWhenOffscreen
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -6064429262406533129, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_UpdateWhenOffscreen
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -5352758458482794473, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_UpdateWhenOffscreen
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -4437164153109291785, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_UpdateWhenOffscreen
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -3481749782272240627, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_UpdateWhenOffscreen
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -1860987174695558491, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_UpdateWhenOffscreen
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -1377823509850608614, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_UpdateWhenOffscreen
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 268336753199614585, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_UpdateWhenOffscreen
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_Name
+      value: Customer_Tanya
+      objectReference: {fileID: 0}
+    - target: {fileID: 989758351733670851, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_UpdateWhenOffscreen
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1202764395438270631, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_UpdateWhenOffscreen
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1558505481707910505, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_UpdateWhenOffscreen
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2781100566915205180, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_UpdateWhenOffscreen
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3114324582237234989, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_UpdateWhenOffscreen
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3743993344710040121, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4220821922995436565, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_UpdateWhenOffscreen
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4259758473079888754, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_UpdateWhenOffscreen
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4758647749303615950, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_UpdateWhenOffscreen
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4792253001414552266, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_UpdateWhenOffscreen
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5467378685626992546, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_UpdateWhenOffscreen
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5866666021909216657, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 22100000, guid: 18193d827667f4044b2be3747ad5128f, type: 2}
+    - target: {fileID: 5866666021909216657, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_CullingMode
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5866666021909216657, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_ApplyRootMotion
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6461061428924311346, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_UpdateWhenOffscreen
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6552931082393802203, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_UpdateWhenOffscreen
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7172928095020805327, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_UpdateWhenOffscreen
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7380725574101976910, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      propertyPath: m_UpdateWhenOffscreen
+      value: 1
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 837510690784376846}
+  m_SourcePrefab: {fileID: 100100000, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+--- !u!1 &1276443991611119416 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+  m_PrefabInstance: {fileID: 2123375609007876713}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &837510690784376846
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1276443991611119416}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e6a5f096e3f2c8c4da8e2b74509f0541, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CustomerCharacter
+  animator: {fileID: 5484587699369416696}
+  sitOffset: {x: 0, y: -0.42, z: 0.07}
+  sitRotation: {x: 0, y: 0, z: 0}
+  lieOffset: {x: -0.151, y: -0.003, z: 0.096}
+  lieRotation: {x: 0, y: 180, z: 0}
+  skinColor: {r: 0.7509198, g: 0.5324448, b: 0.385315, a: 1}
+  alignArm: 1
+  handInset: 0.02
+  armDrop: 0.06
+  armsAlongBody: 1
+  handOutward: 0.05
+  armRestHeight: 0.04
+  feetOnBed: 1
+  footSpread: 0.11
+  ankleHeight: 0.08
+--- !u!95 &5484587699369416696 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 5866666021909216657, guid: 80b164157be3d6a4787e34077fccfde3, type: 3}
+  m_PrefabInstance: {fileID: 2123375609007876713}
+  m_PrefabAsset: {fileID: 0}

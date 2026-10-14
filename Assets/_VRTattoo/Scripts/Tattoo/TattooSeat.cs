@@ -14,8 +14,19 @@ public class TattooSeat : MonoBehaviour
     [Tooltip("What the player faces when seated (the arm)")]
     public Transform lookTarget;
 
-    [Tooltip("Eye height above the chair's floor position while seated (m)")]
+    [Tooltip("Eye height above the chair's floor position while seated (m). Not used when leanOverTarget is on")]
     public float seatedEyeHeight = 1.15f;
+
+    [Header("Working position")]
+    [Tooltip("Put the eyes close to the look target, like a tattoo artist leaning over the arm, " +
+             "instead of straight above the chair. The view is never zoomed.")]
+    public bool leanOverTarget = true;
+
+    [Tooltip("Horizontal distance from the look target towards the chair (m)")]
+    public float workHorizontalDistance = 0.25f;
+
+    [Tooltip("Height of the eyes above the look target's centre (m)")]
+    public float workEyeHeight = 0.33f;
 
     [Tooltip("How far from the chair, away from the look target, the player stands up (m)")]
     public float standDistance = 0.6f;
@@ -109,7 +120,7 @@ public class TattooSeat : MonoBehaviour
 
         SetBehavioursEnabled(false);
 
-        Vector3 eyePosition = transform.position + Vector3.up * seatedEyeHeight;
+        Vector3 eyePosition = SeatedEyePosition();
         if (lookTarget != null)
         {
             Vector3 forward = lookTarget.position - eyePosition;
@@ -123,6 +134,17 @@ public class TattooSeat : MonoBehaviour
             handInteractor.StartManualInteraction((IXRSelectInteractable)heldTool);
 
         IsSeated = true;
+    }
+
+    public Vector3 SeatedEyePosition()
+    {
+        if (!leanOverTarget || lookTarget == null)
+            return transform.position + Vector3.up * seatedEyeHeight;
+
+        Vector3 towardsChair = transform.position - lookTarget.position;
+        towardsChair.y = 0f;
+        towardsChair = towardsChair.sqrMagnitude > 0.0001f ? towardsChair.normalized : -transform.forward;
+        return lookTarget.position + towardsChair * workHorizontalDistance + Vector3.up * workEyeHeight;
     }
 
     public void StandUp()

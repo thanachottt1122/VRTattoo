@@ -10,11 +10,13 @@
 ## สิ่งที่ทำเสร็จแล้ว
 - **ระบบสัก:**
   - เครื่องสัก (Cylinder) หยิบได้ กด trigger ตอนปลายเข็มแตะแขน (Capsule) จะวาดเส้นลง RenderTexture และส่ง haptics
-  - ขนาดเส้นกำหนดเป็นเมตร (4 มม.) ระบบชดเชยการยืดของ UV ให้
+  - ขนาดเส้นกำหนดเป็นเมตร (5 มม.) ระบบชดเชยการยืดของ UV ให้
+  - สีผิวตอนล้างแขน (`TattooCanvas.Clear`) แปลงเป็น linear ก่อน `GL.Clear` (เดิมสีออกมาสว่าง/ซีดกว่าที่ตั้งเกือบเท่าตัว)
   - ลากเร็วแล้วเส้นไม่ขาด และตัดเส้นตอนข้ามรอยต่อ UV
 - **ที่วางเครื่องสัก:** ใช้ `XRSocketInteractor` เริ่มเกมเครื่องเสียบอยู่ ปล่อยมือหรือตกแมปแล้วกลับเข้าที่วางเอง
 - **ระบบนั่ง (Chair43):**
-  - วาร์ปไปนั่งหันหาแขน และปิดการเดิน/วาร์ป/กระโดด/gravity/CharacterController (หมุนตัวยังได้)
+  - วาร์ปไปท่าทำงาน: ตาอยู่ห่างผิวด้านบนของแขน ~38 ซม. (ห่างแนวนอน 0.25 ม. ไปทางเก้าอี้ + สูงกว่าแกนแขน 0.33 ม. = `leanOverTarget`, `workHorizontalDistance`, `workEyeHeight`) เหมือนช่างที่ก้มทำงาน หันหน้าหาแขน **ไม่ซูมกล้องในแว่น**
+  - ปิด: Move, Teleportation, Climb, Jump, Gravity, Grab Move ×3, Teleport Interactor (ray ซ้าย/ขวา), Climb Teleport และ CharacterController (หมุนตัวยังได้) ลุกแล้วเปิดคืนเฉพาะตัวที่เคยเปิดอยู่
   - เครื่องสักเข้ามือขวาอัตโนมัติ (`StartManualInteraction`)
   - ลุกแล้วเครื่องกลับที่วาง
 - **Collider / แก้การตก:**
@@ -24,23 +26,25 @@
 - **Desktop Test Mode:**
   - ปุ่ม K เปิด/ปิด ทำงานเฉพาะใน Editor
   - ตอนนั่ง เมาส์วางปลายเข็มบนแขน คลิกซ้ายวาด และหัว simulator ก้มมองแขนอัตโนมัติ
+  - เลื่อนลูกกลิ้งเมาส์ = ซูม (ปรับ FOV 20°–FOV เดิมของกล้อง ทีละ 4°) ระหว่างนั้นพัก scroll ของ simulator ปิดโหมดแล้วคืน FOV; ไม่ทำงานเมื่อมีแว่นจริง (`XRSettings.isDeviceActive`)
   - ไม่กระทบแว่นจริง
 - **Audio Listener** อยู่บน Main Camera
 - **สเกลห้องเท่าของจริง** (ขยายรอบจุด (0.32, -1.797, -0.05) ระดับพื้นจึงไม่เปลี่ยน):
   - `Room`, `Furniture`, `Light Probe Group` ×1.48 → เพดาน 2.66 ม., โซฟา 0.95 ม. (เบาะ 0.47), สตูล Chair43 0.65 ม.
   - `hospital bed` + `Cushion38` ×1.39 → ยาว 1.90 สูง 0.70; `Door_7_White` ×1.55 → สูง 2.0 ม.
   - TattooSystem ไม่ขยาย (สร้างเป็นเมตรจริงอยู่แล้ว) แค่ย้ายตำแหน่ง; XR Origin / Simulator ไม่ขยาย
-  - `seatedEyeHeight` = 1.40, `Camera Y Offset` = 1.6
+  - `seatedEyeHeight` = 1.40 (ใช้เฉพาะเมื่อปิด `leanOverTarget`), `Camera Y Offset` = 1.6
   - ไม่มี object ไหนเป็น GI static จึงไม่มี lightmap (ไฟ realtime ทั้งหมด) LightingData อยู่ที่ `Scenes/TattooRoom/`
-- **ระบบลูกค้า (placeholder Capsule สูง 1.7 ม.):**
+- **ระบบลูกค้า (โมเดลคน 4 ตัว สุ่มไม่ซ้ำคนก่อนหน้า มีท่าเดิน/นั่ง/นอน ดูหัวข้อ "ตัวละครลูกค้า"):**
   - ในร้านมีได้ 3 คน: 1 คนบนเตียง + 2 คนบนโซฟารอ ลูกค้าโผล่ที่ประตูทุก `spawnInterval` จนกว่าที่จะเต็ม
   - เดินเส้นตรง (ไม่ใช้ NavMesh) ผ่าน waypoint ของ `CustomerRoute` ถึงแล้ววาร์ปไปท่านั่ง/นอน
   - `CompleteTattoo()`: คนบนเตียงเดินออกประตูแล้วหายไป คิวเลื่อนขึ้น และมีคนใหม่มาเติม ถ้าคนบนเตียงยังไม่นอนลงจะไม่ทำงาน (ตอนนี้ `TattooJobManager` เป็นคนเรียกหลังส่งงาน)
   - ล้างลายบนแขนตอนที่คนใหม่นอนลงเตียง
 - **ลายสักและคะแนน:**
-  - ลูกค้านอนลงแล้วสุ่มลายจากคลัง (ช่วงแรกได้ easy บ่อย ยิ่งเสร็จหลายคนยิ่งเจอ hard บ่อยขึ้น ไม่ซ้ำกับคนก่อน) แสดงเป็นลายเส้นสีม่วงจางบนแขน (กว้าง 9 ซม.) แยกจากหมึกจริง พร้อมป้ายชื่อลายและระดับ
+  - ลูกค้านอนลงแล้วสุ่มลายจากคลัง (ช่วงแรกได้ easy บ่อย ยิ่งเสร็จหลายคนยิ่งเจอ hard บ่อยขึ้น ไม่ซ้ำกับคนก่อน) แสดงเป็นลายเส้นสีม่วงจางบนแขน (`sizeMeters` 14 ซม. กินครึ่งรอบแขน capsule ขอบลายจึงอ้อมไปด้านข้าง) แยกจากหมึกจริง พร้อมป้ายชื่อลายและระดับ
   - กดปุ่ม SUBMIT ข้างเตียง (ray/grip มือซ้าย) หรือ J (เฉพาะ Editor) เพื่อส่งงาน: คะแนน 0–100 ลอยเหนือเตียง 2.5 วิ แล้วลูกค้าเดินออก
-  - คุณภาพ = 100 × (coverage − 0.5 × spill) โดย coverage = สัดส่วนเส้นลายที่ลงหมึก, spill = หมึกที่อยู่นอกแนว (เส้นลาย + รัศมีเข็ม + 1 มม.) เทียบกับพื้นที่เส้นลาย นับเฉพาะหมึกในกรอบลาย + 2 ซม.
+  - คุณภาพ = 100 × coverage × (1 − spill)² โดย coverage = สัดส่วนเส้นลายที่มีหมึกอยู่บนหรือห่างไม่เกิน 1.5 มม., spill = สัดส่วนของ**หมึกทั้งหมด**ที่ห่างจากเส้นลายเกิน รัศมีเข็ม + 2 มม. นับเฉพาะหมึกในกรอบลาย + 2 ซม. ปรับได้ที่ `TattooJobManager.scoring` (`spillTolerance`, `coverTolerance`, `spillPower`)
+  - ผลจำลอง (ลาย easy/medium/hard): ตามเส้นดี ≈ 100, ส่ายไม่เกิน 3 มม. ≈ 95–98, ส่าย 5 มม. ขาด 20% ≈ 79–86, ส่าย 8 มม. ขาด 35% ≈ 47–63, ระบายมั่วทั้งกรอบ ≈ 24–29
   - คะแนนรวม = คุณภาพ × ตัวคูณ (easy x1, medium x1.5, hard x2) แสดงบนผนังมุมบนของห้อง
 
 ## สคริปต์ (`Assets/_VRTattoo/Scripts/Tattoo/`)
@@ -49,8 +53,8 @@
 | `TattooCanvas.cs` | อยู่บนแขน สร้าง RenderTexture (1024²) เป็น `_BaseMap` และมี `DrawStroke(uvFrom, worldFrom, uvTo, worldTo)` ปั๊มแปรงด้วย GL ประมาณค่าเมตรต่อ UV จาก mesh ตอน Awake |
 | `TattooMachine.cs` | อยู่บนเครื่องสัก ฟัง activate/deactivate ของ `XRGrabInteractable` raycast จาก `tip` ไปตามแนวเข็ม แล้ววาดและส่ง haptics มี `ExternalTrigger` ให้โหมดทดสอบสั่งวาดได้ |
 | `ReturnToSocket.cs` | อยู่บนเครื่องสัก ปล่อยมือ (ที่ไม่ใช่ socket) หรือตกต่ำกว่า `fallResetHeight` จะ `SelectEnter` กลับเข้า socket ในเฟรมถัดไป |
-| `TattooSeat.cs` | อยู่บน `Furniture/Chair43` (ตัวแม่) สลับนั่ง/ลุก (ปุ่ม B ขวา / F / ชี้เก้าอี้ + grip) ปิดและเปิดคืนเฉพาะ locomotion ที่เคยเปิดอยู่ และใส่/คืน `heldTool` เข้ามือ `handInteractor` |
-| `TattooDesktopTestMode.cs` | อยู่บน `Interactables/TattooSystem` โหมดทดสอบด้วยเมาส์ ปิด `trackPosition/Rotation` ของเครื่องระหว่างใช้ และหมุนหัว XR Device Simulator ผ่าน reflection (ฟิลด์ private `m_CenterEyeEuler`, `m_HMDState`) |
+| `TattooSeat.cs` | อยู่บน `Furniture/Chair43` (ตัวแม่) สลับนั่ง/ลุก (ปุ่ม B ขวา / F / ชี้เก้าอี้ + grip) ปิดและเปิดคืนเฉพาะ locomotion ที่เคยเปิดอยู่ และใส่/คืน `heldTool` เข้ามือ `handInteractor` ตำแหน่งตาตอนนั่งคิดจาก `lookTarget` (`SeatedEyePosition()`) |
+| `TattooDesktopTestMode.cs` | อยู่บน `Interactables/TattooSystem` โหมดทดสอบด้วยเมาส์ ปิด `trackPosition/Rotation` ของเครื่องระหว่างใช้ และหมุนหัว XR Device Simulator ผ่าน reflection (ฟิลด์ private `m_CenterEyeEuler`, `m_HMDState`) ซูมด้วยลูกกลิ้ง (`Zoom()`, `minFieldOfView`, `zoomStep`) |
 
 ## สคริปต์ลูกค้า (`Assets/_VRTattoo/Scripts/Customers/`)
 | ไฟล์ | หน้าที่ |
@@ -60,8 +64,11 @@
 | `CustomerLocation.cs` | จุดหนึ่งในร้าน: `approach` (จุดยืนบนพื้นตอนเริ่ม/จบการเดิน), `pose` (จุดนั่ง/นอน), `arrivalPose` |
 | `CustomerRoute.cs` | waypoint อ้อมระหว่าง `from`↔`to` (ลูกของมันตามลำดับ ใช้ได้ทั้งสองทิศ) ไม่มีลูก = เดินตรง |
 | `CustomerVisual.cs` | คลาสแม่ของหน้าตาลูกค้า: `SetPose(Idle/Walk/Sit/Lie)`, `SetMoveSpeed` |
-| `CapsuleCustomerVisual.cs` | placeholder: Capsule สีสุ่ม (MaterialPropertyBlock `_BaseColor`) |
-| `AnimatorCustomerVisual.cs` | สำหรับโมเดลคนจริง: ตั้ง Animator `Speed` (float), `Sit`, `Lie` (bool) ใช้แทน `CapsuleCustomerVisual` บน prefab ได้เลย ต้องจัด root ของโมเดลให้ตรง pivot (ยืน = ที่เท้า, นั่ง/นอน = ใต้สะโพกบนเบาะ/เตียง, นอนหันหัวไปทาง forward) |
+| `CapsuleCustomerVisual.cs` | placeholder: Capsule สีสุ่ม (MaterialPropertyBlock `_BaseColor`) เก็บไว้เป็น fallback (ไม่ได้ใช้แล้ว) |
+| `AnimatorCustomerVisual.cs` | อยู่บน `Customer.prefab` ตั้ง Animator `Speed` (float), `Sit`, `Lie` (bool) และสั่ง `CustomerCharacter.ApplyPose` ตอนนอน: เปิด renderer ของ TattooArm, ตั้ง `TattooCanvas.skinColor` เป็นสีผิวตัวละคร (ก่อนคิวเรียก `Clear()`), สั่ง IK แขน ลุกแล้วซ่อน TattooArm (`hideTattooArmWhenEmpty`; collider ยังอยู่) |
+| `CustomerCharacter.cs` | อยู่บน root ของ prefab ตัวละคร (ตัวเดียวกับ Animator) ค่าปรับรายตัว: `sitOffset/sitRotation`, `lieOffset/lieRotation` (ท้องถิ่นของลูกค้า; คลิปนอนหันหัวไป −Z จึงหมุน 180°), `skinColor` และ `OnAnimatorIK`: ดึงแขนข้างที่ใกล้ TattooArm ให้มือไปที่ปลาย capsule และจมลง `armDrop` ให้อยู่ใน capsule, แขนอีกข้างวางข้างลำตัว (`armsAlongBody`), เท้าวางบนเตียงห่างกลางตัว `footSpread` (`feetOnBed`, `ankleHeight`) |
+| `CustomerCharacterPicker.cs` | อยู่บน `Customer.prefab` รายการ `characters` ตอน `Awake` สุ่มตัวละครที่ไม่ซ้ำกับคนก่อนหน้า และเลี่ยงตัวที่อยู่ในร้านแล้วถ้าเลือกได้ สร้างเป็นลูกแล้วส่งให้ `AnimatorCustomerVisual.SetCharacter` |
+| `Editor/CharacterModelSetup.cs` | เมนู `VRTattoo/Characters/Setup Selected Models`: ตั้ง Rig = Humanoid, extract material ไป `<โฟลเดอร์โมเดล>/Materials` เป็น URP Lit, ใส่ texture ที่ชื่อขึ้นต้นด้วยชื่อ material (Diffuse/Color/_di → base, Normal/_tn → normal, Opacity → รวมเป็น alpha + Alpha Clipping) |
 
 ## สคริปต์ลาย/คะแนน (`Assets/_VRTattoo/Scripts/Stencils/`)
 | ไฟล์ | หน้าที่ |
@@ -69,7 +76,7 @@
 | `StencilLibrary.cs` | ScriptableObject `Data/StencilLibrary.asset` รายการลาย (texture, ชื่อ, ระดับ) + `Multiplier()` + แยกชื่อไฟล์ |
 | `Editor/StencilLibraryPostprocessor.cs` | ตั้งค่า import PNG ใน `Stencils/` อัตโนมัติ (Single Channel Alpha, readable, ไม่บีบอัด) และสร้างคลังใหม่ทุกครั้งที่ไฟล์เปลี่ยน มีเมนู `VRTattoo/Rebuild Stencil Library` |
 | `StencilOverlay.cs` | อยู่บน TattooArm ใส่ material `StencilOverlay` เป็น material ที่ 2 ของ renderer หาตำแหน่งด้านบนแขนด้วย raycast แล้วคำนวณ mapping UV ↔ ลาย (`StencilPlacement`) จาก MeshCollider ลายจึงไม่ยืด |
-| `TattooScorer.cs` | อ่าน RenderTexture ของ TattooCanvas เฉพาะบริเวณลาย เทียบกับ alpha ของลาย แล้วคิด coverage/spill/quality |
+| `TattooScorer.cs` | อ่าน RenderTexture ของ TattooCanvas เฉพาะบริเวณลาย เทียบกับ alpha ของลาย แล้วคิด coverage/spill/quality ตาม `TattooScoringRules` |
 | `TattooJobManager.cs` | อยู่บน `CustomerSystem` ฟัง `onCustomerLayDown` สุ่มลาย แสดงลาย/ป้าย รับ Submit (ปุ่ม/J) ให้คะแนน แล้วเรียก `CompleteTattoo()` |
 
 - Shader: `Shaders/StencilOverlay.shader` (unlit โปร่งใส สีม่วงจาง), Material: `Materials/Tattoo/StencilOverlay.mat`
@@ -86,7 +93,34 @@
 - แก้กรอบ ชื่อ ระดับ หรือ threshold ของแต่ละลายที่ตาราง `DESIGNS` (name=None = ข้าม เช่นโลโก้แบรนด์)
 - ข้ามโลโก้แบรนด์ไปแล้ว 5 อัน (Nike, adidas, Apple, Real Madrid, รองเท้าแถบ 3 เส้น)
 
-- Prefab: `Assets/_VRTattoo/Prefabs/Customer.prefab` (Body เป็น Capsule ไม่มี collider), Material: `Materials/Customer/CustomerPlaceholder.mat`
+- Prefab: `Assets/_VRTattoo/Prefabs/Customer.prefab` = `Customer` + `AnimatorCustomerVisual` + `CustomerCharacterPicker` (ไม่มีโมเดลในตัว ตัวละครถูกสร้างเป็นลูกตอน spawn) ระบบคิวไม่ได้แก้ (`customerPrefab` ยังเป็นตัวเดิม)
+- Material capsule เดิม: `Materials/Customer/CustomerPlaceholder.mat`
+
+## ตัวละครลูกค้า (`Assets/_VRTattoo/Characters/`)
+- **โมเดลอยู่แค่ในเครื่องนี้:** `Characters/Models/` และ `SourceArt/Characters/` (zip ต้นฉบับ) อยู่ใน `.gitignore` เพราะเป็นโมเดลทดสอบที่ติดลิขสิทธิ์และไฟล์ใหญ่ (`Leni.fbx` 98 MB) ย้ายเครื่องต้องก๊อปสองโฟลเดอร์นี้ไปเอง **รวมไฟล์ `.meta`** (ไม่งั้น GUID เปลี่ยนแล้ว prefab ตัวละครจะหาโมเดลไม่เจอ) และ**ต้องเปลี่ยนเป็นโมเดลที่ใช้ได้ถูกต้องก่อนเผยแพร่**: Tomizawa (Like a Dragon) และ Tanya (Saints Row) เป็นโมเดล rip จากเกม, Vijay เป็นหน้านักแสดงจริง, Leni ไม่ทราบที่มา
+- ส่วนที่ขึ้น git: prefab ตัวละคร, Animator, ท่าใน `Characters/Animations` (Mixamo), สคริปต์
+- โมเดล (`Prefabs/Characters/Customer_<ชื่อ>.prefab` เป็น variant ของ FBX):
+
+| Prefab | ไฟล์โมเดล | Controller | scale |
+|---|---|---|---|
+| `Customer_Leni` (ชาย, Character Creator) | `Models/kenny/Leni.fbx` | `CustomerAnimator` | 0.926 |
+| `Customer_Tomizawa` | `Models/like-a-dragon-infinite-wealth-tomizawa/Tomizawa.fbx` (แตกจาก zip, ใช้ fbx ไม่ใช้ glb) | `CustomerAnimator` | 0.927 |
+| `Customer_Tanya` (หญิง) | `Models/saintsrow1-tanya/Tanya.fbx` (import `globalScale` = 100, texture จับคู่ตาม `xps.xps` ใน zip) | `CustomerAnimator_Female` | 0.95 |
+| `Customer_Vijay` | `Models/thalapathy-vijay-3d-model/source/Walking.fbx` (มีท่าเดินมาเอง) | `CustomerAnimator_Vijay` | 1.0 |
+
+- `Animator/CustomerAnimator.controller`: state `Walk` (default, speed multiplier = พารามิเตอร์ `Speed`, state speed 1/1.1 ให้ขาไม่ไถลที่ 1.1 ม./วิ), `Sit`, `Lie` (Any State → เมื่อ bool เป็นจริง, กลับ Walk เมื่อเป็นเท็จ, ผสม 0.25 วิ), เปิด IK Pass
+- `CustomerAnimator_Female.overrideController` เปลี่ยน Walk เป็น `WalkFemale` (ตัดเฟรม 13–56 จาก `Female Start Walking.fbx` ที่เป็นท่าเริ่มออกเดิน มาทำลูป), `CustomerAnimator_Vijay.overrideController` เปลี่ยนเป็นคลิปเดินของ Vijay
+- คลิป (`Animations/`): `Walk` (`Walking.fbx`), `WalkFemale`, `Sit` (`Sitting.fbx`), `Lie` (`Laying.fbx`) ทุกไฟล์ Humanoid, loop, Bake Into Pose ทั้งหมุน/Y/XZ
+- SkinnedMeshRenderer ทุกตัวเปิด `updateWhenOffscreen` (bounds เดิมคิดจากท่ายืน ตอนนอนหัวโดนตัดหายเมื่อกล้องอยู่ใกล้)
+
+### เพิ่มตัวละครใหม่
+1. วางโมเดล (FBX; ถ้ามาเป็น zip ให้แตก fbx ออกมา ส่วน zip เก็บไว้ `SourceArt/Characters/`) และ texture ไว้ใต้ `Characters/Models/<ชื่อ>/`
+2. เลือก FBX แล้วกดเมนู `VRTattoo/Characters/Setup Selected Models` ตรวจ material ใน `Materials/` เอง texture ที่ชื่อไม่ตรงกับ material ต้องใส่มือ (ถ้าดำทั้งตัวให้ตั้ง `_BaseColor` เป็นขาว)
+3. ถ้าโมเดลเล็ก/ใหญ่ผิดปกติ (หน่วยเป็น cm) แก้ `Scale Factor` ใน import แล้ว**สร้าง avatar ใหม่** (ตั้ง Rig เป็น Generic → Humanoid อีกรอบ) ไม่งั้น avatar เก็บตำแหน่งกระดูกขนาดเดิมไว้และตัวจะลอยไปไกล
+4. ถ้าไฟล์มีท่าเดินมาเอง: ตั้งชื่อคลิป, loop, Bake Into Pose แล้วทำ override controller ใหม่จาก `CustomerAnimator` ที่เปลี่ยนเฉพาะ `Walk` ถ้าเป็นผู้หญิงใช้ `CustomerAnimator_Female` ผู้ชายใช้ `CustomerAnimator`
+5. ลากโมเดลเข้า scene ใส่ controller, ปิด Apply Root Motion, เพิ่ม `CustomerCharacter` (ใส่ `animator`, `skinColor` ≈ สีเฉลี่ยของ texture ผิว), เปิด `updateWhenOffscreen` ของ SkinnedMeshRenderer ทุกตัว, ปิด object ขยะที่ติดมา (กล้อง/mesh ที่ไม่ใช้) ตั้ง scale ให้สูง 1.6–1.8 ม. แล้วเซฟเป็น `Prefabs/Characters/Customer_<ชื่อ>.prefab`
+6. เพิ่มลง `characters` ของ `CustomerCharacterPicker` บน `Customer.prefab`
+7. Play แล้วจูนรายตัว: `sitOffset` (สะโพกแตะเบาะ ไม่ถอยลึกจนจมพนักพิง ตอนนี้ทุกตัวใช้ z = 0.07; เท้าแตะพื้น ขาไม่ทะลุหน้าเบาะ) และ `lieOffset` (y: หลังแตะเตียง; x: กึ่งกลางลำตัวอยู่กลางที่นอน z ≈ −0.56; z: กระดูก Head อยู่ที่ x ≈ 1.77 หัวจึงวางบนหมอน) แขน/ขาตรงด้วย IK อัตโนมัติ
 
 - Shader: `Assets/_VRTattoo/Shaders/TattooBrush.shader` (แปรงกลมขอบนุ่ม)
 - Material: `Assets/_VRTattoo/Materials/Tattoo/` (TattooBrush, TattooArm_Skin, TattooMachine, TattooStand)
@@ -99,13 +133,13 @@
   - `Locomotion/*` (providers ที่ถูกปิดตอนนั่ง)
 - `XR Device Simulator`: ใช้ทดสอบบนคอม
 - `Interactables/TattooSystem` (มี `TattooDesktopTestMode`)
-  - `TattooArm`: Capsule บนเตียง มี MeshCollider + TattooCanvas + StencilOverlay หมุนให้รอยต่อ UV หันลงเตียง
+  - `TattooArm`: Capsule บนเตียง (1.39, −1.059, −0.325) วางขนานเตียงตรงแขนขวาของลูกค้าที่นอน มี MeshCollider + TattooCanvas + StencilOverlay หมุนให้รอยต่อ UV หันลงเตียง ซ่อน renderer ตอนไม่มีคนนอน
   - `TattooMachine`: มี XRGrabInteractable (Instantaneous) + TattooMachine + ReturnToSocket และ child `Tip` กับ `Attach`
   - `TattooMachineStand/Socket`: XRSocketInteractor (`SocketAttach` ให้เข็มชี้ลง)
   - `SeatHint`: ป้าย TMP บอกปุ่ม (ภาษาอังกฤษ)
-  - `SubmitButton`: ปุ่มส่งงานลอยข้างเตียง (BoxCollider + XRSimpleInteractable, child `Visual` และ `Label`)
+  - `SubmitButton`: ปุ่มส่งงานลอยข้างเตียง (1.75, −0.85, −0.05) ซ้ายมือผู้เล่นตอนนั่ง (ย้ายออกจากจุดที่หัวผู้เล่นอยู่ตอนนั่ง) (BoxCollider + XRSimpleInteractable, child `Visual` และ `Label`)
   - `TattooJobUI/{OrderLabel, ScoreLabel, TotalScoreLabel}`: ป้ายชื่อลาย/ระดับ (หลังเตียง), คะแนน (เหนือเตียง), คะแนนรวม (มุมบนผนังด้าน −z)
-- `Furniture/Chair43`: เก้าอี้ช่างสัก มี TattooSeat + XRSimpleInteractable ส่วน collider อยู่ที่ `Chair43_model`
+- `Furniture/Chair43`: เก้าอี้ช่างสัก (1.25, −1.785, 0.18) ชิดเตียงตรงแขน มี TattooSeat + XRSimpleInteractable ส่วน collider อยู่ที่ `Chair43_model` (`SeatHint` ย้ายตามไปอยู่เหนือเก้าอี้)
 - `Furniture/hospital bed`: เตียง (MeshCollider)
 - `Room/Floor_Tile_3b`: พื้น มี MeshCollider + BoxCollider + TeleportationArea
 - `CustomerSystem` (มี `CustomerQueueManager` (`completeKey` = None) + `TattooJobManager` และลูกค้าที่ spawn จะเป็นลูกของมัน)
@@ -122,6 +156,7 @@
 | เปิด/ปิด Desktop Test Mode | K (ชนกับ simulator นิดหน่อยตอนกำลังคุม controller/มือ) |
 | วาดใน Desktop mode | ชี้เมาส์ที่แขน + คลิกซ้ายค้าง |
 | หันมอง | คลิกขวาค้าง + ลากเมาส์ |
+| ซูม (เฉพาะ Desktop Test Mode) | ลูกกลิ้งเมาส์ |
 | ส่งงาน (ให้คะแนน แล้วลูกค้าเดินออก) | J (เฉพาะ Editor) หรือชี้ปุ่ม SUBMIT ด้วย controller ซ้าย + G |
 
 บนแว่นจริง นั่ง/ลุกใช้ปุ่ม B ขวา (ปุ่ม A ใช้กระโดดอยู่แล้ว)
@@ -139,9 +174,18 @@
 - **ลายติดลิขสิทธิ์:** `angry_duck` (Donald Duck), `ghost_monster` (Haunter), `trophy` (FIFA), `cloud` (Akatsuki) ควรเอาออกก่อนเผยแพร่
 - **คะแนน:** ไม่นับหมึกที่อยู่ไกลจากกรอบลายเกิน 2 ซม. และลายที่มีพื้นที่ระบายทึบต้องระบายให้เต็มถึงจะได้ coverage สูง
 - **ลูกค้าไม่มี collider:** เดินทะลุกันเองและทะลุผู้เล่นได้
-- **แขน TattooArm ไม่ได้ติดกับตัวลูกค้า:** วางไว้ข้างลำตัวฝั่งช่าง (z = -0.40) ตอนนั่งห่างตาผู้เล่นแนวนอน 0.64 ม. และต่ำกว่าตา 0.68 ม. บนแว่นจริงอาจต้องโน้มตัว
+- **แขนที่สักยังเป็น Capsule (TattooArm) ไม่ใช่แขนโมเดล:** วางทับแขนขวาของลูกค้า (นอนหงายหัวไป +x แขนขวาจึงอยู่ฝั่งช่าง) แขนจริงถูก IK ดึงเข้าไปใน capsule (จมลง `armDrop` 6 ซม. ถ้าแขนสั้นเอื้อมไม่ถึงปลาย มือจะหยุดในระยะแขน) มีแค่มือโผล่ปลาย capsule สีผิวเป็นค่าเฉลี่ยจาก texture จึงไม่ตรงเป๊ะ ลายอยู่กลาง capsule = แถวข้อศอก
+- **คลิปนอนกางแขนกางขา:** IK จัดให้แขนอีกข้างวางข้างลำตัว (`armsAlongBody`) และเท้าห่างกลางตัว `footSpread` 11 ซม.
+- **ท่าทำงานตอนนั่ง:** ตำแหน่งตาคำนวณครั้งเดียวตอนนั่ง บนแว่นจริงผู้เล่นต้องก้มหัวมองแขนเอง (ไม่หมุนกล้องให้) ถ้าตัวจริงสูง/เตี้ยต่างจากที่ simulator ตั้งไว้ ระยะจะคลาดเล็กน้อย
+- **ทดสอบซูมด้วยลูกกลิ้งจริงยังไม่ได้:** event ลูกกลิ้งที่ส่งผ่านสคริปต์ไม่ถึง Game view ตอน Unity ไม่ได้อยู่หน้าสุด ทดสอบได้แค่เรียก `Zoom()` ตรงๆ
+- **ท่าเดินผู้หญิง** ตัดจากท่า "เริ่มออกเดิน" ไม่ใช่ลูปจริง จังหวะก้าวช้ากว่าความเร็วเดินเล็กน้อย
+- **คลิปนอนยกเท้า** จึงใช้ foot IK กดเท้าลงเตียง (`ankleHeight`) และไม่มีท่าลุก/ลงนั่ง (วาร์ปเข้าท่าเหมือนเดิม)
+- **ตัวละครต่างกันที่ texture/แสง:** Leni (Character Creator) ผิวดูซีดกว่าตัวอื่น, ผม Leni ใช้ alpha clip + สีน้ำตาล (texture เป็นเส้นสีขาว)
+- **โมเดลไม่อยู่ใน git** (ดูหัวข้อ "ตัวละครลูกค้า") clone ใหม่แล้ว prefab ตัวละครจะว่าง จนกว่าจะก๊อปโมเดลมาใส่
 
 ## งานถัดไป
-- เปลี่ยนลูกค้าเป็นโมเดลคนจริง + แอนิเมชัน (ใช้ `AnimatorCustomerVisual`) และให้แขนที่สักเป็นส่วนของตัวลูกค้า
+- **สักลงแขนของโมเดลจริง** แทน Capsule: ทำ MeshCollider/UV ของแขนจากโมเดล (หรือ bake mesh ตอนนอน), ย้าย TattooCanvas/StencilOverlay ไปที่แขนนั้น แล้วเอา TattooArm ออก
+- เปลี่ยนโมเดลทดสอบเป็นโมเดลที่ใช้ได้ถูกต้องก่อนเผยแพร่
+- ท่าลุก/นั่งลง/นอนลง แทนการวาร์ป
 - เสียงเครื่องสัก (AudioListener พร้อมแล้ว)
 - ป้ายภาษาไทย (ต้องมีฟอนต์ TMP ที่รองรับภาษาไทย)

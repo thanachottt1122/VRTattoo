@@ -2,20 +2,45 @@ using UnityEngine;
 
 public struct TattooScore
 {
-    public float coverage;  // fraction of the stencil lines that got ink (0..1)
-    public float spill;     // ink outside the allowed band, relative to the stencil line area
+    public float coverage;  // fraction of the stencil lines that got ink nearby (0..1)
+    public float spill;     // fraction of all the ink that is far from the lines (0..1)
     public int quality;     // 0..100
 }
 
+[System.Serializable]
+public struct TattooScoringRules
+{
+    [Tooltip("Ink within needle radius + this distance of a line is not spill (m)")]
+    public float spillTolerance;
+
+    [Tooltip("A line pixel counts as inked when ink is this close to it (m)")]
+    public float coverTolerance;
+
+    [Tooltip("quality = coverage × (1 − spill)^spillPower; higher punishes ink off the design harder")]
+    public float spillPower;
+
+    public static TattooScoringRules Default => new TattooScoringRules
+    {
+        spillTolerance = 0.002f,
+        coverTolerance = 0.0015f,
+        spillPower = 2f,
+    };
+}
+
 // Compares the ink on a TattooCanvas with the stencil that was shown on it.
+//   coverage = share of the stencil lines with ink on or near them
+//   spill    = share of all the ink that is further than needle radius + spillTolerance from a line
+//   quality  = 100 × coverage × (1 − spill)^spillPower
+// Following the lines a little unsteadily costs nothing; only ink clearly off the design counts.
 public static class TattooScorer
 {
-    const float LineAlpha = 0.5f;      // stencil alpha above this is part of the design
-    const float SpillWeight = 0.5f;    // how much each unit of spill takes off the coverage
-    const float ExtraTolerance = 0.001f; // allowed distance from the line on top of the needle radius (m)
-    const float Margin = 0.02f;        // ink this far outside the stencil square still counts as spill (m)
+    const float LineAlpha = 0.5f;          // stencil alpha above this is part of the design
+    const float Margin = 0.02f;            // ink this far outside the stencil square still counts as spill (m)
 
-    public static TattooScore Score(TattooCanvas canvas, Texture2D stencil, StencilPlacement placement)
+    public static TattooScore Score(TattooCanvas canvas, Texture2D stencil, StencilPlacement placement) =>
+        Score(canvas, stencil, placement, TattooScoringRules.Default);
+
+    public static TattooScore Score(TattooCanvas canvas, Texture2D stencil, StencilPlacement placement, TattooScoringRules rules)
     {
         var result = new TattooScore();
         var rt = canvas.TattooTexture;
@@ -25,8 +50,10 @@ public static class TattooScorer
         int size = rt.width;
         Vector2 metersPerUV = canvas.MetersPerUV;
         Vector2 metersPerPixel = metersPerUV / size;
-        int tolX = Mathf.CeilToInt((canvas.brushDiameter * 0.5f + ExtraTolerance) / metersPerPixel.x);
-        int tolY = Mathf.CeilToInt((canvas.brushDiameter * 0.5f + ExtraTolerance) / metersPerPixel.y);
+        int tolX = Mathf.CeilToInt((canvas.brushDiameter * 0.5f + rules.spillTolerance) / metersPerPixel.x);
+        int tolY = Mathf.CeilToInt((canvas.brushDiameter * 0.5f + rules.spillTolerance) / metersPerPixel.y);
+        int coverX = Mathf.CeilToInt(rules.coverTolerance / metersPerPixel.x);
+        int coverY = Mathf.CeilToInt(rules.coverTolerance / metersPerPixel.y);
 
         // Pixel region around the stencil.
         Rect b = placement.uvBounds;
@@ -64,20 +91,23 @@ public static class TattooScorer
             return result;
 
         bool[] allowed = Dilate(line, w, h, tolX, tolY);
-        int covered = 0, spilled = 0;
+        bool[] nearInk = Dilate(ink, w, h, coverX, coverY);
+        int covered = 0, inked = 0, spilled = 0;
         for (int i = 0; i < line.Length; i++)
         {
-            if (!ink[i])
-                continue;
-            if (line[i])
+            if (line[i] && nearInk[i])
                 covered++;
-            else if (!allowed[i])
-                spilled++;
+            if (ink[i])
+            {
+                inked++;
+                if (!allowed[i])
+                    spilled++;
+            }
         }
 
         result.coverage = covered / (float)lineCount;
-        result.spill = spilled / (float)lineCount;
-        result.quality = Mathf.RoundToInt(100f * Mathf.Clamp01(result.coverage - SpillWeight * result.spill));
+        result.spill = inked > 0 ? spilled / (float)inked : 0f;
+        result.quality = Mathf.RoundToInt(100f * Mathf.Clamp01(result.coverage * Mathf.Pow(1f - result.spill, rules.spillPower)));
         return result;
     }
 
@@ -103,7 +133,7 @@ public static class TattooScorer
         var temp = RenderTexture.GetTemporary(1, 1, 0, like.format);
         var previous = RenderTexture.active;
         RenderTexture.active = temp;
-        GL.Clear(false, true, color);
+        GL.Clear(false, true, TattooCanvas.ClearValue(color));
         RenderTexture.active = previous;
         var result = ReadRegion(temp, 0, 0, 1, 1)[0];
         RenderTexture.ReleaseTemporary(temp);

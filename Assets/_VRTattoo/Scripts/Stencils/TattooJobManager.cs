@@ -27,6 +27,9 @@ public class TattooJobManager : MonoBehaviour
     [Tooltip("Submit key for desktop testing (Unity Editor only)")]
     public Key submitKey = Key.J;
 
+    [Header("Scoring")]
+    public TattooScoringRules scoring = TattooScoringRules.Default;
+
     [Header("Difficulty ramp")]
     [Tooltip("After this many finished customers the hard designs reach their highest chance")]
     public int rampCustomers = 10;
@@ -100,7 +103,7 @@ public class TattooJobManager : MonoBehaviour
     {
         submitting = true;
 
-        var score = TattooScorer.Score(canvas, current.texture, overlay.Placement);
+        var score = TattooScorer.Score(canvas, current.texture, overlay.Placement, scoring);
         float multiplier = StencilLibrary.Multiplier(current.difficulty);
         int points = Mathf.RoundToInt(score.quality * multiplier);
         TotalScore += points;

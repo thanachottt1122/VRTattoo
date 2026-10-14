@@ -10,7 +10,7 @@ public class TattooCanvas : MonoBehaviour
     public Color inkColor = new Color(0.02f, 0.02f, 0.02f);
 
     [Tooltip("Line width on the skin surface (m)")]
-    public float brushDiameter = 0.004f;
+    public float brushDiameter = 0.005f;
 
     [Tooltip("Distance between stamps, as a fraction of brush diameter")]
     public float spacing = 0.2f;
@@ -63,9 +63,14 @@ public class TattooCanvas : MonoBehaviour
     {
         var previous = RenderTexture.active;
         RenderTexture.active = tattooTexture;
-        GL.Clear(false, true, skinColor);
+        GL.Clear(false, true, ClearValue(skinColor));
         RenderTexture.active = previous;
     }
+
+    // GL.Clear takes a linear value in a linear-space project; colours in the Inspector are sRGB.
+    // Without the conversion the skin comes out much lighter than skinColor.
+    public static Color ClearValue(Color color) =>
+        QualitySettings.activeColorSpace == ColorSpace.Linear ? color.linear : color;
 
     // Draws a continuous line between two contact points. Pass the same point twice to start a stroke.
     public void DrawStroke(Vector2 uvFrom, Vector3 worldFrom, Vector2 uvTo, Vector3 worldTo)

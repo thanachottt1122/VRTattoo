@@ -301,7 +301,7 @@ Transform:
   m_GameObject: {fileID: 89180916}
   serializedVersion: 2
   m_LocalRotation: {x: -0.7071068, y: 0.7071068, z: -0.000000030908623, w: -0.000000030908623}
-  m_LocalPosition: {x: 1.1532038, y: -1.0594909, z: -0.4}
+  m_LocalPosition: {x: 1.39, y: -1.059, z: -0.325}
   m_LocalScale: {x: 0.09, y: 0.25, z: 0.09}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -323,7 +323,7 @@ MonoBehaviour:
   skinColor: {r: 0.87, g: 0.69, b: 0.57, a: 1}
   brushMaterial: {fileID: 2100000, guid: d9419d45b2ef5c04ebfe9cf517a22f7c, type: 2}
   inkColor: {r: 0.02, g: 0.02, b: 0.02, a: 1}
-  brushDiameter: 0.004
+  brushDiameter: 0.005
   spacing: 0.2
   seamRatio: 2
 --- !u!64 &89180919
@@ -418,7 +418,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StencilOverlay
   overlayMaterial: {fileID: 2100000, guid: 1df7a489433f05a43897496462ef3c1d, type: 2}
-  sizeMeters: 0.1
+  sizeMeters: 0.14
   stencilUp: {x: 0, y: 0, z: -1}
 --- !u!1001 &124412211
 PrefabInstance:
@@ -1708,7 +1708,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5668044953569895159, guid: eafcc285ab1da13449451f968c1ea2e1, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 3.0215
+      value: 3.1318784
       objectReference: {fileID: 0}
     - target: {fileID: 5668044953569895159, guid: eafcc285ab1da13449451f968c1ea2e1, type: 3}
       propertyPath: m_LocalPosition.y
@@ -1716,7 +1716,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5668044953569895159, guid: eafcc285ab1da13449451f968c1ea2e1, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 4.34724
+      value: 4.3116455
       objectReference: {fileID: 0}
     - target: {fileID: 5668044953569895159, guid: eafcc285ab1da13449451f968c1ea2e1, type: 3}
       propertyPath: m_LocalRotation.w
@@ -2424,6 +2424,10 @@ MonoBehaviour:
   submitButton: {fileID: 1527940903}
   scoreDisplaySeconds: 2.5
   submitKey: 24
+  scoring:
+    spillTolerance: 0.002
+    coverTolerance: 0.0015
+    spillPower: 2
   rampCustomers: 10
   startWeights: {x: 0.7, y: 0.25, z: 0.05}
   endWeights: {x: 0.2, y: 0.4, z: 0.4}
@@ -3245,7 +3249,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 948357591}
   m_LocalRotation: {x: -0, y: 0.99915797, z: -0, w: 0.041029487}
-  m_LocalPosition: {x: 0, y: 0, z: 0.23267984}
+  m_LocalPosition: {x: 0, y: 0, z: 0.18}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3407,6 +3411,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: d77169531a47de64984c38ea47c54bfc, type: 3}
   m_PrefabInstance: {fileID: 312215991}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &955705828 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1319746312, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
+  m_PrefabInstance: {fileID: 1666901912}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6803edce0201f574f923fd9d10e5b30a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &980370971
 GameObject:
   m_ObjectHideFlags: 0
@@ -3681,6 +3696,17 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 494205318}
   m_SourcePrefab: {fileID: 100100000, guid: b670f9ea72df69d4d8d0c5398d6d1ae3, type: 3}
+--- !u!114 &1073931532 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 758862941726224967, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
+  m_PrefabInstance: {fileID: 1666901912}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3c5f6c9defa4ae9ad41bcc3f8754f86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &1079691631
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4377,6 +4403,17 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 1631049053}
   m_SourcePrefab: {fileID: 100100000, guid: d2819fcf6b48ddd42854b5fa468d13b0, type: 3}
+--- !u!114 &1335125614 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2449787133337329425, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
+  m_PrefabInstance: {fileID: 1666901912}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6803edce0201f574f923fd9d10e5b30a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &1353496030 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 7054646180837666701, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
@@ -4739,7 +4776,7 @@ Transform:
   m_GameObject: {fileID: 1527940902}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.55, y: -0.8, z: -0.1}
+  m_LocalPosition: {x: 1.75, y: -0.85, z: -0.05}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -5158,6 +5195,9 @@ MonoBehaviour:
   hoverOffset: 0.001
   autoLookAtSkin: 1
   deviceSimulator: {fileID: 0}
+  scrollZoom: 1
+  minFieldOfView: 20
+  zoomStep: 4
 --- !u!114 &1657131589 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1748222016861356527, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
@@ -6343,6 +6383,9 @@ MonoBehaviour:
   xrOrigin: {fileID: 652549416}
   lookTarget: {fileID: 89180917}
   seatedEyeHeight: 1.4037976
+  leanOverTarget: 1
+  workHorizontalDistance: 0.25
+  workEyeHeight: 0.33
   standDistance: 0.6
   useRange: 1.5
   toggleAction:
@@ -6383,6 +6426,9 @@ MonoBehaviour:
   - {fileID: 901269955}
   - {fileID: 901269954}
   - {fileID: 901269953}
+  - {fileID: 955705828}
+  - {fileID: 1335125614}
+  - {fileID: 1073931532}
   characterController: {fileID: 652549415}
   heldTool: {fileID: 1972448016}
   handInteractor: {fileID: 34879354}
