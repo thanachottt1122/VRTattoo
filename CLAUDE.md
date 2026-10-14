@@ -3,6 +3,7 @@
 เกม VR ร้านสัก: Unity 6000.3, URP 17.3, XR Interaction Toolkit 3.4.1, Input System, OpenXR
 ทดสอบบนคอมด้วย XR Device Simulator (อยู่ใน scene แล้ว)
 
+- **ตอบผู้ใช้เป็นภาษาไทยเสมอ** (ชื่อไฟล์ โค้ด และคำศัพท์เทคนิคใช้ภาษาอังกฤษได้)
 - Scene หลัก: `Assets/_VRTattoo/Scenes/TattooRoom.unity`
 - ไฟล์ของโปรเจกต์ทั้งหมดอยู่ใต้ `Assets/_VRTattoo` (ห้ามแก้ `Assets/Samples`)
 - แก้ scene ผ่าน UnityMCP (`execute_code` + Undo) แล้วเซฟ scene ทุกครั้งหลังแก้
