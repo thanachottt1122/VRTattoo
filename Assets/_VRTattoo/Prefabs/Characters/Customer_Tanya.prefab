@@ -210,14 +210,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CustomerCharacter
   animator: {fileID: 5484587699369416696}
+  gender: 1
+  voiceOverride: {fileID: 0}
   sitOffset: {x: 0, y: -0.42, z: 0.07}
   sitRotation: {x: 0, y: 0, z: 0}
   lieOffset: {x: -0.151, y: -0.003, z: 0.096}
   lieRotation: {x: 0, y: 180, z: 0}
-  skinColor: {r: 0.7509198, g: 0.5324448, b: 0.385315, a: 1}
-  alignArm: 1
-  handInset: 0.02
-  armDrop: 0.06
   armsAlongBody: 1
   handOutward: 0.05
   armRestHeight: 0.04

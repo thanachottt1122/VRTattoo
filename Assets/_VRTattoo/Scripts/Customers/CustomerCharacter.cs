@@ -1,5 +1,7 @@
 using UnityEngine;
 
+public enum CustomerGender { Male, Female }
+
 // Root of one character model (same object as its Animator). Holds the per-character tuning that
 // lines the model up with the pose pivots of CustomerVisual. While lying on the bed it also
 // straightens the pose with IK (the clip spreads arms and legs): both arms lie along the body and
@@ -7,6 +9,13 @@ using UnityEngine;
 public class CustomerCharacter : MonoBehaviour
 {
     public Animator animator;
+
+    [Header("Voice (CustomerVoice)")]
+    [Tooltip("Picks the male or female voice set of CustomerVoice")]
+    public CustomerGender gender = CustomerGender.Male;
+
+    [Tooltip("Own voice set for this character, used instead of the gender's set")]
+    public CustomerVoiceSet voiceOverride;
 
     [Header("Sitting (relative to the seat pivot)")]
     public Vector3 sitOffset = new Vector3(0f, -0.41f, 0f);

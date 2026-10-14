@@ -24,6 +24,9 @@
 | `CapsuleCustomerVisual.cs` | placeholder: Capsule สีสุ่ม (MaterialPropertyBlock `_BaseColor`) เก็บไว้เป็น fallback (ไม่ได้ใช้แล้ว) |
 | `AnimatorCustomerVisual.cs` | อยู่บน `Customer.prefab` ตั้ง Animator `Speed` (float), `Sit`, `Lie` (bool) สั่ง `CustomerCharacter.ApplyPose` และตอนนอนเรียก `CustomerTattooSkin.Build`, ท่าอื่นเรียก `Release` |
 | `CustomerTattooSkin.cs` | อยู่บน `Customer.prefab` ดูหัวข้อ "ผิวที่สัก" |
+| `CustomerMood.cs` | `CustomerMood` (Angry/Neutral/Happy/Ecstatic) และ `CustomerMoodThresholds.For(quality)` (ค่าเริ่ม 90/70/40) ดู [customer-reactions.md](customer-reactions.md) |
+| `CustomerEmote.cs` | อยู่บน `Customer.prefab` อิโมจิเหนือหัวหลังส่งงาน (`Show(mood)`) หันหากล้อง เด้งตอนโผล่ |
+| `CustomerVoice.cs` / `CustomerVoiceSet.cs` | AudioSource 3D ที่หัว เล่นเสียงทักทาย/ร้องเจ็บ/ตามอารมณ์ จากชุดเสียง (`Data/Voices/`) ตามเพศหรือรายตัวละคร ช่องว่าง = ไม่เล่น |
 | `CustomerCharacter.cs` | อยู่บน root ของ prefab ตัวละคร (ตัวเดียวกับ Animator) ค่าปรับรายตัว: `sitOffset/sitRotation`, `lieOffset/lieRotation` (ท้องถิ่นของลูกค้า; คลิปนอนหันหัวไป −Z จึงหมุน 180°), และ `OnAnimatorIK`: แขนทั้งสองข้างวางข้างลำตัว (`armsAlongBody`, `handOutward`, `armRestHeight`), เท้าวางบนเตียงห่างกลางตัว `footSpread` (`feetOnBed`, `ankleHeight`) |
 | `CustomerCharacterPicker.cs` | อยู่บน `Customer.prefab` รายการ `characters` ตอน `Awake` สุ่มตัวละครที่ไม่ซ้ำกับคนก่อนหน้า และเลี่ยงตัวที่อยู่ในร้านแล้วถ้าเลือกได้ สร้างเป็นลูกแล้วส่งให้ `AnimatorCustomerVisual.SetCharacter` |
 | `Editor/CharacterModelSetup.cs` | เมนู `VRTattoo/Characters/Setup Selected Models`: ตั้ง Rig = Humanoid, extract material ไป `<โฟลเดอร์โมเดล>/Materials` เป็น URP Lit, ใส่ texture ที่ชื่อขึ้นต้นด้วยชื่อ material (Diffuse/Color/_di → base, Normal/_tn → normal, Opacity → รวมเป็น alpha + Alpha Clipping) |

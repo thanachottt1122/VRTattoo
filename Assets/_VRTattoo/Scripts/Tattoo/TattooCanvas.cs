@@ -81,6 +81,9 @@ public class TattooCanvas : MonoBehaviour
             Destroy(brushInstance);
     }
 
+    // Time.time of the last stroke (CustomerVoice uses it to know the customer is being tattooed).
+    public float LastDrawTime { get; private set; } = float.NegativeInfinity;
+
     public void Clear()
     {
         var previous = RenderTexture.active;
@@ -107,6 +110,7 @@ public class TattooCanvas : MonoBehaviour
     {
         if (brushMaterial == null || tattooTexture == null)
             return;
+        LastDrawTime = Time.time;
 
         Vector2 uvDelta = uvTo - uvFrom;
         float uvMeters = new Vector2(uvDelta.x * metersPerUV.x, uvDelta.y * metersPerUV.y).magnitude;

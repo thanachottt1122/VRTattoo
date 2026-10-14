@@ -13,6 +13,8 @@ GameObject:
   - component: {fileID: 8845718113989250478}
   - component: {fileID: 3375893016400426577}
   - component: {fileID: 7007207390092891522}
+  - component: {fileID: 5717667264541886561}
+  - component: {fileID: 3143004614321767897}
   m_Layer: 0
   m_Name: Customer
   m_TagString: Untagged
@@ -107,3 +109,49 @@ MonoBehaviour:
   stencilTurnTowardsArtist: 15
   minForearmWeight: 0.5
   settleDelay: 0.5
+--- !u!114 &5717667264541886561
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5577864070307347315}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 812be4fdb50dfac4796bc9986b103186, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CustomerEmote
+  ecstatic: {fileID: 21300000, guid: a0896a18a7a3b39488a5a0cc39c54f7f, type: 3}
+  happy: {fileID: 21300000, guid: 2527e19cd0d5c4c40813559738b9651a, type: 3}
+  neutral: {fileID: 21300000, guid: 2bf5bb1cb00fcf044b1ef7240ca5d3d1, type: 3}
+  angry: {fileID: 21300000, guid: 739ec7f6027760540b817aaff704a804, type: 3}
+  size: 0.28
+  heightAboveHead: 0.32
+  bobHeight: 0.02
+  bobSpeed: 2
+  popDuration: 0.4
+  popRise: 0.12
+  viewer: {fileID: 0}
+--- !u!114 &3143004614321767897
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5577864070307347315}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e197bda3b5ea4b944b3e524f3059d47c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CustomerVoice
+  maleVoice: {fileID: 11400000, guid: 11c677682728d294fab19756e79b29fa, type: 2}
+  femaleVoice: {fileID: 11400000, guid: eacc3d36526953d4684660cf9ee60540, type: 2}
+  minDistance: 0.5
+  maxDistance: 8
+  greetOnArrival: 1
+  greetingDelay: {x: 0.2, y: 0.8}
+  painMinTattooSeconds: 1.5
+  painCooldown: {x: 6, y: 12}
+  painChancePerSecond: 0.35
+  drawGrace: 0.2
+  debugLog: 0

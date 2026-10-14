@@ -18,7 +18,7 @@
 - `Furniture/Chair43`: เก้าอี้ช่างสัก (1.25, −1.785, 0.18) ชิดเตียงตรงแขน มี TattooSeat + XRSimpleInteractable ส่วน collider อยู่ที่ `Chair43_model` (`SeatHint` ย้ายตามไปอยู่เหนือเก้าอี้)
 - `Furniture/hospital bed`: เตียง (MeshCollider)
 - `Room/Floor_Tile_3b`: พื้น มี MeshCollider + BoxCollider + TeleportationArea
-- `CustomerSystem` (มี `CustomerQueueManager` (`completeKey` = None) + `TattooJobManager` และลูกค้าที่ spawn จะเป็นลูกของมัน)
+- `CustomerSystem` (มี `CustomerQueueManager` (`completeKey` = None) + `TattooJobManager` (ช่วงคะแนนอารมณ์ `moods` 90/70/40) และลูกค้าที่ spawn จะเป็นลูกของมัน)
   - `Locations/Door/DoorPoint`, `Locations/Bed/{BedApproach, BedPoint}`, `Locations/WaitArea1/{WaitSeat1Approach, WaitSeat1}` (`Chair15` ใกล้เตียงกว่า), `Locations/WaitArea2/...` (`Chair15 (1)`)
   - `Routes/*`: เส้นทาง 5 เส้น มี waypoint แค่ `Door-WaitSeat1` (อ้อมจุดเกิดผู้เล่น) ทุกเส้นตรวจด้วย CapsuleCast แล้วว่าไม่ชน
 

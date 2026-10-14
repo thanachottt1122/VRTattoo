@@ -14,6 +14,7 @@
 ## โครงสร้าง (`Assets/_VRTattoo/`)
 - `Scenes/TattooRoom.unity` scene หลัก
 - `Scripts/Tattoo/` เครื่องสัก canvas หมึก หัวเข็ม เก้าอี้ test mode · `Scripts/Ink/` · `Scripts/Needles/` · `Scripts/Customers/` · `Scripts/Stencils/` ลาย+คะแนน (มี `Editor/`)
+- `UI/Emotes/` PNG อิโมจิ (`Tools/emotes/draw_emotes.py`) · `Data/Voices/` ชุดเสียงลูกค้า
 - `Prefabs/` (`Customer`, `Characters/`, `Ink/`, `Needles/`) · `Characters/` (โมเดลไม่อยู่ใน git) · `Stencils/` PNG ลาย · `Data/StencilLibrary.asset` · `Shaders/` · `Materials/` · `Models/`
 - นอก Assets: `docs/` · `Tools/stencils/extract_stencils.py` · `SourceArt/`
 
@@ -25,13 +26,14 @@
 - **ที่วางเครื่อง:** socket บนรถเข็น ปล่อยมือหรือตก → กลับเอง (`ReturnToSocket`)
 - **นั่ง (`Chair43`):** วาร์ปไปท่าก้มเหนือแขน ปิด locomotion เครื่องเข้ามือขวา ปล่อย grip = วางคืน; จำกัดหัว (`SeatHeadLimit`)
 - **ลูกค้า:** สูงสุด 3 คน (เตียง 1 + โซฟา 2) เดินตาม waypoint แล้ววาร์ปเข้าท่า ตัวละคร 4 ตัวสุ่มไม่ซ้ำ
+- **ความพึงพอใจ:** ส่งงานแล้วอิโมจิเด้งเหนือหัวตามคะแนน (≥90 ตาหัวใจ / ≥70 ยิ้ม / ≥40 เฉย / ต่ำกว่าโกรธ, ปรับ `moods` ได้) ค้างจนเดินออกประตู; เสียงลูกค้า (ทักทาย ร้องเจ็บ ตามอารมณ์) แยกชาย/หญิง/รายตัว ยังไม่มีไฟล์ → [วิธีใส่เสียง](docs/customer-reactions.md)
 - **ลายและคะแนน:** นอนแล้วสุ่มลาย ส่งงาน (SUBMIT / J) → คุณภาพ 0–100 = Accuracy × ตัวหักความเลอะ (ถ่วงตามระยะ ผ่อนตามขนาดหัว) × ตัวคูณระดับ
 - **Desktop Test Mode (K, Editor):** เมาส์คุมเครื่อง วาด เติมหมึก เปลี่ยนหัว ซูม
 
 ## สคริปต์สำคัญ
 - สัก: `TattooMachine` (วาด, `ExternalTrigger`), `TattooCanvas` (RT หมึก + needle map), `TattooInk`/`InkCap`, `TattooNeedle`/`NeedleCartridge`, `InkHologram`/`InkGauge`, `ReturnToSocket`
 - ผู้เล่น: `TattooSeat`, `SeatHeadLimit`, `TattooDesktopTestMode` (reflection เข้า simulator)
-- ลูกค้า: `CustomerQueueManager`, `Customer`, `CustomerRoute`, `CustomerCharacter` (ท่า/IK), `CustomerCharacterPicker`, `CustomerTattooSkin`
+- ลูกค้า: `CustomerQueueManager`, `Customer`, `CustomerRoute`, `CustomerCharacter` (ท่า/IK), `CustomerCharacterPicker`, `CustomerTattooSkin`, `CustomerEmote`, `CustomerVoice`/`CustomerVoiceSet`
 - งาน/คะแนน: `TattooJobManager` (`scoring`), `TattooScorer`, `StencilPlacement`, `StencilLibrary`
 
 เมนู: `VRTattoo/Simulate Tattoo Scores` (ตารางคะแนนจำลอง ~30 วิ), `VRTattoo/Rebuild Stencil Library`, `VRTattoo/Characters/Setup Selected Models`
@@ -45,6 +47,7 @@
 - [characters.md](docs/characters.md) ตัวละคร Animator วิธีเพิ่มตัวละคร
 - [tattoo-skin.md](docs/tattoo-skin.md) ผิวที่สักบนแขน
 - [scene-objects.md](docs/scene-objects.md) GameObject และตำแหน่ง
+- [customer-reactions.md](docs/customer-reactions.md) อิโมจิความพึงพอใจ, **วิธีใส่เสียงลูกค้า**
 - [known-issues.md](docs/known-issues.md) ข้อจำกัดแบบละเอียด
 
 ## ปุ่มทดสอบ (XR Device Simulator)
@@ -67,6 +70,7 @@
 - ล็อกหัว/ก้มกล้องใน simulator พึ่ง reflection ของ XRI
 - คะแนน: ลายพื้นทึบได้เปรียบเล็กน้อยตอนมือสั่น, ส่งงาน ~200 ms
 - หมึกค้างข้ามลูกค้า, รอยสักไม่ถาวร, ขอบเส้นขรุขระ (RT 1024), ผิวที่สักเป็นภาพนิ่ง, ลายบิดใกล้ข้อมือ/ข้อศอก
+- ยังไม่มีไฟล์เสียงลูกค้า (ช่องว่างอยู่)
 - ลูกค้าไม่มี collider และไม่มีท่าลุก/นั่งลง, socket ไม่กรอง layer, ป้ายเป็นภาษาอังกฤษ
 - **ก่อนเผยแพร่:** โมเดลตัวละครติดลิขสิทธิ์และไม่อยู่ใน git (ก๊อป `Characters/Models/` + `SourceArt/Characters/` รวม `.meta`); ลายติดลิขสิทธิ์ `angry_duck`, `ghost_monster`, `trophy`, `cloud`
 

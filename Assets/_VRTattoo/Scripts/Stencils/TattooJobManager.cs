@@ -29,6 +29,10 @@ public class TattooJobManager : MonoBehaviour
     [Header("Scoring")]
     public TattooScoringRules scoring = TattooScoringRules.Default;
 
+    [Header("Customer mood")]
+    [Tooltip("Quality ranges for the emote above the customer's head and their reaction sound")]
+    public CustomerMoodThresholds moods = CustomerMoodThresholds.Default;
+
     [Header("Difficulty ramp")]
     [Tooltip("After this many finished customers the hard designs reach their highest chance")]
     public int rampCustomers = 10;
@@ -99,18 +103,39 @@ public class TattooJobManager : MonoBehaviour
         var skin = queue.CustomerOnBed.GetComponent<CustomerTattooSkin>();
         if (skin == null || !skin.IsReady)
             return;
-        StartCoroutine(SubmitRoutine(skin));
+        StartCoroutine(SubmitRoutine(skin, -1));
     }
 
-    IEnumerator SubmitRoutine(CustomerTattooSkin skin)
+#if UNITY_EDITOR
+    // Testing: submits like the real button, but with the given quality instead of the scored one.
+    public void SubmitForTest(int quality)
+    {
+        if (submitting || current == null || queue == null || !queue.IsCustomerReady)
+            return;
+        var skin = queue.CustomerOnBed.GetComponent<CustomerTattooSkin>();
+        if (skin != null && skin.IsReady)
+            StartCoroutine(SubmitRoutine(skin, quality));
+    }
+#endif
+
+    IEnumerator SubmitRoutine(CustomerTattooSkin skin, int forcedQuality)
     {
         submitting = true;
 
         var score = TattooScorer.Score(skin.Canvas, current.texture, skin.Placement, scoring);
+        if (forcedQuality >= 0)
+            score.quality = forcedQuality;
         float multiplier = StencilLibrary.Multiplier(current.difficulty);
         int points = Mathf.RoundToInt(score.quality * multiplier);
         TotalScore += points;
-        Debug.Log($"[TattooJob] {current.displayName}: accuracy {score.accuracy:P0}, mess area {score.messRatio:0.00}x design (-{score.messPenalty}), quality {score.quality}, +{points}");
+        var mood = moods.For(score.quality);
+        Debug.Log($"[TattooJob] {current.displayName}: accuracy {score.accuracy:P0}, mess area {score.messRatio:0.00}x design (-{score.messPenalty}), quality {score.quality}, +{points}, mood {mood}");
+
+        // The customer reacts: emote above the head (stays until they leave) and a voice line.
+        if (skin.TryGetComponent(out CustomerEmote emote))
+            emote.Show(mood);
+        if (skin.TryGetComponent(out CustomerVoice voice))
+            voice.PlayMood(mood);
 
         // Why the score is what it is: how much of the design was inked, and what the mess cost.
         string mess = score.messPenalty > 0 ? $"<color=#FF5050>Mess -{score.messPenalty}</color>" : "Mess 0";

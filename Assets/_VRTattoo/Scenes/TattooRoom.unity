@@ -3605,6 +3605,10 @@ MonoBehaviour:
     needleSlack: 1.1
     messLimit: 1
     messPower: 0.58
+  moods:
+    ecstatic: 90
+    happy: 70
+    neutral: 40
   rampCustomers: 10
   startWeights: {x: 0.7, y: 0.25, z: 0.05}
   endWeights: {x: 0.2, y: 0.4, z: 0.4}
@@ -9298,7 +9302,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0.006}
   m_SizeDelta: {x: 0.06, y: 0.03}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1800076785
