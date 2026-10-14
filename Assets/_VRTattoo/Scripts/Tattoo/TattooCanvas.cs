@@ -1,11 +1,11 @@
 using UnityEngine;
 
-// Paintable skin: owns a RenderTexture used as the base map of this renderer's material.
-[RequireComponent(typeof(Renderer))]
+// Paintable skin: owns a transparent RenderTexture that holds the ink (alpha = ink) in the UV space
+// of the collider it sits on. Something else displays it (CustomerTattooSkin's overlay mesh), and
+// TattooMachine finds it through the collider it hits.
 public class TattooCanvas : MonoBehaviour
 {
     public int textureSize = 1024;
-    public Color skinColor = new Color(0.87f, 0.69f, 0.57f);
     public Material brushMaterial;
     public Color inkColor = new Color(0.02f, 0.02f, 0.02f);
 
@@ -18,16 +18,19 @@ public class TattooCanvas : MonoBehaviour
     [Tooltip("A stroke segment is treated as crossing a UV seam when its UV length exceeds the real distance by this factor")]
     public float seamRatio = 2f;
 
-    static readonly int BaseMapId = Shader.PropertyToID("_BaseMap");
-    static readonly int MainTexId = Shader.PropertyToID("_MainTex");
     static readonly int ColorId = Shader.PropertyToID("_Color");
 
     RenderTexture tattooTexture;
-    Material skinMaterial;
     Vector2 metersPerUV = Vector2.one;
 
     public RenderTexture TattooTexture => tattooTexture;
-    public Vector2 MetersPerUV => metersPerUV;
+
+    // How many metres on the skin one UV unit spans along U and V (set by whoever made the UVs).
+    public Vector2 MetersPerUV
+    {
+        get => metersPerUV;
+        set => metersPerUV = value;
+    }
 
     void Awake()
     {
@@ -40,12 +43,6 @@ public class TattooCanvas : MonoBehaviour
         };
         tattooTexture.Create();
         Clear();
-
-        skinMaterial = GetComponent<Renderer>().material;
-        skinMaterial.SetTexture(BaseMapId, tattooTexture);
-        skinMaterial.SetTexture(MainTexId, tattooTexture);
-
-        metersPerUV = EstimateMetersPerUV();
     }
 
     void OnDestroy()
@@ -55,22 +52,15 @@ public class TattooCanvas : MonoBehaviour
             tattooTexture.Release();
             Destroy(tattooTexture);
         }
-        if (skinMaterial != null)
-            Destroy(skinMaterial);
     }
 
     public void Clear()
     {
         var previous = RenderTexture.active;
         RenderTexture.active = tattooTexture;
-        GL.Clear(false, true, ClearValue(skinColor));
+        GL.Clear(false, true, Color.clear);
         RenderTexture.active = previous;
     }
-
-    // GL.Clear takes a linear value in a linear-space project; colours in the Inspector are sRGB.
-    // Without the conversion the skin comes out much lighter than skinColor.
-    public static Color ClearValue(Color color) =>
-        QualitySettings.activeColorSpace == ColorSpace.Linear ? color.linear : color;
 
     // Draws a continuous line between two contact points. Pass the same point twice to start a stroke.
     public void DrawStroke(Vector2 uvFrom, Vector3 worldFrom, Vector2 uvTo, Vector3 worldTo)
@@ -112,55 +102,5 @@ public class TattooCanvas : MonoBehaviour
         GL.End();
         GL.PopMatrix();
         RenderTexture.active = previous;
-    }
-
-    // Area-weighted average of how many world meters one UV unit spans along U and V,
-    // so the brush stays round on the surface even when the UVs are stretched.
-    Vector2 EstimateMetersPerUV()
-    {
-        var meshFilter = GetComponent<MeshFilter>();
-        var mesh = meshFilter != null ? meshFilter.sharedMesh : null;
-        if (mesh == null || !mesh.isReadable)
-        {
-            float size = GetComponent<Renderer>().bounds.size.magnitude;
-            return new Vector2(size, size);
-        }
-
-        Vector3[] vertices = mesh.vertices;
-        Vector2[] uvs = mesh.uv;
-        int[] triangles = mesh.triangles;
-        if (uvs.Length != vertices.Length)
-            return Vector2.one;
-
-        for (int i = 0; i < vertices.Length; i++)
-            vertices[i] = transform.TransformPoint(vertices[i]);
-
-        double sumU = 0, sumV = 0, sumArea = 0;
-        for (int t = 0; t < triangles.Length; t += 3)
-        {
-            int a = triangles[t], b = triangles[t + 1], c = triangles[t + 2];
-            Vector3 e1 = vertices[b] - vertices[a];
-            Vector3 e2 = vertices[c] - vertices[a];
-            Vector2 d1 = uvs[b] - uvs[a];
-            Vector2 d2 = uvs[c] - uvs[a];
-
-            float det = d1.x * d2.y - d2.x * d1.y;
-            if (Mathf.Abs(det) < 1e-10f)
-                continue;
-
-            float r = 1f / det;
-            Vector3 dPdu = (e1 * d2.y - e2 * d1.y) * r;
-            Vector3 dPdv = (e2 * d1.x - e1 * d2.x) * r;
-            float area = Vector3.Cross(e1, e2).magnitude * 0.5f;
-
-            sumU += dPdu.magnitude * area;
-            sumV += dPdv.magnitude * area;
-            sumArea += area;
-        }
-
-        if (sumArea <= 0)
-            return Vector2.one;
-
-        return new Vector2((float)(sumU / sumArea), (float)(sumV / sumArea));
     }
 }

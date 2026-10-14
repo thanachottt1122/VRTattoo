@@ -36,6 +36,7 @@ public static class TattooScorer
 {
     const float LineAlpha = 0.5f;          // stencil alpha above this is part of the design
     const float Margin = 0.02f;            // ink this far outside the stencil square still counts as spill (m)
+    const byte InkAlpha = 127;             // canvas alpha above this is ink
 
     public static TattooScore Score(TattooCanvas canvas, Texture2D stencil, StencilPlacement placement) =>
         Score(canvas, stencil, placement, TattooScoringRules.Default);
@@ -63,10 +64,8 @@ public static class TattooScorer
         int y1 = Mathf.Clamp(Mathf.CeilToInt(b.yMax * size + Margin / metersPerPixel.y), y0 + 1, size);
         int w = x1 - x0, h = y1 - y0;
 
+        // The canvas is transparent where there is no ink.
         Color32[] pixels = ReadRegion(rt, x0, y0, w, h);
-        float skinLum = Luminance(ReadClearColor(rt, canvas.skinColor));
-        float inkLum = Luminance(ReadClearColor(rt, canvas.inkColor));
-        float inkThreshold = (skinLum + inkLum) * 0.5f;
 
         var line = new bool[w * h];
         var ink = new bool[w * h];
@@ -76,7 +75,7 @@ public static class TattooScorer
             for (int x = 0; x < w; x++)
             {
                 int i = y * w + x;
-                ink[i] = Luminance(pixels[i]) < inkThreshold;
+                ink[i] = pixels[i].a > InkAlpha;
 
                 Vector2 uv = new Vector2((x0 + x + 0.5f) / size, (y0 + y + 0.5f) / size);
                 Vector2 st = placement.ToStencil(uv);
@@ -111,8 +110,6 @@ public static class TattooScorer
         return result;
     }
 
-    static float Luminance(Color32 c) => 0.2126f * c.r + 0.7152f * c.g + 0.0722f * c.b;
-
     static Color32[] ReadRegion(RenderTexture rt, int x, int y, int w, int h)
     {
         var previous = RenderTexture.active;
@@ -124,20 +121,6 @@ public static class TattooScorer
         var pixels = tex.GetPixels32();
         Object.Destroy(tex);
         return pixels;
-    }
-
-    // Reads back what a colour looks like after going through the same RenderTexture and
-    // read-back path as the canvas, so colour-space conversions cancel out.
-    static Color32 ReadClearColor(RenderTexture like, Color color)
-    {
-        var temp = RenderTexture.GetTemporary(1, 1, 0, like.format);
-        var previous = RenderTexture.active;
-        RenderTexture.active = temp;
-        GL.Clear(false, true, TattooCanvas.ClearValue(color));
-        RenderTexture.active = previous;
-        var result = ReadRegion(temp, 0, 0, 1, 1)[0];
-        RenderTexture.ReleaseTemporary(temp);
-        return result;
     }
 
     // Rectangular dilation (separable running count).

@@ -15,7 +15,8 @@ Shader "VRTattoo/TattooBrush"
             ZTest Always
             ZWrite Off
             Cull Off
-            Blend SrcAlpha OneMinusSrcAlpha, Zero One
+            // The canvas starts transparent; alpha accumulates as ink coverage.
+            Blend SrcAlpha OneMinusSrcAlpha, One OneMinusSrcAlpha
 
             HLSLPROGRAM
             #pragma vertex vert

@@ -1,12 +1,16 @@
-// Faint transfer-paper stencil drawn over the skin as a second material on the arm renderer.
-// It never touches the ink RenderTexture. StencilOverlay.cs sets the placement:
-//   st = 0.5 + (dot(uv - center, axisX), dot(uv - center, axisY)), visible where st is in [0,1].
-Shader "VRTattoo/StencilOverlay"
+// Ink and stencil drawn over a customer's forearm. CustomerTattooSkin renders it on a copy of the
+// forearm triangles (same bones, so it sits exactly on the skin) whose UVs are skin coordinates:
+// metres around × along the arm, scaled into the 0..1 canvas.
+//   ink:     _InkTex alpha (TattooCanvas), coloured _InkColor
+//   stencil: st = 0.5 + (dot(uv - center, axisX), dot(uv - center, axisY)), visible where st is in [0,1]
+Shader "VRTattoo/TattooSkinOverlay"
 {
     Properties
     {
+        _InkTex ("Ink (alpha)", 2D) = "black" {}
+        _InkColor ("Ink Color", Color) = (0.02, 0.02, 0.02, 1)
         _StencilTex ("Stencil (alpha)", 2D) = "black" {}
-        _Color ("Color", Color) = (0.4, 0.1, 0.8, 0.8)
+        _StencilColor ("Stencil Color", Color) = (0.4, 0.1, 0.8, 0.8)
         _Center ("Center UV", Vector) = (0.5, 0.5, 0, 0)
         _AxisX ("UV to stencil X", Vector) = (1, 0, 0, 0)
         _AxisY ("UV to stencil Y", Vector) = (0, 1, 0, 0)
@@ -17,7 +21,7 @@ Shader "VRTattoo/StencilOverlay"
 
         Pass
         {
-            Name "StencilOverlay"
+            Name "TattooSkinOverlay"
             Tags { "LightMode" = "SRPDefaultUnlit" }
             ZWrite Off
             ZTest LEqual
@@ -29,11 +33,14 @@ Shader "VRTattoo/StencilOverlay"
             #pragma fragment frag
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
+            TEXTURE2D(_InkTex);
+            SAMPLER(sampler_InkTex);
             TEXTURE2D(_StencilTex);
             SAMPLER(sampler_StencilTex);
 
             CBUFFER_START(UnityPerMaterial)
-                float4 _Color;
+                float4 _InkColor;
+                float4 _StencilColor;
                 float4 _Center;
                 float4 _AxisX;
                 float4 _AxisY;
@@ -61,11 +68,20 @@ Shader "VRTattoo/StencilOverlay"
 
             half4 frag(Varyings i) : SV_Target
             {
+                // Outside the canvas there is neither ink nor stencil.
+                clip(min(i.uv, 1.0 - i.uv));
+
                 float2 d = i.uv - _Center.xy;
                 float2 st = 0.5 + float2(dot(d, _AxisX.xy), dot(d, _AxisY.xy));
-                clip(min(st, 1.0 - st));
-                half a = SAMPLE_TEXTURE2D(_StencilTex, sampler_StencilTex, st).a;
-                return half4(_Color.rgb, _Color.a * a);
+                half inStencil = step(0.0, min(min(st.x, st.y), min(1.0 - st.x, 1.0 - st.y)));
+                half stencilA = SAMPLE_TEXTURE2D(_StencilTex, sampler_StencilTex, saturate(st)).a * inStencil * _StencilColor.a;
+
+                half inkA = SAMPLE_TEXTURE2D(_InkTex, sampler_InkTex, i.uv).a * _InkColor.a;
+
+                half3 color = lerp(_StencilColor.rgb, _InkColor.rgb, inkA);
+                half alpha = max(inkA, stencilA);
+                clip(alpha - 0.004);
+                return half4(color, alpha);
             }
             ENDHLSL
         }

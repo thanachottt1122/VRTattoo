@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 2769533937438880294}
   - component: {fileID: 8845718113989250478}
   - component: {fileID: 3375893016400426577}
+  - component: {fileID: 7007207390092891522}
   m_Layer: 0
   m_Name: Customer
   m_TagString: Untagged
@@ -66,7 +67,6 @@ MonoBehaviour:
   speedParameter: Speed
   sitParameter: Sit
   lieParameter: Lie
-  hideTattooArmWhenEmpty: 1
 --- !u!114 &3375893016400426577
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -84,3 +84,26 @@ MonoBehaviour:
   - {fileID: 837510690784376846, guid: 0a08ab006c790d3448d5881f973bc569, type: 3}
   - {fileID: 5087049860116824625, guid: 6dda9c6b98bbec54391bc3e1a05654e0, type: 3}
   - {fileID: 6533347969470875001, guid: 4e5bf710551bb764e85acc5a7c964cbc, type: 3}
+--- !u!114 &7007207390092891522
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5577864070307347315}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f5f71f029e879d34b88dcaa076c641d7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CustomerTattooSkin
+  brushMaterial: {fileID: 2100000, guid: d9419d45b2ef5c04ebfe9cf517a22f7c, type: 2}
+  overlayMaterial: {fileID: 2100000, guid: cc5d9c819a0819e4e8e0589e569e5b56, type: 2}
+  canvasSize: 0.2
+  textureSize: 1024
+  brushDiameter: 0.005
+  inkColor: {r: 0.02, g: 0.02, b: 0.02, a: 1}
+  stencilSize: 0.14
+  stencilAlong: 0.5
+  stencilTurnTowardsArtist: 15
+  minForearmWeight: 0.5
+  settleDelay: 0.5

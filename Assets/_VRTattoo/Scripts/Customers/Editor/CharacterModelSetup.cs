@@ -5,7 +5,7 @@ using UnityEditor;
 using UnityEngine;
 
 // Prepares a character FBX for use as a customer:
-//   - Rig = Humanoid (avatar created from the model)
+//   - Rig = Humanoid (avatar created from the model), Read/Write on (needed for tattooing the forearm)
 //   - embedded materials extracted to <model folder>/Materials and switched to URP Lit
 //   - missing textures filled in from image files whose name starts with the material name
 //     (…Diffuse/…Color/…_di → base map, …Normal/…_tn → normal map, …Opacity → baked into base alpha)
@@ -39,6 +39,7 @@ public static class CharacterModelSetup
         var importer = (ModelImporter)AssetImporter.GetAtPath(modelPath);
         importer.animationType = ModelImporterAnimationType.Human;
         importer.avatarSetup = ModelImporterAvatarSetup.CreateFromThisModel;
+        importer.isReadable = true;  // CustomerTattooSkin reads the forearm triangles at runtime
         importer.SaveAndReimport();
 
         var folder = Path.GetDirectoryName(modelPath).Replace('\\', '/');

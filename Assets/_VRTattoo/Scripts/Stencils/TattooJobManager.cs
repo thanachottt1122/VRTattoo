@@ -7,13 +7,12 @@ using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 // One tattoo job per customer: picks the design when the customer lies down, shows it as a
-// stencil, scores the ink on submit, then sends the customer home through CustomerQueueManager.
+// stencil on the customer's forearm (CustomerTattooSkin), scores the ink on submit, then sends the
+// customer home through CustomerQueueManager.
 public class TattooJobManager : MonoBehaviour
 {
     public CustomerQueueManager queue;
     public StencilLibrary library;
-    public StencilOverlay overlay;
-    public TattooCanvas canvas;
 
     [Header("Labels")]
     public TMP_Text orderLabel;
@@ -87,8 +86,9 @@ public class TattooJobManager : MonoBehaviour
             return;
         }
 
-        if (overlay != null)
-            overlay.Show(current.texture);
+        // Shown as soon as the forearm surface is built (it waits for the pose to settle).
+        if (customer.TryGetComponent(out CustomerTattooSkin skin))
+            skin.ShowStencil(current.texture);
         SetText(orderLabel, $"{current.displayName.ToUpperInvariant()}\n<size=75%><color={DifficultyColor(current.difficulty)}>{current.difficulty.ToString().ToUpperInvariant()}</color></size>");
     }
 
@@ -96,14 +96,17 @@ public class TattooJobManager : MonoBehaviour
     {
         if (submitting || current == null || queue == null || !queue.IsCustomerReady)
             return;
-        StartCoroutine(SubmitRoutine());
+        var skin = queue.CustomerOnBed.GetComponent<CustomerTattooSkin>();
+        if (skin == null || !skin.IsReady)
+            return;
+        StartCoroutine(SubmitRoutine(skin));
     }
 
-    IEnumerator SubmitRoutine()
+    IEnumerator SubmitRoutine(CustomerTattooSkin skin)
     {
         submitting = true;
 
-        var score = TattooScorer.Score(canvas, current.texture, overlay.Placement, scoring);
+        var score = TattooScorer.Score(skin.Canvas, current.texture, skin.Placement, scoring);
         float multiplier = StencilLibrary.Multiplier(current.difficulty);
         int points = Mathf.RoundToInt(score.quality * multiplier);
         TotalScore += points;
@@ -116,8 +119,8 @@ public class TattooJobManager : MonoBehaviour
 
         SetText(scoreLabel, "");
         SetText(orderLabel, "");
-        if (overlay != null)
-            overlay.Hide();
+        if (skin != null)
+            skin.HideStencil();
         previous = current;
         current = null;
         CompletedCustomers++;

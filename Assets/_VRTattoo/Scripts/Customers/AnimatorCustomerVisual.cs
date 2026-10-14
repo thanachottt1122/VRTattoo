@@ -5,8 +5,8 @@ using UnityEngine;
 // (feet when standing, hips on the seat/bed when sitting or lying); per-character corrections
 // live on CustomerCharacter.
 //
-// While lying on the bed the scene's TattooArm stands in for the customer's arm on the artist's
-// side: it is shown, painted in the character's skin colour, and the real arm is pulled inside it.
+// While lying on the bed the forearm on the artist's side becomes the tattoo surface
+// (CustomerTattooSkin on the same object); getting up removes it together with its ink.
 public class AnimatorCustomerVisual : CustomerVisual
 {
     public Animator animator;
@@ -23,19 +23,7 @@ public class AnimatorCustomerVisual : CustomerVisual
     [Tooltip("Bool parameter, true while lying down")]
     public string lieParameter = "Lie";
 
-    [Tooltip("Hide TattooArm while nobody is lying on the bed")]
-    public bool hideTattooArmWhenEmpty = true;
-
-    // The visual currently lying on the bed (owner of TattooArm).
-    static AnimatorCustomerVisual lyingVisual;
-    static TattooCanvas tattooCanvas;
-
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-    static void ResetStatics()
-    {
-        lyingVisual = null;
-        tattooCanvas = null;
-    }
+    CustomerTattooSkin tattooSkin;
 
     void Reset()
     {
@@ -47,14 +35,7 @@ public class AnimatorCustomerVisual : CustomerVisual
     {
         if (character != null && animator == null)
             animator = character.animator;
-        if (lyingVisual == null)
-            ShowTattooArm(false);
-    }
-
-    void OnDestroy()
-    {
-        if (lyingVisual == this)
-            ReleaseTattooArm();
+        tattooSkin = GetComponent<CustomerTattooSkin>();
     }
 
     public void SetCharacter(CustomerCharacter newCharacter)
@@ -68,10 +49,13 @@ public class AnimatorCustomerVisual : CustomerVisual
         if (character != null)
             character.ApplyPose(pose);
 
-        if (pose == CustomerPose.Lie)
-            TakeTattooArm();
-        else if (lyingVisual == this)
-            ReleaseTattooArm();
+        if (tattooSkin != null)
+        {
+            if (pose == CustomerPose.Lie)
+                tattooSkin.Build(animator);
+            else
+                tattooSkin.Release();
+        }
 
         if (animator == null)
             return;
@@ -92,45 +76,5 @@ public class AnimatorCustomerVisual : CustomerVisual
     {
         if (!string.IsNullOrEmpty(parameter))
             animator.SetBool(parameter, value);
-    }
-
-    // Called before CustomerQueueManager clears the canvas, so the new skin colour is used.
-    void TakeTattooArm()
-    {
-        lyingVisual = this;
-        var canvas = FindCanvas();
-        if (canvas == null)
-            return;
-
-        if (character != null)
-        {
-            canvas.skinColor = character.skinColor;
-            character.SetTattooArm(canvas.transform);
-        }
-        ShowTattooArm(true);
-    }
-
-    void ReleaseTattooArm()
-    {
-        lyingVisual = null;
-        if (character != null)
-            character.SetTattooArm(null);
-        ShowTattooArm(false);
-    }
-
-    void ShowTattooArm(bool show)
-    {
-        if (!show && !hideTattooArmWhenEmpty)
-            return;
-        var canvas = FindCanvas();
-        if (canvas != null && canvas.TryGetComponent<Renderer>(out var armRenderer))
-            armRenderer.enabled = show;
-    }
-
-    static TattooCanvas FindCanvas()
-    {
-        if (tattooCanvas == null)
-            tattooCanvas = FindFirstObjectByType<TattooCanvas>();
-        return tattooCanvas;
     }
 }

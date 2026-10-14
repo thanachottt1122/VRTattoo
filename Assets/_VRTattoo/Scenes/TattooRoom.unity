@@ -271,155 +271,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: ff3c41b253b4d8e44938e1daee4aceed, type: 3}
   m_PrefabInstance: {fileID: 586947711}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &89180916
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 89180917}
-  - component: {fileID: 89180921}
-  - component: {fileID: 89180920}
-  - component: {fileID: 89180919}
-  - component: {fileID: 89180918}
-  - component: {fileID: 89180922}
-  m_Layer: 0
-  m_Name: TattooArm
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &89180917
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 89180916}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0.7071068, y: 0.7071068, z: -0.000000030908623, w: -0.000000030908623}
-  m_LocalPosition: {x: 1.39, y: -1.059, z: -0.325}
-  m_LocalScale: {x: 0.09, y: 0.25, z: 0.09}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1653150525}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &89180918
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 89180916}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4ad2125f58bbbd349b4ebbe09eb2910b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TattooCanvas
-  textureSize: 1024
-  skinColor: {r: 0.87, g: 0.69, b: 0.57, a: 1}
-  brushMaterial: {fileID: 2100000, guid: d9419d45b2ef5c04ebfe9cf517a22f7c, type: 2}
-  inkColor: {r: 0.02, g: 0.02, b: 0.02, a: 1}
-  brushDiameter: 0.005
-  spacing: 0.2
-  seamRatio: 2
---- !u!64 &89180919
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 89180916}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
---- !u!23 &89180920
-MeshRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 89180916}
-  m_Enabled: 1
-  m_CastShadows: 1
-  m_ReceiveShadows: 1
-  m_DynamicOccludee: 1
-  m_StaticShadowCaster: 0
-  m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
-  m_RayTracingMode: 2
-  m_RayTraceProcedural: 0
-  m_RayTracingAccelStructBuildFlagsOverride: 0
-  m_RayTracingAccelStructBuildFlags: 1
-  m_SmallMeshCulling: 1
-  m_ForceMeshLod: -1
-  m_MeshLodSelectionBias: 0
-  m_RenderingLayerMask: 1
-  m_RendererPriority: 0
-  m_Materials:
-  - {fileID: 2100000, guid: 4014cb816d553e74987c445ed3d98a7d, type: 2}
-  m_StaticBatchInfo:
-    firstSubMesh: 0
-    subMeshCount: 0
-  m_StaticBatchRoot: {fileID: 0}
-  m_ProbeAnchor: {fileID: 0}
-  m_LightProbeVolumeOverride: {fileID: 0}
-  m_ScaleInLightmap: 1
-  m_ReceiveGI: 1
-  m_PreserveUVs: 1
-  m_IgnoreNormalsForChartDetection: 0
-  m_ImportantGI: 0
-  m_StitchLightmapSeams: 1
-  m_SelectedEditorRenderState: 3
-  m_MinimumChartSize: 4
-  m_AutoUVMaxDistance: 0.5
-  m_AutoUVMaxAngle: 89
-  m_LightmapParameters: {fileID: 0}
-  m_GlobalIlluminationMeshLod: 0
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_MaskInteraction: 0
-  m_AdditionalVertexStreams: {fileID: 0}
---- !u!33 &89180921
-MeshFilter:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 89180916}
-  m_Mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &89180922
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 89180916}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dd34e485ccf3f9b4c98d89daf6edf68b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::StencilOverlay
-  overlayMaterial: {fileID: 2100000, guid: 1df7a489433f05a43897496462ef3c1d, type: 2}
-  sizeMeters: 0.14
-  stencilUp: {x: 0, y: 0, z: -1}
 --- !u!1001 &124412211
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2376,7 +2227,7 @@ MonoBehaviour:
   - {fileID: 545570603}
   - {fileID: 1093082763}
   - {fileID: 1592302015}
-  tattooCanvas: {fileID: 89180918}
+  tattooCanvas: {fileID: 0}
   spawnInterval: 1.5
   completeKey: 0
   onCustomerLayDown:
@@ -2416,8 +2267,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TattooJobManager
   queue: {fileID: 832939858}
   library: {fileID: 11400000, guid: 19f769d6847a63a4699e03cad8772746, type: 2}
-  overlay: {fileID: 89180922}
-  canvas: {fileID: 89180918}
   orderLabel: {fileID: 391056692}
   scoreLabel: {fileID: 1926414025}
   totalLabel: {fileID: 1782062466}
@@ -5164,12 +5013,12 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 89180917}
   - {fileID: 1972448014}
   - {fileID: 42781250}
   - {fileID: 948357592}
   - {fileID: 1940245963}
   - {fileID: 1527940905}
+  - {fileID: 2144233704}
   m_Father: {fileID: 817075156}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1653150526
@@ -5189,7 +5038,7 @@ MonoBehaviour:
   toggleKey: 25
   seat: {fileID: 1846268032}
   machine: {fileID: 1972448015}
-  skinCollider: {fileID: 89180919}
+  skinCollider: {fileID: 0}
   viewCamera: {fileID: 0}
   tiltTowardView: 0.5
   hoverOffset: 0.001
@@ -6381,7 +6230,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TattooSeat
   xrOrigin: {fileID: 652549416}
-  lookTarget: {fileID: 89180917}
+  lookTarget: {fileID: 2144233704}
   seatedEyeHeight: 1.4037976
   leanOverTarget: 1
   workHorizontalDistance: 0.25
@@ -7729,6 +7578,37 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 1363167382}
   m_SourcePrefab: {fileID: 100100000, guid: 98ff018df12732643955d08f0d0f0cfe, type: 3}
+--- !u!1 &2144233703
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2144233704}
+  m_Layer: 0
+  m_Name: TattooWorkArea
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2144233704
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2144233703}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 1.33, y: -1.05, z: -0.325}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1653150525}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &2146079546 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: cd043c9138541ef41bba8c63dc6eae08, type: 3}

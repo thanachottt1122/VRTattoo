@@ -21,6 +21,7 @@ public class TattooDesktopTestMode : MonoBehaviour
 
     public TattooSeat seat;
     public TattooMachine machine;
+    [Tooltip("Leave empty to use the forearm of the customer on the bed (CustomerTattooSkin)")]
     public Collider skinCollider;
 
     [Tooltip("Leave empty to use Camera.main")]
@@ -69,6 +70,9 @@ public class TattooDesktopTestMode : MonoBehaviour
 
     bool IsAllowed => !editorOnly || Application.isEditor;
 
+    Collider SkinCollider => skinCollider != null ? skinCollider
+        : CustomerTattooSkin.Active != null ? CustomerTattooSkin.Active.SkinCollider : null;
+
     void Awake()
     {
         if (machine != null)
@@ -94,7 +98,8 @@ public class TattooDesktopTestMode : MonoBehaviour
 
         bool heldInHand = grabInteractable != null && grabInteractable.isSelected
             && !(grabInteractable.firstInteractorSelecting is XRSocketInteractor);
-        bool active = enabledMode && seat != null && seat.IsSeated && heldInHand && skinCollider != null;
+        var skin = SkinCollider;
+        bool active = enabledMode && seat != null && seat.IsSeated && heldInHand && skin != null;
 
         SetOverride(active);
         if (!active)
@@ -111,7 +116,7 @@ public class TattooDesktopTestMode : MonoBehaviour
         UpdateZoom(cam, mouse);
 
         Ray ray = cam.ScreenPointToRay(mouse.position.ReadValue());
-        if (skinCollider.Raycast(ray, out RaycastHit hit, 10f))
+        if (skin.Raycast(ray, out RaycastHit hit, 10f))
         {
             Vector3 needleDirection = Vector3.Slerp(-hit.normal, ray.direction, tiltTowardView).normalized;
             PlaceTip(hit.point + hit.normal * hoverOffset, needleDirection);
@@ -212,14 +217,15 @@ public class TattooDesktopTestMode : MonoBehaviour
 
     void LookAtSkin()
     {
-        if (!autoLookAtSkin || skinCollider == null)
+        var skin = SkinCollider;
+        if (!autoLookAtSkin || skin == null)
             return;
 
         var cam = viewCamera != null ? viewCamera : Camera.main;
         if (cam == null)
             return;
 
-        Vector3 toSkin = skinCollider.bounds.center - cam.transform.position;
+        Vector3 toSkin = skin.bounds.center - cam.transform.position;
         float horizontal = new Vector2(toSkin.x, toSkin.z).magnitude;
         float pitch = Mathf.Clamp(Mathf.Atan2(-toSkin.y, horizontal) * Mathf.Rad2Deg, -MaxSimulatorPitch, MaxSimulatorPitch);
 

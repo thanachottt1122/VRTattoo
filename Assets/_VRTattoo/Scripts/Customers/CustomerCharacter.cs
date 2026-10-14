@@ -2,8 +2,8 @@ using UnityEngine;
 
 // Root of one character model (same object as its Animator). Holds the per-character tuning that
 // lines the model up with the pose pivots of CustomerVisual. While lying on the bed it also
-// straightens the pose with IK: the arm on the artist's side (the right arm with the current bed
-// and clip) goes inside TattooArm, the other arm lies along the body and the feet come together.
+// straightens the pose with IK (the clip spreads arms and legs): both arms lie along the body and
+// the feet come together. The forearm on the artist's side is tattooed (CustomerTattooSkin).
 public class CustomerCharacter : MonoBehaviour
 {
     public Animator animator;
@@ -18,21 +18,8 @@ public class CustomerCharacter : MonoBehaviour
     [Tooltip("The lying clip has the head towards -Z, so the model is turned around")]
     public Vector3 lieRotation = new Vector3(0f, 180f, 0f);
 
-    [Header("Tattoo arm")]
-    [Tooltip("TattooArm is painted this colour, close to the skin of this character")]
-    public Color skinColor = new Color(0.87f, 0.69f, 0.57f);
-
-    [Tooltip("Pull the arm nearest TattooArm along it while lying, so the real arm stays inside it")]
-    public bool alignArm = true;
-
-    [Tooltip("How far the hand target sits inside the end of TattooArm (m)")]
-    public float handInset = 0.02f;
-
-    [Tooltip("How far below the TattooArm axis the real arm is pulled, so it stays hidden inside it (m)")]
-    public float armDrop = 0.06f;
-
     [Header("Straight pose while lying (the clip spreads arms and legs)")]
-    [Tooltip("Lay the other arm along the body instead of spread out")]
+    [Tooltip("Lay the arms along the body instead of spread out")]
     public bool armsAlongBody = true;
 
     [Tooltip("How far outside the shoulder the free hand rests (m)")]
@@ -48,7 +35,6 @@ public class CustomerCharacter : MonoBehaviour
     [Tooltip("Height of the ankle above the bed surface (m)")]
     public float ankleHeight = 0.08f;
 
-    Transform tattooArm;
     bool lying;
 
     void Reset()
@@ -73,12 +59,6 @@ public class CustomerCharacter : MonoBehaviour
         }
     }
 
-    // null stops the arm alignment.
-    public void SetTattooArm(Transform arm)
-    {
-        tattooArm = arm;
-    }
-
     void OnAnimatorIK(int layerIndex)
     {
         if (animator == null)
@@ -101,25 +81,10 @@ public class CustomerCharacter : MonoBehaviour
             PlaceFoot(bed, AvatarIKGoal.RightFoot, -1f);
         }
 
-        bool leftDone = false, rightDone = false;
-        if (alignArm && tattooArm != null)
-        {
-            // Which arm lies on the TattooArm side depends on the clip and the bed, so take the
-            // shoulder that is closer to it.
-            var left = animator.GetBoneTransform(HumanBodyBones.LeftUpperArm).position;
-            var right = animator.GetBoneTransform(HumanBodyBones.RightUpperArm).position;
-            bool useLeft = (left - tattooArm.position).sqrMagnitude < (right - tattooArm.position).sqrMagnitude;
-            AlignToTattooArm(useLeft);
-            leftDone = useLeft;
-            rightDone = !useLeft;
-        }
-
         if (armsAlongBody)
         {
-            if (!leftDone)
-                LayAlongBody(bed, true);
-            if (!rightDone)
-                LayAlongBody(bed, false);
+            LayAlongBody(bed, true);
+            LayAlongBody(bed, false);
         }
     }
 
@@ -130,38 +95,6 @@ public class CustomerCharacter : MonoBehaviour
         position.y = ankleHeight;
         animator.SetIKPositionWeight(foot, 1f);
         animator.SetIKPosition(foot, bed.TransformPoint(position));
-    }
-
-    void AlignToTattooArm(bool useLeft)
-    {
-        var upper = animator.GetBoneTransform(useLeft ? HumanBodyBones.LeftUpperArm : HumanBodyBones.RightUpperArm);
-        var lower = animator.GetBoneTransform(useLeft ? HumanBodyBones.LeftLowerArm : HumanBodyBones.RightLowerArm);
-        var hand = animator.GetBoneTransform(useLeft ? HumanBodyBones.LeftHand : HumanBodyBones.RightHand);
-        float armLength = Vector3.Distance(upper.position, lower.position) + Vector3.Distance(lower.position, hand.position);
-        var shoulder = upper.position;
-        var goalHand = useLeft ? AvatarIKGoal.LeftHand : AvatarIKGoal.RightHand;
-        var goalElbow = useLeft ? AvatarIKHint.LeftElbow : AvatarIKHint.RightElbow;
-
-        // TattooArm is a Unity capsule: 2 units long along its local Y. The end further from the
-        // shoulder gets the hand, the elbow is kept along the capsule axis.
-        Vector3 axis = tattooArm.up * tattooArm.lossyScale.y;
-        Vector3 endA = tattooArm.position + axis, endB = tattooArm.position - axis;
-        Vector3 handEnd = (endA - shoulder).sqrMagnitude > (endB - shoulder).sqrMagnitude ? endA : endB;
-        Vector3 toShoulder = (shoulder - handEnd).normalized;
-
-        animator.SetIKPositionWeight(goalHand, 1f);
-        animator.SetIKHintPositionWeight(goalElbow, 1f);
-        Vector3 drop = Vector3.down * armDrop;
-        Vector3 handTarget = handEnd + toShoulder * handInset + drop;
-
-        // A short arm that cannot reach the end would be stretched straight and pass over the top
-        // of the capsule; stop the hand where it can reach so the arm stays low, inside it.
-        Vector3 reach = handTarget - shoulder;
-        if (reach.magnitude > armLength * 0.98f)
-            handTarget = shoulder + reach.normalized * armLength * 0.98f;
-
-        animator.SetIKPosition(goalHand, handTarget);
-        animator.SetIKHintPosition(goalElbow, tattooArm.position + drop);
     }
 
     // Straight arm resting on the bed beside the body, hand towards the feet.
