@@ -21,5 +21,6 @@
 - `CustomerSystem` (มี `CustomerQueueManager` (`completeKey` = None) + `TattooJobManager` (ช่วงคะแนนอารมณ์ `moods` 90/70/40) และลูกค้าที่ spawn จะเป็นลูกของมัน)
   - `Locations/Door/DoorPoint`, `Locations/Bed/{BedApproach, BedPoint}`, `Locations/WaitArea1/{WaitSeat1Approach, WaitSeat1}` (`Chair15` ใกล้เตียงกว่า), `Locations/WaitArea2/...` (`Chair15 (1)`)
   - `Routes/*`: เส้นทาง 5 เส้น มี waypoint แค่ `Door-WaitSeat1` (อ้อมจุดเกิดผู้เล่น) ทุกเส้นตรวจด้วย CapsuleCast แล้วว่าไม่ชน
+- `ShopDecor/NeonSign` (TATTOO) และ `ShopDecor/NeonSign_NoRegrets` บนผนังหลัง มี `NeonFlicker`; `ShopDecor/FloorLamp_Sofa1/2` โคมตั้งพื้นปลายโซฟา (ดู [lighting.md](lighting.md))
 
 [← กลับ CLAUDE.md](../CLAUDE.md)

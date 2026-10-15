@@ -31,11 +31,15 @@
   - `Performance URP Config` (quality Very Low/Low) เปิด Additional Lights = Per Pixel, ต่อ object 1 ดวง, ปิดเงา additional (เดิม Disabled ไฟ spot จะไม่แสดงเลย)
 - **ไฟ Baked:**
   - `CeilingWarm_*` (3 ดวง) point ขาวอุ่น เป็น fill หลัก (Sofas 8.4, Door 8.4, Back 6.5) มีตัวโคมเพดาน `ShopDecor/CeilingLamps/CeilingLamp_*` (กล่องดำ + หน้าเรืองแสง)
-  - `FloorLampWarm_Sofa1/2` point ส้มอุ่น 1.2 ที่โป๊ะโคมตั้งพื้น `ShopDecor/FloorLamp_Sofa1/2` ข้างโซฟาที่นั่งรอ (Furniture Mega Pack ไม่มีโมเดลโคม จึงต่อจาก primitive)
+  - `FloorLampWarm_Sofa1/2` point ส้มอุ่น 1.2 ที่โป๊ะโคมตั้งพื้น `ShopDecor/FloorLamp_Sofa1/2` ข้างโซฟาที่นั่งรอ (Furniture Mega Pack ไม่มีโมเดลโคม จึงต่อจาก primitive) โคมอยู่ x −1.88 (z −2.13 / 1.62) ปลายโซฟา ดึงออกจากผนัง ~10 ซม. ไม่ให้ทับหน้าต่าง ตรวจ bounds ไม่ชนอะไร ห่างทางเดินลูกค้า (x −1.05) ≥ 0.6 ม.; ผนังซ้ายไม่มีช่องว่างพอระหว่างหน้าต่าง/ภาพ/โซฟา
   - `CornerFill_Right` (ข้างเตียง/ตู้) และ `CornerFill_BackLeft` เติมมุมที่มืด
-  - `NeonGlow` point ชมพูหน้าป้ายนีออน
+  - `NeonGlow` point ชมพูหน้าป้าย TATTOO (0.7), `NeonGlow_NoRegrets` point ฟ้าอมม่วง (0.6) หน้าป้าย No Regrets (range 1 ม. ทั้งคู่)
   - `LedArea_*` area light แถบยาว ล้างผนังสีชมพูแดงใต้ขอบเพดาน (ซ้าย/ขวา/หลัง) และสีส้มที่ตู้ `Cabinet_3c`
-- **ป้ายนีออน** `ShopDecor/NeonSign`: TMP "TATTOO" (`M_Shop_NeonText`, shader Distance Field เปิด glow) + `NeonHalo` แผ่น additive (`Textures/Halo.png`) บนผนังหลังเหนือภาพใหญ่ ต้องห่างผนังเกิน z −3.361 ไม่งั้นจมผนัง
+- **ป้ายนีออน** (ผนังหลัง, ฟอนต์ตัวหวัด `Fonts/Pacifico-Regular SDF.asset` = TMP Font Asset แบบ Static ASCII, sampling 96, padding 12 เผื่อ glow) TMP shader Distance Field เปิด glow + `NeonHalo` แผ่น additive (`Textures/Halo.png`) ต้องห่างผนังเกิน z −3.361 ไม่งั้นจมผนัง
+  - `ShopDecor/NeonSign` "TATTOO" ชมพูแดง (`M_Shop_NeonText`, `M_Shop_NeonHalo`) เหนือ `Painting_4` ตัวหนังสือ 1.23 × 0.24 ม., halo 2.0 × 0.37 (y 0.42–0.79 อยู่ระหว่างภาพกับแถบ LED)
+  - `ShopDecor/NeonSign_NoRegrets` "No Regrets" ฟ้าอมม่วง (`M_Shop_NeonText_Blue`, `M_Shop_NeonHalo_Blue`) มุมขวาบนเหนือ `Painting_6` กลาง (2.0, 0.49) ตัวหนังสือ 1.01 × 0.23 ม., halo 1.51 × 0.53 เห็นจากท่านั่งสัก (เงยขึ้นเล็กน้อย) และจากประตู
+  - ตรวจ bounds แล้ว ไม่ทับภาพ หน้าต่าง LED เพดาน หรือกันเอง (halo ห่างกัน 0.44 ม.)
+  - **กะพริบ** `NeonFlicker` (`Scripts/Room/`) บน root ป้าย: ทุก `minInterval`–`maxInterval` วิ หรี่เหลือ `dimLevel` (0.35) 1–3 ครั้ง ครั้งละ 0.04–0.12 วิ ปรับใน Inspector ได้ ทำบน material instance (face/glow ของ TMP + `_BaseColor` halo) TATTOO 7–15 วิ, No Regrets 5–12 วิ + หน่วงเริ่มสุ่ม จึงไม่พร้อมกัน; `logFlickers` ไว้ดูเวลาใน console; ไฟ baked ไม่กะพริบตาม
 - **LED:** แถบ `Led_*` เป็น cube emissive ไว้ให้เห็น (ไม่มี collider, ไม่ static) แสงที่ตกบนผนังมาจาก area light
 - **Post-processing ปิดที่กล้อง** (ประหยัดบนแว่น) แต่ปรับ profile `VRTemplateAssets/Graphics/Post Process Volume Profile` เป็นกลาง (postExposure 0, contrast 10) เผื่อเปิดใช้ volume ยังปิดอยู่เหมือนเดิม
 - **สาเหตุที่ฉากเดิมซีดขาว:** ambient มาจาก skybox ท้องฟ้าสีฟ้าเต็มความแรง + fog + ไม่มี bake (ความสว่างเฉลี่ยมุมประตู 0.58 → 0.085 หลังรีโนเวท)

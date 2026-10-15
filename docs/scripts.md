@@ -41,6 +41,11 @@
 | `Editor/TattooScoreSimulator.cs` | เมนู `VRTattoo/Simulate Tattoo Scores` สร้างหมึกจำลอง 5 แบบ × หัวเข็ม 3 ขนาดให้ทุกลายในคลัง แล้ว log ตารางคะแนนแยกระดับ/หัว + แถวลายพื้นทึบ (ทำงานใน Edit mode; `Run(rules)` ใช้จูนค่าโดยไม่แก้ scene) |
 | `TattooJobManager.cs` | อยู่บน `CustomerSystem` ฟัง `onCustomerLayDown` สุ่มลาย แสดงลาย/ป้าย รับ Submit (ปุ่ม/J) ให้คะแนน แล้วเรียก `CompleteTattoo()` |
 
+## สคริปต์ห้อง (`Assets/_VRTattoo/Scripts/Room/`)
+| ไฟล์ | หน้าที่ |
+|---|---|
+| `NeonFlicker.cs` | อยู่บนป้ายนีออน (`text` = TextMeshPro, `halo` = Renderer) กะพริบเบา ๆ แบบนีออนเก่า: สุ่มช่วงห่าง/จำนวนครั้ง/ความยาว หรี่ face+glow ของ TMP และ `_BaseColor` ของ halo บน material instance ไม่แก้ asset ([lighting.md](lighting.md)) |
+
 - Shader: `Shaders/TattooSkinOverlay.shader` (unlit โปร่งใส: หมึกจาก `_InkTex` + ลายสีม่วงจาง), Material: `Materials/Tattoo/TattooSkinOverlay.mat`
 
 - Prefab: `Assets/_VRTattoo/Prefabs/Customer.prefab` = `Customer` + `AnimatorCustomerVisual` + `CustomerCharacterPicker` (ไม่มีโมเดลในตัว ตัวละครถูกสร้างเป็นลูกตอน spawn) ระบบคิวไม่ได้แก้ (`customerPrefab` ยังเป็นตัวเดิม)

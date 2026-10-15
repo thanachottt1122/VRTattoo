@@ -13,9 +13,9 @@
 
 ## โครงสร้าง (`Assets/_VRTattoo/`)
 - `Scenes/TattooRoom.unity` scene หลัก
-- `Scripts/Tattoo/` เครื่องสัก canvas หมึก หัวเข็ม เก้าอี้ test mode · `Scripts/Ink/` · `Scripts/Needles/` · `Scripts/Customers/` · `Scripts/Stencils/` ลาย+คะแนน (มี `Editor/`)
+- `Scripts/Tattoo/` เครื่องสัก canvas หมึก หัวเข็ม เก้าอี้ test mode · `Scripts/Ink/` · `Scripts/Needles/` · `Scripts/Customers/` · `Scripts/Stencils/` ลาย+คะแนน (มี `Editor/`) · `Scripts/Room/` ของตกแต่ง
 - `Materials/Shop/` วัสดุห้อง · `Textures/FlashArt/` (`Tools/flash/make_flash_art.py`) · `Lighting/` lighting settings
-- `UI/Emotes/` PNG อิโมจิ (`Tools/emotes/draw_emotes.py`) · `Data/Voices/` ชุดเสียงลูกค้า
+- `Fonts/` Pacifico + TMP Font Asset · `UI/Emotes/` PNG อิโมจิ (`Tools/emotes/draw_emotes.py`) · `Data/Voices/` ชุดเสียงลูกค้า
 - `Prefabs/` (`Customer`, `Characters/`, `Ink/`, `Needles/`) · `Characters/` (โมเดลไม่อยู่ใน git) · `Stencils/` PNG ลาย · `Data/StencilLibrary.asset` · `Shaders/` · `Materials/` · `Models/`
 - นอก Assets: `docs/` · `Tools/stencils/extract_stencils.py` · `SourceArt/`
 
@@ -29,7 +29,7 @@
 - **ลูกค้า:** สูงสุด 3 คน (เตียง 1 + โซฟา 2) เดินตาม waypoint แล้ววาร์ปเข้าท่า ตัวละคร 4 ตัวสุ่มไม่ซ้ำ
 - **ความพึงพอใจ:** ส่งงานแล้วอิโมจิเด้งเหนือหัวตามคะแนน (≥90 ตาหัวใจ / ≥70 ยิ้ม / ≥40 เฉย / ต่ำกว่าโกรธ, ปรับ `moods` ได้) ค้างจนเดินออกประตู; เสียงลูกค้า (ทักทาย ร้องเจ็บ ตามอารมณ์) แยกชาย/หญิง/รายตัว ยังไม่มีไฟล์ → [วิธีใส่เสียง](docs/customer-reactions.md)
 - **ลายและคะแนน:** นอนแล้วสุ่มลาย ส่งงาน (SUBMIT / J) → คุณภาพ 0–100 = Accuracy × ตัวหักความเลอะ (ถ่วงตามระยะ ผ่อนตามขนาดหัว) × ตัวคูณระดับ
-- **ห้อง/แสง:** ร้านสักโทนมืด แสง bake (ไฟ realtime ดวงเดียว = โคม spot เหนือเตียง), นีออน TATTOO, LED ชมพูใต้ขอบเพดาน, ลำแสงปลอม (`LightShaft` additive) ใต้โคม, โคมตั้งพื้นข้างโซฟา, ภาพ flash art จากคลังลาย; ย้ายของ static/ไฟ baked ต้อง bake ใหม่ → [lighting.md](docs/lighting.md)
+- **ห้อง/แสง:** ร้านสักโทนมืด แสง bake (ไฟ realtime ดวงเดียว = โคม spot เหนือเตียง), ป้ายนีออนตัวหวัด Pacifico TATTOO (ชมพู) + No Regrets (ฟ้าอมม่วง) กะพริบเบา ๆ ไม่พร้อมกัน (`NeonFlicker`), LED ชมพูใต้ขอบเพดาน, ลำแสงปลอม (`LightShaft` additive) ใต้โคม, โคมตั้งพื้นข้างโซฟา, ภาพ flash art จากคลังลาย; ย้ายของ static/ไฟ baked ต้อง bake ใหม่ → [lighting.md](docs/lighting.md)
 - **Desktop Test Mode (K, Editor):** เมาส์คุมเครื่อง วาด เติมหมึก เปลี่ยนหัว ซูม
 
 ## สคริปต์สำคัญ
