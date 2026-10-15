@@ -40,7 +40,13 @@
 | `TattooScorer.cs` | อ่าน RenderTexture ของ TattooCanvas ทั้งรูป (หมึก = alpha > 0.5) + needle map เทียบกับ mask ลาย (`StencilMask`) แล้วคิด accuracy/messRatio/quality ใน `ScoreMasks` (ฟังก์ชันล้วน ใช้ร่วมกับตัวจำลอง รับ needle map และ distance field ที่คิดไว้แล้วได้) ~200 ms ต่อการส่งงาน |
 | `Editor/TattooScoreSimulator.cs` | เมนู `VRTattoo/Simulate Tattoo Scores` สร้างหมึกจำลอง 5 แบบ × หัวเข็ม 3 ขนาดให้ทุกลายในคลัง แล้ว log ตารางคะแนนแยกระดับ/หัว + แถวลายพื้นทึบ (ทำงานใน Edit mode; `Run(rules)` ใช้จูนค่าโดยไม่แก้ scene) |
 | `TattooJobManager.cs` | อยู่บน `CustomerSystem` ฟัง `onCustomerLayDown` สุ่มลาย แสดงลายบนแขน สั่ง `JobCard` รับ Submit (ปุ่ม DONE / J) ให้คะแนน แล้วเรียก `CompleteTattoo()` |
-| `UI/JobCard.cs` | การ์ดงานเดียว: รอลูกค้า / ชื่อลาย+ระดับ+DONE / คะแนนนับขึ้น+ดาว+แต้ม, คะแนนรวมล่างสุด ([ui.md](ui.md)) |
+| `UI/JobCard.cs` | การ์ดงานเดียว: รอลูกค้า / ชื่อลาย+ระดับ+DONE / คะแนนนับขึ้น+ดาว+ค่าสัก+ทิป+เงินลอย, เงินรวมล่างสุด ([ui.md](ui.md)) |
+| `UI/MoneyPopup.cs` | "+$x" ลอยขึ้นแล้วจาง (ต้นแบบปิดไว้บนการ์ด) มีช่องเสียงเหรียญ |
+| `UI/DayBanner.cs` | ป้าย "Day N" นีออน Pacifico ตรงหน้าผู้เล่น 2 วิ (`Show` เป็น coroutine) |
+| `UI/DaySummaryPanel.cs` | แผ่นสรุปวัน 7 แถวนับขึ้น + BANK + ปุ่ม NEXT DAY / RESTART (`onNextDay`, `onRestart`) |
+| `Shop/ShopDayManager.cs` | วันทำงาน: ป้าย → ลูกค้า `customersPerDay` คน → สรุป, ramp ลาย/ความอดทนตามวัน, เงินรวม, `DayStats`, เซฟตอนจบวัน ([shop-day.md](shop-day.md)) |
+| `Shop/ShopSave.cs` | อ่าน/เขียน `vrtattoo_save.json` (`day`, `money`) ใน `persistentDataPath` |
+| `Shop/MoneyRules.cs` | ราคาลายตามระดับ ค่าสักตามคุณภาพ ทิปสุ่มตอน 3 ดาว |
 | `UI/NeonButton.cs` | ปุ่มนีออน: ray+trigger, grip, poke, คลิกใน Desktop Test Mode; hover สว่าง, สั่นตอนกด |
 | `UI/NeonPanel.cs` | ตั้งค่า shader `NeonPanel` (แผ่นดำโปร่ง ขอบชมพู) ผ่าน MaterialPropertyBlock |
 | `UI/SeatHintPanel.cs` | ป้ายบอกปุ่มที่เก้าอี้ ตามโหมด แว่น/simulator/Desktop Test Mode, ตอนนั่งจางหลัง 5 วิ |

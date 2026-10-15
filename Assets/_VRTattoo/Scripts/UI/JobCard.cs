@@ -5,10 +5,11 @@ using UnityEngine;
 using UnityEngine.Events;
 
 // The one job card beside the bed (TattooJobManager drives it):
-//   waiting    - "Waiting for a customer" + total
-//   tattooing  - design name + coloured difficulty tag + time-left bar + pain face/gauge + DONE + total
-//   result     - big quality number counting up with a bounce, 1-3 stars, "+points" (+ "FAST +x%"),
-//                total counting up; 3 stars sets off a particle burst around the card
+//   waiting    - "Waiting for a customer" + bank
+//   tattooing  - design name + coloured difficulty tag + time-left bar + pain face/gauge + DONE + bank
+//   result     - big quality number counting up with a bounce, 1-3 stars, "+$pay" (+ "FAST +x%",
+//                "TIP +$x" on 3 stars) with "+$" floating up off the card, bank counting up;
+//                3 stars sets off a particle burst around the card
 //   walked out - "0" + "WALKED OUT" when the pain reached 100 %
 // The waiting customers' patience is shown as tiny bars beside the total in every state.
 // No formula is shown to the player (accuracy / mess / multiplier only go to the console).
@@ -58,6 +59,16 @@ public class JobCard : MonoBehaviour
     public TMP_Text bonus;
     [Tooltip("WALKED OUT when the customer left in pain")]
     public TMP_Text walkout;
+    [Tooltip("TIP +$x on 3 stars")]
+    public TMP_Text tip;
+
+    [Header("Money popup")]
+    [Tooltip("Inactive template; a copy floats up off the card for the pay and another for the tip")]
+    public MoneyPopup moneyPopup;
+    public Color payColor = new Color(0.45f, 1f, 0.55f, 1f);
+    public Color tipColor = new Color(1f, 0.82f, 0.3f, 1f);
+    [Tooltip("Seconds between the pay and the tip popup")]
+    public float tipPopupDelay = 0.35f;
 
     [Header("3 stars")]
     [Tooltip("Played once when the third star lights up")]
@@ -88,16 +99,16 @@ public class JobCard : MonoBehaviour
 
     void Awake() => ShowWaiting(0);
 
-    public void ShowWaiting(int totalScore)
+    public void ShowWaiting(int bank)
     {
         StopResult();
         SetJobParts(false);
         SetResultParts(false);
         status.gameObject.SetActive(true);
-        SetTotal(totalScore);
+        SetTotal(bank);
     }
 
-    public void ShowJob(StencilEntry job, int totalScore)
+    public void ShowJob(StencilEntry job, int bank)
     {
         SetPain(0f, 100f, false);
         SetTimer(1f, false);
@@ -112,7 +123,7 @@ public class JobCard : MonoBehaviour
         difficultyLabel.color = Color.Lerp(c, Color.white, 0.25f);
         difficultyTag.edgeColor = c * 1.1f;
         difficultyTag.fillColor = new Color(c.r * 0.15f, c.g * 0.15f, c.b * 0.15f, 0.85f);
-        SetTotal(totalScore);
+        SetTotal(bank);
     }
 
     // The DONE button only shows while the customer is lying down and the job can be submitted.
@@ -122,17 +133,18 @@ public class JobCard : MonoBehaviour
             doneButton.gameObject.SetActive(available);
     }
 
-    public void ShowResult(int quality, int earned, int totalScore, float bonusFraction = 0f)
+    // pay and tip in $, bank = money after this job
+    public void ShowResult(int quality, int pay, int tipAmount, int bank, float bonusFraction = 0f)
     {
         StopResult();
         SetJobParts(false);
         SetResultParts(true);
         status.gameObject.SetActive(false);
-        resultRoutine = StartCoroutine(ResultRoutine(Mathf.Clamp(quality, 0, 100), earned, totalScore, bonusFraction));
+        resultRoutine = StartCoroutine(ResultRoutine(Mathf.Clamp(quality, 0, 100), pay, tipAmount, bank, bonusFraction));
     }
 
-    // The customer could not take the pain any more: 0, no stars.
-    public void ShowWalkout(int totalScore)
+    // The customer could not take the pain any more: 0, no stars, no money.
+    public void ShowWalkout(int bank)
     {
         StopResult();
         SetJobParts(false);
@@ -148,7 +160,7 @@ public class JobCard : MonoBehaviour
             walkout.gameObject.SetActive(true);
             resultRoutine = StartCoroutine(Pop(walkout.transform, 1f));
         }
-        SetTotal(totalScore);
+        SetTotal(bank);
     }
 
     // Pain 0-100. The face is calm, tense from tenseFrom, hurt from hurtFrom (the flinch threshold);
@@ -204,7 +216,7 @@ public class JobCard : MonoBehaviour
 
     public int Stars(int quality) => quality >= starThresholds.y ? 3 : quality >= starThresholds.x ? 2 : 1;
 
-    IEnumerator ResultRoutine(int quality, int earned, int totalScore, float bonusFraction)
+    IEnumerator ResultRoutine(int quality, int pay, int tipAmount, int bank, float bonusFraction)
     {
         foreach (var s in stars)
         {
@@ -234,23 +246,45 @@ public class JobCard : MonoBehaviour
             yield return new WaitForSeconds(starInterval);
         }
 
-        points.text = $"+{earned}";
+        points.text = $"+${pay}";
         StartCoroutine(Pop(points.transform, 1f));
+        SpawnPopup($"+${pay}", payColor, 0f);
         if (bonus != null && bonusFraction > 0.005f)
         {
             bonus.text = $"FAST +{Mathf.RoundToInt(bonusFraction * 100f)}%";
             bonus.gameObject.SetActive(true);
             StartCoroutine(Pop(bonus.transform, 1f));
         }
+        if (tipAmount > 0)
+        {
+            yield return new WaitForSeconds(tipPopupDelay);
+            if (tip != null)
+            {
+                tip.text = $"TIP +${tipAmount}";
+                tip.gameObject.SetActive(true);
+                StartCoroutine(Pop(tip.transform, 1f));
+            }
+            SpawnPopup($"+${tipAmount} TIP", tipColor, 0.03f);
+        }
 
         int from = shownTotal;
         for (float t = 0f; t < 1f; t += Time.deltaTime / (countUpSeconds * 0.6f))
         {
-            SetTotal(Mathf.RoundToInt(Mathf.Lerp(from, totalScore, t)));
+            SetTotal(Mathf.RoundToInt(Mathf.Lerp(from, bank, t)));
             yield return null;
         }
-        SetTotal(totalScore);
+        SetTotal(bank);
         resultRoutine = null;
+    }
+
+    // A copy of the popup template starts at the "+$" line and floats up off the card.
+    void SpawnPopup(string text, Color color, float sideOffset)
+    {
+        if (moneyPopup == null)
+            return;
+        var popup = Instantiate(moneyPopup, moneyPopup.transform.parent);
+        popup.transform.localPosition = points.transform.localPosition + new Vector3(sideOffset, 0f, -0.01f);
+        popup.Play(text, color);
     }
 
     void PlayThreeStars()
@@ -296,6 +330,7 @@ public class JobCard : MonoBehaviour
         // Shown by ShowResult / ShowWalkout when they apply.
         SetActive(bonus, false);
         SetActive(walkout, false);
+        SetActive(tip, false);
     }
 
     static void SetActive(Component part, bool on)
@@ -307,7 +342,7 @@ public class JobCard : MonoBehaviour
     void SetTotal(int value)
     {
         shownTotal = value;
-        total.text = $"TOTAL  {value:N0}";
+        total.text = $"BANK  ${value:N0}";
     }
 
     void StopResult()

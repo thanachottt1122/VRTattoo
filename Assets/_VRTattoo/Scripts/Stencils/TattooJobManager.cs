@@ -8,10 +8,14 @@ using UnityEngine.InputSystem;
 // customer home through CustomerQueueManager. Everything the player sees is on the JobCard beside the bed.
 // While tattooing it also watches the customer's pain (CustomerPain: at 100 % they walk out with 0)
 // and the time the design allows (CustomerPatience + PatienceScoring: bonus if fast, less quality if late).
+// A finished job pays money (MoneyRules: price by difficulty x quality, a random tip for 3 stars); the
+// results go to ShopDayManager for the day summary.
 public class TattooJobManager : MonoBehaviour
 {
     public CustomerQueueManager queue;
     public StencilLibrary library;
+    [Tooltip("Day, bank and day statistics; optional (without it money is only kept for this session)")]
+    public ShopDayManager shopDay;
 
     [Header("UI")]
     public JobCard card;
@@ -26,6 +30,9 @@ public class TattooJobManager : MonoBehaviour
     [Header("Scoring")]
     public TattooScoringRules scoring = TattooScoringRules.Default;
 
+    [Header("Money")]
+    public MoneyRules money = MoneyRules.Default;
+
     [Header("Time on the bed")]
     [Tooltip("Time per difficulty and the fast bonus / overtime penalty")]
     public PatienceScoring patience = PatienceScoring.Default;
@@ -35,7 +42,7 @@ public class TattooJobManager : MonoBehaviour
     public CustomerMoodThresholds moods = CustomerMoodThresholds.Default;
 
     [Header("Difficulty ramp")]
-    [Tooltip("After this many finished customers the hard designs reach their highest chance")]
+    [Tooltip("Without a ShopDayManager: after this many finished customers the hard designs reach their highest chance (with one, the ramp follows the day)")]
     public int rampCustomers = 10;
     public Vector3 startWeights = new Vector3(0.7f, 0.25f, 0.05f);  // easy, medium, hard
     public Vector3 endWeights = new Vector3(0.2f, 0.4f, 0.4f);
@@ -46,9 +53,11 @@ public class TattooJobManager : MonoBehaviour
     CustomerPain bedPain;
     CustomerPatience bedPatience;
     CustomerTattooSkin resultSkin;  // the arm that glints on 3 stars
+    int sessionMoney;  // used when there is no ShopDayManager
 
     public int CompletedCustomers { get; private set; }
     public int TotalScore { get; private set; }
+    public int Money => shopDay != null ? shopDay.Money : sessionMoney;
     public StencilEntry CurrentStencil => current;
 
     void OnEnable()
@@ -74,7 +83,7 @@ public class TattooJobManager : MonoBehaviour
     void Start()
     {
         if (card != null)
-            card.ShowWaiting(TotalScore);
+            card.ShowWaiting(Money);
     }
 
     void Update()
@@ -143,9 +152,9 @@ public class TattooJobManager : MonoBehaviour
             bedPain.ResetPain();
         bedPatience = customer.GetComponent<CustomerPatience>();
         if (bedPatience != null)
-            bedPatience.StartTimer(patience.Seconds(current.difficulty));
+            bedPatience.StartTimer(patience.Seconds(current.difficulty) * bedPatience.scale);
         if (card != null)
-            card.ShowJob(current, TotalScore);
+            card.ShowJob(current, Money);
     }
 
     public void Submit()
@@ -194,7 +203,15 @@ public class TattooJobManager : MonoBehaviour
         int points = Mathf.RoundToInt(quality * multiplier * (1f + bonus));
         TotalScore += points;
         var mood = moods.For(quality);
-        Debug.Log($"[TattooJob] {current.displayName}: accuracy {score.accuracy:P0}, mess area {score.messRatio:0.00}x design (-{score.messPenalty}), quality {score.quality}, time {elapsed:0}/{duration:0}s (-{overtime}, bonus +{bonus:P0}) -> {quality}, +{points}, mood {mood}");
+
+        int stars = card != null ? card.Stars(quality) : 0;
+        int pay = money.Pay(current.difficulty, quality, bonus);
+        int tip = stars >= 3 ? money.Tip(current.difficulty) : 0;
+        if (shopDay != null)
+            shopDay.RecordJob(quality, stars, pay, tip, mood);
+        else
+            sessionMoney += pay + tip;
+        Debug.Log($"[TattooJob] {current.displayName}: accuracy {score.accuracy:P0}, mess area {score.messRatio:0.00}x design (-{score.messPenalty}), quality {score.quality}, time {elapsed:0}/{duration:0}s (-{overtime}, bonus +{bonus:P0}) -> {quality}, +{points} pts, {stars} stars, ${pay} + tip ${tip} (bank ${Money}), mood {mood}");
 
         // The customer reacts: emote above the head (stays until they leave) and a voice line.
         if (skin.TryGetComponent(out CustomerEmote emote))
@@ -205,13 +222,13 @@ public class TattooJobManager : MonoBehaviour
         // Only the result is shown; the formula (accuracy, mess, multiplier) stays in the log above.
         resultSkin = skin;
         if (card != null)
-            card.ShowResult(quality, points, TotalScore, bonus);
+            card.ShowResult(quality, pay, tip, Money, bonus);
 
         yield return new WaitForSeconds(scoreDisplaySeconds);
 
         resultSkin = null;
         if (card != null)
-            card.ShowWaiting(TotalScore);
+            card.ShowWaiting(Money);
         FinishJob(skin);
     }
 
@@ -219,7 +236,9 @@ public class TattooJobManager : MonoBehaviour
     IEnumerator WalkOutRoutine(CustomerTattooSkin skin)
     {
         submitting = true;
-        Debug.Log($"[TattooJob] {current.displayName}: the customer walked out in pain (tolerance {bedPain.Tolerance:0.00}), +0");
+        Debug.Log($"[TattooJob] {current.displayName}: the customer walked out in pain (tolerance {bedPain.Tolerance:0.00}), $0");
+        if (shopDay != null)
+            shopDay.RecordJob(0, 0, 0, 0, CustomerMood.Angry);
 
         if (bedPatience != null)
             bedPatience.Stop();
@@ -228,14 +247,14 @@ public class TattooJobManager : MonoBehaviour
         if (skin.TryGetComponent(out CustomerVoice voice))
             voice.PlayMood(CustomerMood.Angry);
         if (card != null)
-            card.ShowWalkout(TotalScore);
+            card.ShowWalkout(Money);
         FinishJob(skin);
 
         yield return new WaitForSeconds(scoreDisplaySeconds);
 
         // Unless the next customer has already lain down and the card shows their job.
-        if (card != null && current == null)
-            card.ShowWaiting(TotalScore);
+        if (card != null && current == null && card.gameObject.activeInHierarchy)
+            card.ShowWaiting(Money);
     }
 
     void FinishJob(CustomerTattooSkin skin)
@@ -257,14 +276,15 @@ public class TattooJobManager : MonoBehaviour
             resultSkin.PlayGlint();
     }
 
-    // Chooses a difficulty by weight (easy designs early, harder ones the longer the shift goes),
+    // Chooses a difficulty by weight (easy designs early, harder ones on later days),
     // then a design of that difficulty that is not the same as the previous customer's.
     StencilEntry PickStencil()
     {
         if (library == null || library.stencils.Count == 0)
             return null;
 
-        float t = rampCustomers > 0 ? Mathf.Clamp01(CompletedCustomers / (float)rampCustomers) : 1f;
+        float t = shopDay != null ? shopDay.DifficultyRamp
+            : rampCustomers > 0 ? Mathf.Clamp01(CompletedCustomers / (float)rampCustomers) : 1f;
         Vector3 weights = Vector3.Lerp(startWeights, endWeights, t);
 
         var byLevel = new List<StencilEntry>[3];

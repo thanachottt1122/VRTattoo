@@ -15,6 +15,9 @@ public class CustomerPatience : MonoBehaviour
     [Tooltip("The customer looks annoyed once less than this fraction of the time is left")]
     [Range(0f, 1f)] public float annoyedFraction = 0.25f;
 
+    [Tooltip("Multiplies the waiting and bed time (set per day by ShopDayManager through the queue)")]
+    public float scale = 1f;
+
     public bool Running { get; private set; }
     public float Duration { get; private set; }
     // Seconds left; below 0 in overtime.
@@ -43,7 +46,7 @@ public class CustomerPatience : MonoBehaviour
     public void StartWaiting()
     {
         if (!Running)
-            StartTimer(Random.Range(waitSeconds.x, waitSeconds.y));
+            StartTimer(Random.Range(waitSeconds.x, waitSeconds.y) * scale);
     }
 
     public void Stop()

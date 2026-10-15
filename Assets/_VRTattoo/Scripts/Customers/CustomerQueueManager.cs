@@ -6,6 +6,7 @@ using UnityEngine.InputSystem;
 // Keeps the shop filled with customers: one on the bed and one per waiting seat.
 // CompleteTattoo() sends the bed customer home and moves everyone up the queue. A waiting customer
 // whose patience (CustomerPatience) runs out leaves on their own and the queue moves up too.
+// ShopDayManager limits how many customers come in per day (BeginDay) and how patient they are.
 public class CustomerQueueManager : MonoBehaviour
 {
     public Customer customerPrefab;
@@ -32,11 +33,27 @@ public class CustomerQueueManager : MonoBehaviour
     [Header("Events")]
     public UnityEvent<Customer> onCustomerLayDown;
     public UnityEvent<Customer> onCustomerLeft;
+    [Tooltip("A waiting customer ran out of patience and is leaving")]
+    public UnityEvent<Customer> onCustomerGaveUp;
 
     // Slot 0 is the bed, slot i (i >= 1) is waitSeats[i - 1]. A customer owns its slot from the
     // moment it is sent there, even while still walking.
     Customer[] slots;
     float nextSpawnTime;
+    int spawnsLeft = int.MaxValue;
+    float patienceScale = 1f;
+    int walkingOut;  // sent home, still walking to the door
+
+    // Today's customers have all come in and left.
+    public bool DayDone => spawnsLeft <= 0 && walkingOut == 0 && System.Array.TrueForAll(slots, c => c == null);
+
+    // `count` more customers come in today; their patience is multiplied by `patience`.
+    public void BeginDay(int count, float patience)
+    {
+        spawnsLeft = count;
+        patienceScale = patience;
+        nextSpawnTime = Time.time;
+    }
 
     public Customer CustomerOnBed => slots != null ? slots[0] : null;
 
@@ -67,7 +84,7 @@ public class CustomerQueueManager : MonoBehaviour
 
         CheckWaitingPatience();
 
-        if (Time.time >= nextSpawnTime && FirstFreeSlot() >= 0)
+        if (spawnsLeft > 0 && Time.time >= nextSpawnTime && FirstFreeSlot() >= 0)
         {
             Spawn();
             nextSpawnTime = Time.time + spawnInterval;
@@ -90,6 +107,7 @@ public class CustomerQueueManager : MonoBehaviour
     {
         var leaving = slots[slot];
         slots[slot] = null;
+        walkingOut++;
         if (leaving.TryGetComponent(out CustomerPatience patience))
             patience.Stop();
         leaving.WalkTo(door, WaypointsBetween(leaving.Location, door), OnArrived);
@@ -124,6 +142,7 @@ public class CustomerQueueManager : MonoBehaviour
                 emote.Show(CustomerMood.Angry);
             if (c.TryGetComponent(out CustomerVoice voice))
                 voice.PlayMood(CustomerMood.Angry);
+            onCustomerGaveUp?.Invoke(c);
             SendHome(slot);
             return;  // the queue changed; check the rest next frame
         }
@@ -135,6 +154,10 @@ public class CustomerQueueManager : MonoBehaviour
         var customer = Instantiate(customerPrefab, door.approach.position, door.approach.rotation, transform);
         customer.name = $"Customer ({Time.frameCount})";
         customer.PlaceAt(door);
+        if (customer.TryGetComponent(out CustomerPatience patience))
+            patience.scale = patienceScale;
+        if (spawnsLeft != int.MaxValue)
+            spawnsLeft--;
         slots[slot] = customer;
         SendToSlot(customer);
     }
@@ -153,6 +176,7 @@ public class CustomerQueueManager : MonoBehaviour
         if (slot < 0)
         {
             // Not in the queue any more: this customer was leaving and reached the door.
+            walkingOut--;
             onCustomerLeft?.Invoke(customer);
             Destroy(customer.gameObject);
             return;
