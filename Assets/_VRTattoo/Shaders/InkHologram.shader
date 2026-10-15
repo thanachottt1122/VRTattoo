@@ -1,7 +1,8 @@
 // Glowing see-through ring that shows how much ink is left (InkHologram). Drawn on a quad:
 // the ring fills clockwise from the top up to _Fill, the empty part stays as a faint ghost.
 // The glow is added on top of a faint dark backing disc so it stays readable over bright surfaces;
-// very dark inks are given a grey glow by the script.
+// very dark inks are given a grey glow by the script. The thin guide lines and ticks use the
+// pink neon edge colour shared by all UI panels (NeonPanel); the ring itself stays the ink colour.
 Shader "VRTattoo/InkHologram"
 {
     Properties
@@ -9,9 +10,10 @@ Shader "VRTattoo/InkHologram"
         [HDR] _Color ("Color", Color) = (0, 1, 1, 1)
         _Fill ("Fill", Range(0, 1)) = 1
         _Alpha ("Alpha", Range(0, 1)) = 1
-        _Inner ("Inner Radius", Range(0, 1)) = 0.68
-        _Outer ("Outer Radius", Range(0, 1)) = 0.86
-        _Backing ("Backing Darkness", Range(0, 1)) = 0.4
+        [HDR] _EdgeColor ("Edge Color", Color) = (1.25, 0.28, 0.95, 1)
+        _Inner ("Inner Radius", Range(0, 1)) = 0.72
+        _Outer ("Outer Radius", Range(0, 1)) = 0.84
+        _Backing ("Backing Darkness", Range(0, 1)) = 0.7
     }
     SubShader
     {
@@ -33,6 +35,7 @@ Shader "VRTattoo/InkHologram"
 
             CBUFFER_START(UnityPerMaterial)
                 half4 _Color;
+                half4 _EdgeColor;
                 half _Fill;
                 half _Alpha;
                 half _Inner;
@@ -85,8 +88,8 @@ Shader "VRTattoo/InkHologram"
                 float filled = saturate((_Fill - angle) / angleAA + 0.5) * step(0.001, _Fill);
 
                 float ring = Band(r, _Inner, _Outer, aa);
-                float innerLine = Band(r, _Inner - 0.07, _Inner - 0.05, aa);
-                float outerLine = Band(r, _Outer + 0.05, _Outer + 0.065, aa);
+                float innerLine = Band(r, _Inner - 0.06, _Inner - 0.045, aa);
+                float outerLine = Band(r, _Outer + 0.045, _Outer + 0.06, aa);
 
                 // Tick marks every 10% on the outer line.
                 float tick = Band(frac(angle * 10.0 + 0.01), 0.0, 0.02, max(fwidth(angle * 10.0), 1e-4))
@@ -103,15 +106,14 @@ Shader "VRTattoo/InkHologram"
                 float scan = 0.82 + 0.18 * sin(input.uv.y * 160.0 - _Time.y * 6.0);
                 float sweep = 1.0 + 0.5 * exp(-frac(angle - _Time.y * 0.35) * 12.0) * ring * filled;
 
-                float intensity = ring * lerp(0.12, 1.0, filled) * scan * sweep
-                                + (innerLine + outerLine) * 0.35
-                                + tick * 0.5
+                float intensity = ring * lerp(0.1, 1.0, filled) * scan * sweep
                                 + halo
                                 + edge * 0.8;
+                float neon = (innerLine + outerLine) * 0.6 + tick * 0.45;
 
                 float fade = _Alpha * _Color.a;
-                float3 color = (_Color.rgb * intensity + edge * 0.4) * fade;
-                float backing = Band(r, 0.0, _Outer + 0.1, aa) * (1.0 - 0.5 * r) * _Backing;
+                float3 color = (_Color.rgb * intensity + _EdgeColor.rgb * neon + edge * 0.4) * fade;
+                float backing = Band(r, 0.0, _Outer + 0.08, aa) * (1.0 - 0.3 * r) * _Backing;
                 return half4(color, backing * fade);
             }
             ENDHLSL

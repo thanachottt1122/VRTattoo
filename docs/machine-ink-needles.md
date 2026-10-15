@@ -16,7 +16,7 @@
 - **`TattooMachine`:** หมึกหมด = ไม่วาด + สั่นสั้นครั้งเดียวต่อการกด trigger (`emptyHapticAmplitude` 0.8, `emptyHapticDuration` 0.05 วิ) รวมถึงตอนหมดกลางเส้น ยกเว้นตอนปลายเข็มอยู่ในถ้วยหรือแตะหัวเข็ม (`AtTrolley` กดเพื่อเติม/เปลี่ยนหัว) ไม่มี `TattooInk` = หมึกไม่จำกัดสี `TattooCanvas.inkColor`
 - **วงแหวนโฮโลแกรม (`InkHologram`):** object `Interactables/TattooSystem/InkHologram` (ไม่ใช่ลูกของเครื่อง) มี `Ring` (Quad 7.5 ซม. + `Materials/Tattoo/InkHologram.mat` / `Shaders/InkHologram.shader`) และ `Percent` (TMP)
   - ตามเครื่องแบบหน่วง (`followSharpness`) เยื้อง `viewOffset` (ขวา 6 ซม. บน 3.5 ซม. ในมุมมองผู้เล่น) ถ้าเครื่องอยู่ขวาของภาพเกิน `switchSideAbove` 0.7 (เช่นตอนจุ่มถ้วย) ย้ายไปฝั่งซ้าย หันหากล้องเสมอ เป็นวัตถุในโลก ไม่ติดจอ
-  - วงลดต่อเนื่องตาม % (เลข/วงไล่ค่าจริงที่ `levelSpeed` 120%/วิ จึงเห็นวงเพิ่มตอนเติม) สีหมึกปัจจุบัน หมึกเข้มถูกยกความสว่างขั้นต่ำ `minBrightness` (ดำ → เทาเรือง) ตัวเลขผสมขาว `labelWhiten`
+  - วงลดต่อเนื่องตาม % (เลข/วงไล่ค่าจริงที่ `levelSpeed` 120%/วิ จึงเห็นวงเพิ่มตอนเติม) สีหมึกปัจจุบัน หมึกเข้มถูกยกความสว่างขั้นต่ำ `minBrightness` (ดำ → เทาเรือง) ตัวเลขเป็นสีขาว (`labelWhiten` = 1, ฟอนต์ Inter Bold) เส้นนำ/ขีดเป็นชมพูนีออน ชื่อหัวเข็มมีจุดสีหัวเข็มนำหน้า (สไตล์ UI ดู [ui.md](ui.md))
   - shader: วงเรืองแสง (ส่วนที่หมดเป็นเงาจาง) + scanline + แสงวิ่ง + ขีดทุก 10% บนแผ่นพื้นมืดจาง (`_Backing`) ให้อ่านออกบนพื้นสว่าง (premultiplied `Blend One OneMinusSrcAlpha`) `Ring.sortingOrder` = −1 ให้ตัวเลขวาดทับ
   - เหลือ < `lowThreshold` 15% กะพริบ (`blinkRate` 3) แสดงเฉพาะตอนเครื่องอยู่ในมือ (ไม่ใช่ socket) fade เข้า/ออก
   - `NeedleLabel` (TMP ในวงใต้ตัวเลข %) แสดงหัวที่ใส่อยู่ เช่น `MEDIUM 5mm` สีของหัวผสมขาว ระหว่างกดค้างเปลี่ยนหัวแสดงชื่อหัวใหม่กะพริบ (`swapBlinkRate`)

@@ -12,10 +12,9 @@
   - `Inks`: ขวดตกแต่งบนรถเข็น + `CapRack` ถ้วยหมึก 4 สี (ดูหัวข้อ "รถเข็น")
   - `NeedleRack`: หัวเข็ม 3 ขนาด (ดูหัวข้อ "หัวเข็ม")
   - `InkHologram`: วงแหวนบอกหมึก (ดูหัวข้อ "หมึก")
-  - `SeatHint`: ป้าย TMP บอกปุ่ม (ภาษาอังกฤษ)
-  - `SubmitButton`: ปุ่มส่งงานลอยข้างเตียง (1.75, −0.85, −0.05) ซ้ายมือผู้เล่นตอนนั่ง (ย้ายออกจากจุดที่หัวผู้เล่นอยู่ตอนนั่ง) (BoxCollider + XRSimpleInteractable, child `Visual` และ `Label`)
-  - `TattooJobUI/{OrderLabel, ScoreLabel, TotalScoreLabel}`: ป้ายชื่อลาย/ระดับ (หลังเตียง), คะแนน (เหนือเตียง), คะแนนรวม (มุมบนผนังด้าน −z)
-- `Furniture/Chair43`: เก้าอี้ช่างสัก (1.25, −1.785, 0.18) ชิดเตียงตรงแขน มี TattooSeat + XRSimpleInteractable ส่วน collider อยู่ที่ `Chair43_model` (`SeatHint` ย้ายตามไปอยู่เหนือเก้าอี้)
+  - `JobCard`: การ์ดงานสไตล์นีออน (1.30, −0.88, −1.01) ตรงหน้าตอนนั่ง ฝั่งเตียงตรงข้ามเก้าอี้ ลูก: `Panel`, `Title`, `Status`, `DifficultyTag/Label`, `DoneButton` (BoxCollider + XRSimpleInteractable + XRPokeFilter + NeonButton), `Score`, `Star1–3`, `Points`, `Total` (ดู [ui.md](ui.md))
+  - `ChairHint` (`SeatHintPanel`) + `ChairHint_StandingAnchor` (เหนือเก้าอี้) + `ChairHint_SeatedAnchor` (ขวามือตอนนั่ง 54°): ป้ายบอกปุ่ม
+- `Furniture/Chair43`: เก้าอี้ช่างสัก (1.25, −1.785, 0.18) ชิดเตียงตรงแขน มี TattooSeat + XRSimpleInteractable ส่วน collider อยู่ที่ `Chair43_model` (`ChairHint_StandingAnchor` อยู่เหนือเก้าอี้)
 - `Furniture/hospital bed`: เตียง (MeshCollider)
 - `Room/Floor_Tile_3b`: พื้น มี MeshCollider + BoxCollider + TeleportationArea
 - `CustomerSystem` (มี `CustomerQueueManager` (`completeKey` = None) + `TattooJobManager` (ช่วงคะแนนอารมณ์ `moods` 90/70/40) และลูกค้าที่ spawn จะเป็นลูกของมัน)

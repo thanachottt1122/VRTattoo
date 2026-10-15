@@ -45,7 +45,7 @@ DESIGNS = [
     ((434, 454, 582, 623), "ghost_monster", None, None),
     ((590, 459, 715, 651), "melting_smiley", None, None),
     ((31, 655, 168, 903), "dollar_crown", "medium", None),
-    ((244, 663, 362, 894), "trophy", None, None),
+    ((244, 663, 362, 894), None, None, None),        # FIFA World Cup trophy (copyrighted, removed)
     ((398, 692, 603, 904), None, None, None),        # three-stripe football boot (brand)
     ((9, 917, 215, 1129), "x_eyes_face", None, None),
     ((219, 904, 445, 1105), "biohazard", None, None),

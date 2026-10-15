@@ -1,27 +1,22 @@
 using System.Collections;
 using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.XR.Interaction.Toolkit;
-using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 // One tattoo job per customer: picks the design when the customer lies down, shows it as a
 // stencil on the customer's forearm (CustomerTattooSkin), scores the ink on submit, then sends the
-// customer home through CustomerQueueManager.
+// customer home through CustomerQueueManager. Everything the player sees is on the JobCard beside the bed.
 public class TattooJobManager : MonoBehaviour
 {
     public CustomerQueueManager queue;
     public StencilLibrary library;
 
-    [Header("Labels")]
-    public TMP_Text orderLabel;
-    public TMP_Text scoreLabel;
-    public TMP_Text totalLabel;
-
-    [Header("Submit")]
-    public XRBaseInteractable submitButton;
-    public float scoreDisplaySeconds = 2.5f;
+    [Header("UI")]
+    public JobCard card;
+    [Tooltip("The card's DONE button")]
+    public NeonButton submitButton;
+    [Tooltip("How long the score stays on the card before the customer gets up")]
+    public float scoreDisplaySeconds = 3.5f;
 
     [Tooltip("Submit key for desktop testing (Unity Editor only)")]
     public Key submitKey = Key.J;
@@ -52,7 +47,7 @@ public class TattooJobManager : MonoBehaviour
         if (queue != null)
             queue.onCustomerLayDown.AddListener(OnCustomerLayDown);
         if (submitButton != null)
-            submitButton.selectEntered.AddListener(OnSubmitPressed);
+            submitButton.onPressed.AddListener(Submit);
     }
 
     void OnDisable()
@@ -60,14 +55,13 @@ public class TattooJobManager : MonoBehaviour
         if (queue != null)
             queue.onCustomerLayDown.RemoveListener(OnCustomerLayDown);
         if (submitButton != null)
-            submitButton.selectEntered.RemoveListener(OnSubmitPressed);
+            submitButton.onPressed.RemoveListener(Submit);
     }
 
     void Start()
     {
-        SetText(orderLabel, "");
-        SetText(scoreLabel, "");
-        UpdateTotal();
+        if (card != null)
+            card.ShowWaiting(TotalScore);
     }
 
     void Update()
@@ -77,9 +71,21 @@ public class TattooJobManager : MonoBehaviour
         if (submitKey != Key.None && keyboard != null && keyboard[submitKey].wasPressedThisFrame)
             Submit();
 #endif
+        if (card != null)
+            card.SetDoneAvailable(CanSubmit);
     }
 
-    void OnSubmitPressed(SelectEnterEventArgs args) => Submit();
+    // A design is on the customer lying on the bed and it has not been submitted yet.
+    public bool CanSubmit
+    {
+        get
+        {
+            if (submitting || current == null || queue == null || !queue.IsCustomerReady)
+                return false;
+            var skin = queue.CustomerOnBed.GetComponent<CustomerTattooSkin>();
+            return skin != null && skin.IsReady;
+        }
+    }
 
     void OnCustomerLayDown(Customer customer)
     {
@@ -93,7 +99,8 @@ public class TattooJobManager : MonoBehaviour
         // Shown as soon as the forearm surface is built (it waits for the pose to settle).
         if (customer.TryGetComponent(out CustomerTattooSkin skin))
             skin.ShowStencil(current.texture);
-        SetText(orderLabel, $"{current.displayName.ToUpperInvariant()}\n<size=75%><color={DifficultyColor(current.difficulty)}>{current.difficulty.ToString().ToUpperInvariant()}</color></size>");
+        if (card != null)
+            card.ShowJob(current, TotalScore);
     }
 
     public void Submit()
@@ -137,17 +144,14 @@ public class TattooJobManager : MonoBehaviour
         if (skin.TryGetComponent(out CustomerVoice voice))
             voice.PlayMood(mood);
 
-        // Why the score is what it is: how much of the design was inked, and what the mess cost.
-        string mess = score.messPenalty > 0 ? $"<color=#FF5050>Mess -{score.messPenalty}</color>" : "Mess 0";
-        SetText(scoreLabel, $"{score.quality}<size=50%> / 100</size>\n" +
-                            $"<size=38%>Accuracy {Mathf.RoundToInt(score.accuracy * 100f)}%  /  {mess}</size>\n" +
-                            $"<size=45%>x{multiplier:0.#} = +{points}</size>");
-        UpdateTotal();
+        // Only the result is shown; the formula (accuracy, mess, multiplier) stays in the log above.
+        if (card != null)
+            card.ShowResult(score.quality, points, TotalScore);
 
         yield return new WaitForSeconds(scoreDisplaySeconds);
 
-        SetText(scoreLabel, "");
-        SetText(orderLabel, "");
+        if (card != null)
+            card.ShowWaiting(TotalScore);
         if (skin != null)
             skin.HideStencil();
         previous = current;
@@ -195,19 +199,4 @@ public class TattooJobManager : MonoBehaviour
         }
         return chosen[Random.Range(0, chosen.Count)];
     }
-
-    void UpdateTotal() => SetText(totalLabel, $"TOTAL SCORE\n{TotalScore}");
-
-    static void SetText(TMP_Text label, string text)
-    {
-        if (label != null)
-            label.text = text;
-    }
-
-    static string DifficultyColor(StencilDifficulty difficulty) => difficulty switch
-    {
-        StencilDifficulty.Medium => "#FF9A1F",
-        StencilDifficulty.Hard => "#FF3B3B",
-        _ => "#3CC94A",
-    };
 }

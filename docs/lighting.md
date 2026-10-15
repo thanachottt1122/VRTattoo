@@ -18,12 +18,11 @@
 | `M_Shop_FrameBlack` + `M_Flash_*` | กรอบภาพสีดำเงา + ภาพ flash art |
 
 - รถเข็นสเตนเลส ต้นไม้ และของบนรถเข็นใช้ material เดิม
-- `SubmitButton.mat` เปิด emission สีแดง เพราะปุ่มอยู่นอกวงไฟโคม
 
 ## ภาพ flash art (`Textures/FlashArt/`)
 - สร้างด้วย `python Tools/flash/make_flash_art.py` จากลายใน `Stencils/`: เส้นดำ + สีเหลื่อมนิด ๆ บนกระดาษครีม
 - `Painting_4` (ผนังหลัง) = `Flash_Skulls` 4 ลาย, `Painting_5` (ผนังซ้าย) = `Flash_Classics` 4 ลาย, `Painting_2` (หลังเตียง) = `Flash_Teddy`, `Painting_6` = `Flash_SadBoy` (แนวตั้ง 600×1000)
-- ไม่ใช้ลายติดลิขสิทธิ์ (`angry_duck`, `ghost_monster`, `trophy`, `cloud`) เปลี่ยนลายได้ที่ `SHEETS` ในสคริปต์ แล้วรันใหม่ (ทับไฟล์เดิม)
+- ไม่ใช้ลายติดลิขสิทธิ์ (`angry_duck`, `ghost_monster`, `cloud`) เปลี่ยนลายได้ที่ `SHEETS` ในสคริปต์ แล้วรันใหม่ (ทับไฟล์เดิม)
 
 ## แสง
 - **Environment:** ไม่มี skybox, ambient แบบ Flat (0.11, 0.093, 0.08), ปิด fog, Main Camera เคลียร์เป็นสีดำ, `Directional Light` เดิมปิดไว้ (ไม่ได้ลบ)

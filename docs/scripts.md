@@ -39,7 +39,11 @@
 | `StencilPlacement.cs` | struct mapping UV ของ canvas ↔ พิกัดในภาพลาย (st) ใช้ร่วมกันระหว่าง overlay shader และ scorer |
 | `TattooScorer.cs` | อ่าน RenderTexture ของ TattooCanvas ทั้งรูป (หมึก = alpha > 0.5) + needle map เทียบกับ mask ลาย (`StencilMask`) แล้วคิด accuracy/messRatio/quality ใน `ScoreMasks` (ฟังก์ชันล้วน ใช้ร่วมกับตัวจำลอง รับ needle map และ distance field ที่คิดไว้แล้วได้) ~200 ms ต่อการส่งงาน |
 | `Editor/TattooScoreSimulator.cs` | เมนู `VRTattoo/Simulate Tattoo Scores` สร้างหมึกจำลอง 5 แบบ × หัวเข็ม 3 ขนาดให้ทุกลายในคลัง แล้ว log ตารางคะแนนแยกระดับ/หัว + แถวลายพื้นทึบ (ทำงานใน Edit mode; `Run(rules)` ใช้จูนค่าโดยไม่แก้ scene) |
-| `TattooJobManager.cs` | อยู่บน `CustomerSystem` ฟัง `onCustomerLayDown` สุ่มลาย แสดงลาย/ป้าย รับ Submit (ปุ่ม/J) ให้คะแนน แล้วเรียก `CompleteTattoo()` |
+| `TattooJobManager.cs` | อยู่บน `CustomerSystem` ฟัง `onCustomerLayDown` สุ่มลาย แสดงลายบนแขน สั่ง `JobCard` รับ Submit (ปุ่ม DONE / J) ให้คะแนน แล้วเรียก `CompleteTattoo()` |
+| `UI/JobCard.cs` | การ์ดงานเดียว: รอลูกค้า / ชื่อลาย+ระดับ+DONE / คะแนนนับขึ้น+ดาว+แต้ม, คะแนนรวมล่างสุด ([ui.md](ui.md)) |
+| `UI/NeonButton.cs` | ปุ่มนีออน: ray+trigger, grip, poke, คลิกใน Desktop Test Mode; hover สว่าง, สั่นตอนกด |
+| `UI/NeonPanel.cs` | ตั้งค่า shader `NeonPanel` (แผ่นดำโปร่ง ขอบชมพู) ผ่าน MaterialPropertyBlock |
+| `UI/SeatHintPanel.cs` | ป้ายบอกปุ่มที่เก้าอี้ ตามโหมด แว่น/simulator/Desktop Test Mode, ตอนนั่งจางหลัง 5 วิ |
 
 ## สคริปต์ห้อง (`Assets/_VRTattoo/Scripts/Room/`)
 | ไฟล์ | หน้าที่ |

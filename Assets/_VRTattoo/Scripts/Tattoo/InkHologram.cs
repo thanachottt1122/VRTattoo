@@ -40,8 +40,8 @@ public class InkHologram : MonoBehaviour
     [Range(0f, 1f)] public float minBrightness = 0.55f;
     public float glow = 2f;
 
-    [Tooltip("How much the % text is mixed towards white (0 = ink colour)")]
-    [Range(0f, 1f)] public float labelWhiten = 0.6f;
+    [Tooltip("How much the % text is mixed towards white (0 = ink colour, 1 = white like the other UI)")]
+    [Range(0f, 1f)] public float labelWhiten = 1f;
 
     [Tooltip("Below this much ink (%) the ring blinks")]
     [Range(0f, 100f)] public float lowThreshold = 15f;
@@ -132,12 +132,14 @@ public class InkHologram : MonoBehaviour
         if (needleLabel == null || needle == null)
             return;
 
+        // White text with a dot in the needle's colour in front (like the rest of the UI).
         var target = needle.SwapTarget;
-        string text = target != null ? target.Label : needle.Label;
+        Color needleColor = target != null ? target.Color : needle.color;
+        string text = $"<color=#{ColorUtility.ToHtmlStringRGB(needleColor)}>●</color> {(target != null ? target.Label : needle.Label)}";
         if (needleLabel.text != text)
             needleLabel.text = text;
 
-        Color color = Color.Lerp(target != null ? target.Color : needle.color, Color.white, labelWhiten);
+        Color color = Color.Lerp(needleColor, Color.white, labelWhiten);
         float blink = target != null && Mathf.Repeat(Time.time * swapBlinkRate, 1f) > 0.5f ? 0.3f : 1f;
         color.a = visibility * blink;
         needleLabel.color = color;

@@ -13,9 +13,9 @@
 
 ## โครงสร้าง (`Assets/_VRTattoo/`)
 - `Scenes/TattooRoom.unity` scene หลัก
-- `Scripts/Tattoo/` เครื่องสัก canvas หมึก หัวเข็ม เก้าอี้ test mode · `Scripts/Ink/` · `Scripts/Needles/` · `Scripts/Customers/` · `Scripts/Stencils/` ลาย+คะแนน (มี `Editor/`) · `Scripts/Room/` ของตกแต่ง
+- `Scripts/Tattoo/` เครื่องสัก canvas หมึก หัวเข็ม เก้าอี้ test mode · `Scripts/Ink/` · `Scripts/Needles/` · `Scripts/Customers/` · `Scripts/Stencils/` ลาย+คะแนน (มี `Editor/`) · `Scripts/Room/` ของตกแต่ง · `Scripts/UI/` การ์ดงาน ปุ่ม ป้าย
 - `Materials/Shop/` วัสดุห้อง · `Textures/FlashArt/` (`Tools/flash/make_flash_art.py`) · `Lighting/` lighting settings
-- `Fonts/` Pacifico + TMP Font Asset · `UI/Emotes/` PNG อิโมจิ (`Tools/emotes/draw_emotes.py`) · `Data/Voices/` ชุดเสียงลูกค้า
+- `Fonts/` Pacifico + Inter-UI (TMP Font Asset) · `UI/Emotes/` PNG อิโมจิ (`Tools/emotes/draw_emotes.py`) · `UI/Icons/star.png` (`Tools/ui/draw_star.py`) · `Data/Voices/` ชุดเสียงลูกค้า
 - `Prefabs/` (`Customer`, `Characters/`, `Ink/`, `Needles/`) · `Characters/` (โมเดลไม่อยู่ใน git) · `Stencils/` PNG ลาย · `Data/StencilLibrary.asset` · `Shaders/` · `Materials/` · `Models/`
 - นอก Assets: `docs/` · `Tools/stencils/extract_stencils.py` · `SourceArt/`
 
@@ -28,8 +28,9 @@
 - **นั่ง (`Chair43`):** วาร์ปไปท่าก้มเหนือแขน ปิด locomotion เครื่องเข้ามือขวา ปล่อย grip = วางคืน; จำกัดหัว (`SeatHeadLimit`)
 - **ลูกค้า:** สูงสุด 3 คน (เตียง 1 + โซฟา 2) เดินตาม waypoint แล้ววาร์ปเข้าท่า ตัวละคร 4 ตัวสุ่มไม่ซ้ำ
 - **ความพึงพอใจ:** ส่งงานแล้วอิโมจิเด้งเหนือหัวตามคะแนน (≥90 ตาหัวใจ / ≥70 ยิ้ม / ≥40 เฉย / ต่ำกว่าโกรธ, ปรับ `moods` ได้) ค้างจนเดินออกประตู; เสียงลูกค้า (ทักทาย ร้องเจ็บ ตามอารมณ์) แยกชาย/หญิง/รายตัว ยังไม่มีไฟล์ → [วิธีใส่เสียง](docs/customer-reactions.md)
-- **ลายและคะแนน:** นอนแล้วสุ่มลาย ส่งงาน (SUBMIT / J) → คุณภาพ 0–100 = Accuracy × ตัวหักความเลอะ (ถ่วงตามระยะ ผ่อนตามขนาดหัว) × ตัวคูณระดับ
+- **ลายและคะแนน:** นอนแล้วสุ่มลาย ส่งงาน (ปุ่ม DONE บนการ์ด / J) → คุณภาพ 0–100 = Accuracy × ตัวหักความเลอะ (ถ่วงตามระยะ ผ่อนตามขนาดหัว) × ตัวคูณระดับ
 - **ห้อง/แสง:** ร้านสักโทนมืด แสง bake (ไฟ realtime ดวงเดียว = โคม spot เหนือเตียง), ป้ายนีออนตัวหวัด Pacifico TATTOO (ชมพู) + No Regrets (ฟ้าอมม่วง) กะพริบเบา ๆ ไม่พร้อมกัน (`NeonFlicker`), LED ชมพูใต้ขอบเพดาน, ลำแสงปลอม (`LightShaft` additive) ใต้โคม, โคมตั้งพื้นข้างโซฟา, ภาพ flash art จากคลังลาย; ย้ายของ static/ไฟ baked ต้อง bake ใหม่ → [lighting.md](docs/lighting.md)
+- **UI (สไตล์นีออน):** แผ่นดำโปร่ง ขอบชมพู (`NeonPanel`) ฟอนต์ Inter Bold; การ์ดงานเดียวตรงหน้าตอนนั่ง (`JobCard`: ชื่อลาย+ระดับ+DONE → คะแนนนับขึ้น ดาว แต้ม, คะแนนรวม), ป้ายปุ่มที่เก้าอี้ตามโหมด (`SeatHintPanel`) → [ui.md](docs/ui.md)
 - **Desktop Test Mode (K, Editor):** เมาส์คุมเครื่อง วาด เติมหมึก เปลี่ยนหัว ซูม
 
 ## สคริปต์สำคัญ
@@ -37,6 +38,7 @@
 - ผู้เล่น: `TattooSeat`, `SeatHeadLimit`, `TattooDesktopTestMode` (reflection เข้า simulator)
 - ลูกค้า: `CustomerQueueManager`, `Customer`, `CustomerRoute`, `CustomerCharacter` (ท่า/IK), `CustomerCharacterPicker`, `CustomerTattooSkin`, `CustomerEmote`, `CustomerVoice`/`CustomerVoiceSet`
 - งาน/คะแนน: `TattooJobManager` (`scoring`), `TattooScorer`, `StencilPlacement`, `StencilLibrary`
+- UI: `JobCard`, `NeonButton`, `NeonPanel` (shader `NeonPanel`), `SeatHintPanel`
 
 เมนู: `VRTattoo/Simulate Tattoo Scores` (ตารางคะแนนจำลอง ~30 วิ), `VRTattoo/Rebuild Stencil Library`, `VRTattoo/Characters/Setup Selected Models`
 
@@ -50,6 +52,7 @@
 - [tattoo-skin.md](docs/tattoo-skin.md) ผิวที่สักบนแขน
 - [scene-objects.md](docs/scene-objects.md) GameObject และตำแหน่ง
 - [lighting.md](docs/lighting.md) วัสดุห้อง ไฟ ป้ายนีออน การ bake
+- [ui.md](docs/ui.md) สไตล์ UI การ์ดงาน ปุ่ม DONE ป้ายบอกปุ่ม ขนาดตัวหนังสือ ตำแหน่ง
 - [customer-reactions.md](docs/customer-reactions.md) อิโมจิความพึงพอใจ, **วิธีใส่เสียงลูกค้า**
 - [known-issues.md](docs/known-issues.md) ข้อจำกัดแบบละเอียด
 
@@ -66,17 +69,17 @@
 | วาด / เติมหมึก / เปลี่ยนหัว (Desktop mode) | ชี้เมาส์ที่แขน / ถ้วย / หัวเข็ม + คลิกซ้ายค้าง (หัวเข็มต้องหันขวานิดหน่อย) |
 | หันมอง | คลิกขวาค้าง + ลาก |
 | ซูม (Desktop mode) | ลูกกลิ้ง |
-| ส่งงาน | J (Editor) หรือชี้ปุ่ม SUBMIT ด้วย controller ซ้าย + G |
+| ส่งงาน | J (Editor), ชี้ปุ่ม DONE บนการ์ดด้วย controller ซ้าย + คลิกซ้าย (trigger) หรือ G, Desktop mode: คลิกที่ DONE |
 
 ## ข้อจำกัดที่ค้างอยู่ (ละเอียดใน [known-issues.md](docs/known-issues.md))
-- ยังไม่ได้ลองกับแว่นจริง: haptics, ระยะเอื้อม, ท่าจับเครื่อง, จอมืด, ท่านั่ง; test mode ทดสอบด้วย event จากสคริปต์
+- ยังไม่ได้ลองกับแว่นจริง: haptics, ระยะเอื้อม, ท่าจับเครื่อง, จอมืด, ท่านั่ง, ขนาด/ตำแหน่ง UI; test mode ทดสอบด้วย event จากสคริปต์
 - ล็อกหัว/ก้มกล้องใน simulator พึ่ง reflection ของ XRI
 - คะแนน: ลายพื้นทึบได้เปรียบเล็กน้อยตอนมือสั่น, ส่งงาน ~200 ms
 - หมึกค้างข้ามลูกค้า, รอยสักไม่ถาวร, ขอบเส้นขรุขระ (RT 1024), ผิวที่สักเป็นภาพนิ่ง, ลายบิดใกล้ข้อมือ/ข้อศอก
 - ยังไม่มีไฟล์เสียงลูกค้า (ช่องว่างอยู่)
 - แสงใหม่ยังไม่ได้ลองบนแว่นจริง (ความมืด/ความลื่น)
 - ลูกค้าไม่มี collider และไม่มีท่าลุก/นั่งลง, socket ไม่กรอง layer, ป้ายเป็นภาษาอังกฤษ
-- **ก่อนเผยแพร่:** โมเดลตัวละครติดลิขสิทธิ์และไม่อยู่ใน git (ก๊อป `Characters/Models/` + `SourceArt/Characters/` รวม `.meta`); ลายติดลิขสิทธิ์ `angry_duck`, `ghost_monster`, `trophy`, `cloud`
+- **ก่อนเผยแพร่:** โมเดลตัวละครติดลิขสิทธิ์และไม่อยู่ใน git (ก๊อป `Characters/Models/` + `SourceArt/Characters/` รวม `.meta`); ลายติดลิขสิทธิ์ `angry_duck`, `ghost_monster`, `cloud`
 
 ## งานถัดไป (ทำตามลำดับ)
 1. ลายที่กำหนดสี และให้คะแนนตามสี

@@ -106,7 +106,7 @@ public class TattooSeat : MonoBehaviour
 
     void OnChairSelected(SelectEnterEventArgs args) => Toggle();
 
-    bool IsPlayerInRange()
+    public bool IsPlayerInRange()
     {
         if (xrOrigin == null || xrOrigin.Camera == null)
             return false;

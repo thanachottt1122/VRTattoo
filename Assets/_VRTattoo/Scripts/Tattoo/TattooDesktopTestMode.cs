@@ -84,6 +84,9 @@ public class TattooDesktopTestMode : MonoBehaviour
 
     bool IsAllowed => !editorOnly || Application.isEditor;
 
+    // Mouse mode is on (SeatHintPanel shows mouse/keyboard hints).
+    public bool IsActive => IsAllowed && enabledMode;
+
     Collider SkinCollider => skinCollider != null ? skinCollider
         : CustomerTattooSkin.Active != null ? CustomerTattooSkin.Active.SkinCollider : null;
 
@@ -108,6 +111,8 @@ public class TattooDesktopTestMode : MonoBehaviour
         }
 
         bool seated = enabledMode && seat != null && seat.IsSeated;
+        if (seated && ClickedButton())
+            return;
         if (seated)
             HandlePickUp(keyboard);
 
@@ -159,6 +164,21 @@ public class TattooDesktopTestMode : MonoBehaviour
         {
             machine.ExternalTrigger = false;
         }
+    }
+
+    // A click on a shown NeonButton (the job card's DONE) presses it instead of tattooing.
+    bool ClickedButton()
+    {
+        var cam = viewCamera != null ? viewCamera : Camera.main;
+        var mouse = Mouse.current;
+        if (cam == null || mouse == null || !mouse.leftButton.wasPressedThisFrame)
+            return false;
+        if (!NeonButton.TryPressWithRay(cam.ScreenPointToRay(mouse.position.ReadValue())))
+            return false;
+        waitForButtonUp = true;
+        if (machine != null)
+            machine.ExternalTrigger = false;
+        return true;
     }
 
     bool HeldInHand => grabInteractable != null && grabInteractable.isSelected
