@@ -2,12 +2,16 @@ using System;
 using System.IO;
 using UnityEngine;
 
-// What survives between play sessions: the day the shop is on and the money in the bank.
+// What survives between play sessions: the day the shop is on, the money in the bank and the
+// totals of the finished days (for the Game Complete panel). day > ShopDayManager.totalDays = game over.
 [Serializable]
 public class ShopSaveData
 {
     public int day = 1;
     public int money;
+    public int stars;
+    public int happy;
+    public int angry;
 }
 
 // A small JSON file in Application.persistentDataPath. Written by ShopDayManager at the end of
@@ -27,6 +31,9 @@ public static class ShopSave
                 {
                     data.day = Mathf.Max(1, data.day);
                     data.money = Mathf.Max(0, data.money);
+                    data.stars = Mathf.Max(0, data.stars);
+                    data.happy = Mathf.Max(0, data.happy);
+                    data.angry = Mathf.Max(0, data.angry);
                     return data;
                 }
             }

@@ -27,6 +27,8 @@ public class JobCard : MonoBehaviour
     public SpriteRenderer[] stars;
     public TMP_Text points;
     public TMP_Text total;
+    [Tooltip("DAY 2/5 in the top corner")]
+    public TMP_Text dayLabel;
 
     [Header("Time and pain (tattooing)")]
     public NeonBar timeBar;
@@ -212,6 +214,12 @@ public class JobCard : MonoBehaviour
                 any |= bar != null && bar.gameObject.activeSelf;
             SetActive(queueLabel, any);
         }
+    }
+
+    public void SetDay(int day, int totalDays)
+    {
+        if (dayLabel != null)
+            dayLabel.text = $"DAY {day}/{totalDays}";
     }
 
     public int Stars(int quality) => quality >= starThresholds.y ? 3 : quality >= starThresholds.x ? 2 : 1;

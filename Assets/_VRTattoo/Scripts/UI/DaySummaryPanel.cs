@@ -7,6 +7,7 @@ using UnityEngine.Events;
 // title, then each row counts up in turn (tattoo money, tips, day total, average quality,
 // happy / angry customers, stars), then the bank. NEXT DAY and RESTART are NeonButtons, so they work
 // with a controller ray (trigger or grip), a poke, and a mouse click in Desktop Test Mode.
+// On the game's last day NEXT DAY reads FINISH (ShopDayManager then opens the Game Complete panel).
 public class DaySummaryPanel : MonoBehaviour
 {
     public TMP_Text title;
@@ -18,6 +19,11 @@ public class DaySummaryPanel : MonoBehaviour
 
     public UnityEvent onNextDay;
     public UnityEvent onRestart;
+
+    [Header("Labels")]
+    public string nextDayText = "NEXT DAY";
+    [Tooltip("NEXT DAY's label on the game's last day")]
+    public string finishText = "FINISH";
 
     [Header("Placement")]
     [Tooltip("Defaults to the main camera")]
@@ -50,11 +56,13 @@ public class DaySummaryPanel : MonoBehaviour
             restartButton.onPressed.RemoveListener(PressRestart);
     }
 
-    public void Show(int day, DayStats stats, int bankMoney)
+    public void Show(int day, int totalDays, DayStats stats, int bankMoney, bool lastDay)
     {
         PlaceInFrontOfViewer();
         gameObject.SetActive(true);
-        title.text = $"Day {day} Complete";
+        title.text = $"Day {day} / {totalDays} Complete";
+        if (nextDayButton != null && nextDayButton.label != null)
+            nextDayButton.label.text = lastDay ? finishText : nextDayText;
         StopAllCoroutines();
         StartCoroutine(CountUp(stats, bankMoney));
     }

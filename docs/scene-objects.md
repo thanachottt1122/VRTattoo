@@ -17,7 +17,7 @@
 - `Furniture/Chair43`: เก้าอี้ช่างสัก (1.25, −1.785, 0.18) ชิดเตียงตรงแขน มี TattooSeat + XRSimpleInteractable ส่วน collider อยู่ที่ `Chair43_model` (`ChairHint_StandingAnchor` อยู่เหนือเก้าอี้)
 - `Furniture/hospital bed`: เตียง (MeshCollider)
 - `Room/Floor_Tile_3b`: พื้น มี MeshCollider + BoxCollider + TeleportationArea
-- `ShopDay` (root) = `ShopDayManager` (ต่อ `queue`, `card`, `banner`, `summary`); ลูก `DayBanner` (+ `Label` TMP) และ `DaySummary` (ปิดไว้: `Panel`, `Title`, `Label_*`/`Value_*` 7 แถว, `Bank`, `RestartButton`, `NextDayButton`) ([shop-day.md](shop-day.md)); การ์ดงานมีลูก `Tip` และ `MoneyPopup` (ปิดไว้) เพิ่มมา
+- `ShopDay` (root) = `ShopDayManager` (ต่อ `queue`, `card`, `banner`, `summary`); `totalDays` 5; ลูก `DayBanner` (+ `Label` TMP), `DaySummary` (ปิดไว้: `Panel`, `Title`, `Label_*`/`Value_*` 7 แถว, `Bank`, `RestartButton`, `NextDayButton`) และ `GameComplete` (ปิดไว้: `Panel`, `Title`, `Label_*`/`Value_*` 4 แถว, `Label_Grade`, `Grade`, `PlayAgainButton`, `GradeSBurst`) ([shop-day.md](shop-day.md)); การ์ดงานมีลูก `Tip`, `MoneyPopup` (ปิดไว้) และ `DayLabel` เพิ่มมา
 - `CustomerSystem` (มี `CustomerQueueManager` (`completeKey` = None) + `TattooJobManager` (ช่วงคะแนนอารมณ์ `moods` 90/70/40) และลูกค้าที่ spawn จะเป็นลูกของมัน)
   - `Locations/Door/DoorPoint`, `Locations/Bed/{BedApproach, BedPoint}`, `Locations/WaitArea1/{WaitSeat1Approach, WaitSeat1}` (`Chair15` ใกล้เตียงกว่า), `Locations/WaitArea2/...` (`Chair15 (1)`)
   - `Routes/*`: เส้นทาง 5 เส้น มี waypoint แค่ `Door-WaitSeat1` (อ้อมจุดเกิดผู้เล่น) ทุกเส้นตรวจด้วย CapsuleCast แล้วว่าไม่ชน

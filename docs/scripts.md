@@ -43,9 +43,10 @@
 | `UI/JobCard.cs` | การ์ดงานเดียว: รอลูกค้า / ชื่อลาย+ระดับ+DONE / คะแนนนับขึ้น+ดาว+ค่าสัก+ทิป+เงินลอย, เงินรวมล่างสุด ([ui.md](ui.md)) |
 | `UI/MoneyPopup.cs` | "+$x" ลอยขึ้นแล้วจาง (ต้นแบบปิดไว้บนการ์ด) มีช่องเสียงเหรียญ |
 | `UI/DayBanner.cs` | ป้าย "Day N" นีออน Pacifico ตรงหน้าผู้เล่น 2 วิ (`Show` เป็น coroutine) |
-| `UI/DaySummaryPanel.cs` | แผ่นสรุปวัน 7 แถวนับขึ้น + BANK + ปุ่ม NEXT DAY / RESTART (`onNextDay`, `onRestart`) |
-| `Shop/ShopDayManager.cs` | วันทำงาน: ป้าย → ลูกค้า `customersPerDay` คน → สรุป, ramp ลาย/ความอดทนตามวัน, เงินรวม, `DayStats`, เซฟตอนจบวัน ([shop-day.md](shop-day.md)) |
-| `Shop/ShopSave.cs` | อ่าน/เขียน `vrtattoo_save.json` (`day`, `money`) ใน `persistentDataPath` |
+| `UI/DaySummaryPanel.cs` | แผ่นสรุปวัน 7 แถวนับขึ้น + BANK + ปุ่ม NEXT DAY (วันสุดท้าย = FINISH) / RESTART (`onNextDay`, `onRestart`) |
+| `UI/GameCompletePanel.cs` | หน้าจบเกม: เงินรวม ดาว พอใจ/โกรธ เกรด S/A/B/C ตามเงิน (`sFrom/aFrom/bFrom`), S เล่น `sBurst`, ปุ่ม PLAY AGAIN (`onPlayAgain`) |
+| `Shop/ShopDayManager.cs` | วันทำงาน: ป้าย → ลูกค้า `customersPerDay` คน → สรุป, ramp ลาย/ความอดทนตามวัน, เงินรวม, `DayStats`, ยอดรวมทั้งเกม, จบเกมหลังวันที่ `totalDays` → Game Complete, เซฟตอนจบวัน ([shop-day.md](shop-day.md)) |
+| `Shop/ShopSave.cs` | อ่าน/เขียน `vrtattoo_save.json` (`day`, `money`, `stars`, `happy`, `angry`) ใน `persistentDataPath` |
 | `Shop/MoneyRules.cs` | ราคาลายตามระดับ ค่าสักตามคุณภาพ ทิปสุ่มตอน 3 ดาว |
 | `UI/NeonButton.cs` | ปุ่มนีออน: ray+trigger, grip, poke, คลิกใน Desktop Test Mode; hover สว่าง, สั่นตอนกด |
 | `UI/NeonPanel.cs` | ตั้งค่า shader `NeonPanel` (แผ่นดำโปร่ง ขอบชมพู) ผ่าน MaterialPropertyBlock |
