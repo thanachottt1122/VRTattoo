@@ -49,6 +49,12 @@ public class CustomerTattooSkin : MonoBehaviour
     [Tooltip("Wait for the lying pose and IK to settle before baking the collider (s)")]
     public float settleDelay = 0.5f;
 
+    [Header("3-star glint")]
+    [Tooltip("How long the bright band takes to sweep over the ink (s)")]
+    public float glintSeconds = 0.9f;
+    [Tooltip("Small sparkles emitted from the forearm skin (Prefabs/FX/ArmSparkle); empty = none")]
+    public ParticleSystem sparklePrefab;
+
     // The skin of the customer on the bed (null while nobody is ready to be tattooed).
     public static CustomerTattooSkin Active { get; private set; }
 
@@ -65,6 +71,7 @@ public class CustomerTattooSkin : MonoBehaviour
     static readonly int CenterId = Shader.PropertyToID("_Center");
     static readonly int AxisXId = Shader.PropertyToID("_AxisX");
     static readonly int AxisYId = Shader.PropertyToID("_AxisY");
+    static readonly int GlintId = Shader.PropertyToID("_Glint");
 
     GameObject colliderObject;
     GameObject overlayObject;
@@ -114,6 +121,38 @@ public class CustomerTattooSkin : MonoBehaviour
     }
 
     public void HideStencil() => ShowStencil(null);
+
+    // The 3-star reward: a glint sweeps over the ink and a few sparkles rise from the skin.
+    public void PlayGlint()
+    {
+        if (overlayInstance == null)
+            return;
+        StartCoroutine(GlintRoutine());
+
+        if (sparklePrefab != null && colliderObject != null)
+        {
+            var sparkle = Instantiate(sparklePrefab, colliderObject.transform, false);
+            var shape = sparkle.shape;
+            shape.shapeType = ParticleSystemShapeType.Mesh;
+            shape.meshShapeType = ParticleSystemMeshShapeType.Triangle;
+            shape.mesh = colliderMesh;
+            sparkle.Play();
+            // Destroyed with the skin when the customer gets up, or after it finishes.
+            Destroy(sparkle.gameObject, sparkle.main.duration + sparkle.main.startLifetime.constantMax);
+        }
+    }
+
+    IEnumerator GlintRoutine()
+    {
+        var material = overlayInstance;
+        for (float t = 0f; t < 1f && material != null; t += Time.deltaTime / Mathf.Max(glintSeconds, 0.01f))
+        {
+            material.SetFloat(GlintId, Mathf.Lerp(-0.1f, 1.1f, t));
+            yield return null;
+        }
+        if (material != null)
+            material.SetFloat(GlintId, -1f);
+    }
 
     IEnumerator BuildWhenSettled(Animator animator)
     {

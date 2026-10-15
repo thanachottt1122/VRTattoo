@@ -1,7 +1,8 @@
 using UnityEngine;
 
 // On the Customer prefab: a mood emote that pops up above the customer's head after the tattoo is
-// submitted. It always faces the player and stays until the customer is destroyed at the door.
+// submitted (or when they walk out). It always faces the player and stays until the customer is
+// destroyed at the door. Before that, an annoyed face shows while their patience runs out.
 public class CustomerEmote : MonoBehaviour
 {
     [Header("Sprites (UI/Emotes)")]
@@ -9,6 +10,8 @@ public class CustomerEmote : MonoBehaviour
     public Sprite happy;
     public Sprite neutral;
     public Sprite angry;
+    [Tooltip("Shown while patience is running out (before the tattoo is done)")]
+    public Sprite annoyed;
 
     [Header("Look")]
     [Tooltip("Width of the emote (m)")]
@@ -31,6 +34,7 @@ public class CustomerEmote : MonoBehaviour
     public Transform viewer;
 
     public CustomerMood? Mood { get; private set; }
+    public bool IsAnnoyed { get; private set; }
 
     AnimatorCustomerVisual visual;
     SpriteRenderer sprite;
@@ -53,22 +57,40 @@ public class CustomerEmote : MonoBehaviour
     {
         var picked = SpriteFor(mood);
         Mood = mood;
-        shownTime = Time.time;
+        IsAnnoyed = false;
         if (picked == null)
         {
             Debug.LogWarning($"[CustomerEmote] {name}: no sprite for {mood}");
             return;
         }
+        ShowSprite(picked);
+    }
 
-        sprite.sprite = picked;
-        sprite.gameObject.SetActive(true);
-        LateUpdate();
+    // The annoyed face while waiting too long. A mood emote (the result) always wins over it.
+    public void SetAnnoyed(bool on)
+    {
+        if (Mood != null || on == IsAnnoyed)
+            return;
+        IsAnnoyed = on;
+        if (on && annoyed != null)
+            ShowSprite(annoyed);
+        else
+            sprite.gameObject.SetActive(false);
     }
 
     public void Hide()
     {
         Mood = null;
+        IsAnnoyed = false;
         sprite.gameObject.SetActive(false);
+    }
+
+    void ShowSprite(Sprite picked)
+    {
+        shownTime = Time.time;
+        sprite.sprite = picked;
+        sprite.gameObject.SetActive(true);
+        LateUpdate();
     }
 
     Sprite SpriteFor(CustomerMood mood) => mood switch

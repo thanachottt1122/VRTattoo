@@ -4,7 +4,8 @@ using UnityEngine.Events;
 using UnityEngine.InputSystem;
 
 // Keeps the shop filled with customers: one on the bed and one per waiting seat.
-// CompleteTattoo() sends the bed customer home and moves everyone up the queue.
+// CompleteTattoo() sends the bed customer home and moves everyone up the queue. A waiting customer
+// whose patience (CustomerPatience) runs out leaves on their own and the queue moves up too.
 public class CustomerQueueManager : MonoBehaviour
 {
     public Customer customerPrefab;
@@ -64,6 +65,8 @@ public class CustomerQueueManager : MonoBehaviour
             CompleteTattoo();
 #endif
 
+        CheckWaitingPatience();
+
         if (Time.time >= nextSpawnTime && FirstFreeSlot() >= 0)
         {
             Spawn();
@@ -79,9 +82,17 @@ public class CustomerQueueManager : MonoBehaviour
             return;
         }
 
-        var leaving = slots[0];
-        slots[0] = null;
-        leaving.WalkTo(door, WaypointsBetween(bed, door), OnArrived);
+        SendHome(0);
+    }
+
+    // The customer in `slot` walks out of the door and everyone behind moves up.
+    void SendHome(int slot)
+    {
+        var leaving = slots[slot];
+        slots[slot] = null;
+        if (leaving.TryGetComponent(out CustomerPatience patience))
+            patience.Stop();
+        leaving.WalkTo(door, WaypointsBetween(leaving.Location, door), OnArrived);
 
         // Move everyone forward, keeping their order.
         var queue = new List<Customer>();
@@ -95,6 +106,27 @@ public class CustomerQueueManager : MonoBehaviour
         foreach (var c in queue)
             if (!c.IsWalking)
                 SendToSlot(c);
+    }
+
+    // The customer who owns a waiting seat (0 = next in line), even while still walking there;
+    // null when the seat is free. The job card shows their patience.
+    public Customer WaitingCustomer(int waitSeat) => slots != null && waitSeat + 1 < slots.Length ? slots[waitSeat + 1] : null;
+
+    void CheckWaitingPatience()
+    {
+        for (int slot = 1; slot < slots.Length; slot++)
+        {
+            var c = slots[slot];
+            if (c == null || !c.IsSettled || !c.TryGetComponent(out CustomerPatience patience) || !patience.OutOfPatience)
+                continue;
+            Debug.Log($"[CustomerQueue] {c.name} waited too long and leaves");
+            if (c.TryGetComponent(out CustomerEmote emote))
+                emote.Show(CustomerMood.Angry);
+            if (c.TryGetComponent(out CustomerVoice voice))
+                voice.PlayMood(CustomerMood.Angry);
+            SendHome(slot);
+            return;  // the queue changed; check the rest next frame
+        }
     }
 
     void Spawn()
@@ -134,6 +166,8 @@ public class CustomerQueueManager : MonoBehaviour
         }
 
         customer.Settle();
+        if (slot > 0 && customer.TryGetComponent(out CustomerPatience patience))
+            patience.StartWaiting();
         if (slot == 0)
         {
             if (tattooCanvas != null)

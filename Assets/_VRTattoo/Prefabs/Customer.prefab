@@ -15,6 +15,8 @@ GameObject:
   - component: {fileID: 7007207390092891522}
   - component: {fileID: 5717667264541886561}
   - component: {fileID: 3143004614321767897}
+  - component: {fileID: 1710886068718926062}
+  - component: {fileID: 4330090252324385355}
   m_Layer: 0
   m_Name: Customer
   m_TagString: Untagged
@@ -109,6 +111,8 @@ MonoBehaviour:
   stencilTurnTowardsArtist: 15
   minForearmWeight: 0.5
   settleDelay: 0.5
+  glintSeconds: 0.9
+  sparklePrefab: {fileID: 6704854846021233066, guid: 509133dac03d8c1488f1697a0457fab1, type: 3}
 --- !u!114 &5717667264541886561
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -125,6 +129,7 @@ MonoBehaviour:
   happy: {fileID: 21300000, guid: 2527e19cd0d5c4c40813559738b9651a, type: 3}
   neutral: {fileID: 21300000, guid: 2bf5bb1cb00fcf044b1ef7240ca5d3d1, type: 3}
   angry: {fileID: 21300000, guid: 739ec7f6027760540b817aaff704a804, type: 3}
+  annoyed: {fileID: 21300000, guid: 81837a0dfd86c034fbb539aba7ae3a6e, type: 3}
   size: 0.28
   heightAboveHead: 0.32
   bobHeight: 0.02
@@ -155,3 +160,50 @@ MonoBehaviour:
   painChancePerSecond: 0.35
   drawGrace: 0.2
   debugLog: 0
+--- !u!114 &1710886068718926062
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5577864070307347315}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4ff254689d4b864e802376f33198486, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CustomerPain
+  toleranceRange: {x: 0.7, y: 1.4}
+  baseRate: 1.5
+  referenceDiameter: 0.005
+  needleExponent: 1.5
+  dwellRadius: 0.006
+  dwellGrace: 0.8
+  dwellRate: 10
+  dwellMaxRate: 30
+  fastSpeed: 0.12
+  fastRate: 8
+  fastMaxRate: 20
+  decayDelay: 0.4
+  decayRate: 8
+  flinchThreshold: 60
+  flinchInterval: {x: 1.5, y: 3}
+  flinchAngle: 4
+  flinchSeconds: 0.25
+  flinchInkOffset: 0.0015
+  flinchHapticAmplitude: 0.5
+  flinchHapticDuration: 0.1
+  debugLog: 0
+--- !u!114 &4330090252324385355
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5577864070307347315}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 803b6ff953208294ebde0eaecdd2e5f4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CustomerPatience
+  waitSeconds: {x: 150, y: 220}
+  annoyedFraction: 0.25

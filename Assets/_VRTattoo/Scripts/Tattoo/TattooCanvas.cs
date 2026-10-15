@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 // Paintable skin: owns a transparent RenderTexture that holds the ink (alpha = ink, rgb = colour x alpha) in the UV space
@@ -84,6 +85,13 @@ public class TattooCanvas : MonoBehaviour
     // Time.time of the last stroke (CustomerVoice uses it to know the customer is being tattooed).
     public float LastDrawTime { get; private set; } = float.NegativeInfinity;
 
+    // Every stroke segment drawn: world end point and needle diameter (CustomerPain listens).
+    public event Action<Vector3, float> Stroked;
+
+    // Shifts where ink lands on the skin (m, x = around the arm, y = along it). CustomerPain sets it
+    // for a moment when the customer flinches, so the line jumps a little.
+    public Vector2 Nudge { get; set; }
+
     public void Clear()
     {
         var previous = RenderTexture.active;
@@ -111,6 +119,13 @@ public class TattooCanvas : MonoBehaviour
         if (brushMaterial == null || tattooTexture == null)
             return;
         LastDrawTime = Time.time;
+        Stroked?.Invoke(worldTo, diameter);
+        if (Nudge != Vector2.zero)
+        {
+            var shift = new Vector2(Nudge.x / metersPerUV.x, Nudge.y / metersPerUV.y);
+            uvFrom += shift;
+            uvTo += shift;
+        }
 
         Vector2 uvDelta = uvTo - uvFrom;
         float uvMeters = new Vector2(uvDelta.x * metersPerUV.x, uvDelta.y * metersPerUV.y).magnitude;

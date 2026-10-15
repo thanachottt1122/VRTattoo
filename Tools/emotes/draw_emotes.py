@@ -1,4 +1,5 @@
-"""Draws the four customer mood emotes (simple flat faces) as transparent PNGs.
+"""Draws the customer emotes (simple flat faces) as transparent PNGs: the four moods, Annoyed
+(patience running out, above the head) and Tense / Hurt (pain faces on the job card).
 
 Usage: python Tools/emotes/draw_emotes.py [output_dir]
 Default output: Assets/_VRTattoo/UI/Emotes. Drawn at 4x and downscaled for smooth edges.
@@ -21,6 +22,9 @@ HEART = (230, 30, 70, 255)
 MOUTH = (110, 45, 30, 255)
 TONGUE = (235, 95, 95, 255)
 CHEEK = (255, 140, 110, 150)
+ORANGE = (255, 150, 50, 255)
+PALE_RED = (255, 150, 120, 255)
+SWEAT = (110, 190, 255, 255)
 
 
 def p(v):
@@ -100,10 +104,69 @@ def angry():
     return img
 
 
+def anger_mark(d, cx, cy, r):
+    # the "popping vein" cross of four curved strokes
+    for ax, ay in ((-1, -1), (1, -1), (1, 1), (-1, 1)):
+        box = (cx + ax * r * 0.15 - r * 0.5, cy + ay * r * 0.15 - r * 0.5,
+               cx + ax * r * 0.15 + r * 0.5, cy + ay * r * 0.15 + r * 0.5)
+        start = {(-1, -1): 0, (1, -1): 90, (1, 1): 180, (-1, 1): 270}[(ax, ay)]
+        d.arc([p(v) for v in box], start, start + 90, fill=HEART, width=p(10))
+
+
+def sweat(d, cx, cy, r):
+    d.polygon([(p(cx), p(cy - r * 1.6)), (p(cx - r), p(cy)), (p(cx + r), p(cy))], fill=SWEAT)
+    d.ellipse([p(cx - r), p(cy - r), p(cx + r), p(cy + r)], fill=SWEAT)
+
+
+def squeezed_eye(d, cx, cy, flip):
+    # ">" / "<" eye
+    s = -1 if flip else 1
+    d.line([p(cx - 14 * s), p(cy - 12), p(cx + 12 * s), p(cy)], fill=OUTLINE, width=p(8))
+    d.line([p(cx + 12 * s), p(cy), p(cx - 14 * s), p(cy + 12)], fill=OUTLINE, width=p(8))
+
+
+def annoyed():
+    # running out of patience: orange, lowered brows, sideways glance, tight mouth, vein mark
+    img, d = face(ORANGE)
+    eye(d, 96, 112, 11, 12)
+    eye(d, 170, 112, 11, 12)
+    d.line([p(66), p(84), p(114), p(94)], fill=OUTLINE, width=p(9))
+    d.line([p(142), p(94), p(190), p(84)], fill=OUTLINE, width=p(9))
+    thick_arc(d, (92, 168, 164, 206), 205, 335, 10)
+    anger_mark(d, 190, 60, 60)
+    return img
+
+
+def tense():
+    # card face at medium pain: gritted teeth, sweat drop
+    img, d = face(YELLOW)
+    eye(d, 90, 100, 11, 15)
+    eye(d, 166, 100, 11, 15)
+    d.rounded_rectangle([p(76), p(150), p(180), p(196)], radius=p(16), fill=OUTLINE)
+    d.rounded_rectangle([p(84), p(157), p(172), p(189)], radius=p(10), fill=(255, 255, 255, 255))
+    for x in (106, 128, 150):
+        d.line([p(x), p(157), p(x), p(189)], fill=OUTLINE, width=p(5))
+    sweat(d, 200, 82, 14)
+    return img
+
+
+def hurt():
+    # card face above the flinch threshold: squeezed eyes, wailing mouth, tear
+    img, d = face(PALE_RED)
+    squeezed_eye(d, 90, 104, False)
+    squeezed_eye(d, 166, 104, True)
+    d.ellipse([p(98), p(148), p(158), p(210)], fill=OUTLINE)
+    d.ellipse([p(107), p(157), p(149), p(201)], fill=MOUTH)
+    sweat(d, 62, 150, 12)
+    sweat(d, 200, 70, 14)
+    return img
+
+
 def main():
     out = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).resolve().parents[2] / "Assets/_VRTattoo/UI/Emotes"
     out.mkdir(parents=True, exist_ok=True)
-    for name, fn in (("Ecstatic", ecstatic), ("Happy", happy), ("Neutral", neutral), ("Angry", angry)):
+    for name, fn in (("Ecstatic", ecstatic), ("Happy", happy), ("Neutral", neutral), ("Angry", angry),
+                     ("Annoyed", annoyed), ("Tense", tense), ("Hurt", hurt)):
         img = fn().resize((SIZE, SIZE), Image.LANCZOS)
         path = out / f"Emote_{name}.png"
         img.save(path)

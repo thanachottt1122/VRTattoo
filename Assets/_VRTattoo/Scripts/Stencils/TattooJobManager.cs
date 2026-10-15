@@ -6,6 +6,8 @@ using UnityEngine.InputSystem;
 // One tattoo job per customer: picks the design when the customer lies down, shows it as a
 // stencil on the customer's forearm (CustomerTattooSkin), scores the ink on submit, then sends the
 // customer home through CustomerQueueManager. Everything the player sees is on the JobCard beside the bed.
+// While tattooing it also watches the customer's pain (CustomerPain: at 100 % they walk out with 0)
+// and the time the design allows (CustomerPatience + PatienceScoring: bonus if fast, less quality if late).
 public class TattooJobManager : MonoBehaviour
 {
     public CustomerQueueManager queue;
@@ -24,6 +26,10 @@ public class TattooJobManager : MonoBehaviour
     [Header("Scoring")]
     public TattooScoringRules scoring = TattooScoringRules.Default;
 
+    [Header("Time on the bed")]
+    [Tooltip("Time per difficulty and the fast bonus / overtime penalty")]
+    public PatienceScoring patience = PatienceScoring.Default;
+
     [Header("Customer mood")]
     [Tooltip("Quality ranges for the emote above the customer's head and their reaction sound")]
     public CustomerMoodThresholds moods = CustomerMoodThresholds.Default;
@@ -37,6 +43,9 @@ public class TattooJobManager : MonoBehaviour
     StencilEntry current;
     StencilEntry previous;
     bool submitting;
+    CustomerPain bedPain;
+    CustomerPatience bedPatience;
+    CustomerTattooSkin resultSkin;  // the arm that glints on 3 stars
 
     public int CompletedCustomers { get; private set; }
     public int TotalScore { get; private set; }
@@ -48,6 +57,8 @@ public class TattooJobManager : MonoBehaviour
             queue.onCustomerLayDown.AddListener(OnCustomerLayDown);
         if (submitButton != null)
             submitButton.onPressed.AddListener(Submit);
+        if (card != null)
+            card.onThreeStars.AddListener(OnThreeStars);
     }
 
     void OnDisable()
@@ -56,6 +67,8 @@ public class TattooJobManager : MonoBehaviour
             queue.onCustomerLayDown.RemoveListener(OnCustomerLayDown);
         if (submitButton != null)
             submitButton.onPressed.RemoveListener(Submit);
+        if (card != null)
+            card.onThreeStars.RemoveListener(OnThreeStars);
     }
 
     void Start()
@@ -71,8 +84,32 @@ public class TattooJobManager : MonoBehaviour
         if (submitKey != Key.None && keyboard != null && keyboard[submitKey].wasPressedThisFrame)
             Submit();
 #endif
-        if (card != null)
-            card.SetDoneAvailable(CanSubmit);
+        bool tattooing = !submitting && current != null && queue != null && queue.IsCustomerReady;
+        if (tattooing && bedPain != null && bedPain.MaxedOut)
+        {
+            StartCoroutine(WalkOutRoutine(queue.CustomerOnBed.GetComponent<CustomerTattooSkin>()));
+            tattooing = false;
+        }
+
+        if (card == null)
+            return;
+        card.SetDoneAvailable(CanSubmit);
+        if (tattooing)
+        {
+            if (bedPain != null)
+                card.SetPain(bedPain.Pain, bedPain.flinchThreshold, bedPain.IsFlinching);
+            if (bedPatience != null)
+                card.SetTimer(bedPatience.Fraction, bedPatience.Remaining <= 0f);
+        }
+        if (queue != null && queue.waitSeats != null)
+        {
+            for (int i = 0; i < queue.waitSeats.Length; i++)
+            {
+                var waiting = queue.WaitingCustomer(i);
+                var p = waiting != null && waiting.IsSettled ? waiting.GetComponent<CustomerPatience>() : null;
+                card.SetQueue(i, p != null && p.Running ? p.Fraction : -1f);
+            }
+        }
     }
 
     // A design is on the customer lying on the bed and it has not been submitted yet.
@@ -99,6 +136,14 @@ public class TattooJobManager : MonoBehaviour
         // Shown as soon as the forearm surface is built (it waits for the pose to settle).
         if (customer.TryGetComponent(out CustomerTattooSkin skin))
             skin.ShowStencil(current.texture);
+
+        // Fresh pain gauge; the clock for this design replaces the waiting-seat one.
+        bedPain = customer.GetComponent<CustomerPain>();
+        if (bedPain != null)
+            bedPain.ResetPain();
+        bedPatience = customer.GetComponent<CustomerPatience>();
+        if (bedPatience != null)
+            bedPatience.StartTimer(patience.Seconds(current.difficulty));
         if (card != null)
             card.ShowJob(current, TotalScore);
     }
@@ -132,11 +177,24 @@ public class TattooJobManager : MonoBehaviour
         var score = TattooScorer.Score(skin.Canvas, current.texture, skin.Placement, scoring);
         if (forcedQuality >= 0)
             score.quality = forcedQuality;
+
+        // Time: late costs quality (so also the mood), fast adds a share of the points.
+        float elapsed = 0f, duration = 0f;
+        if (bedPatience != null)
+        {
+            elapsed = bedPatience.Elapsed;
+            duration = bedPatience.Duration;
+            bedPatience.Stop();
+        }
+        int overtime = patience.Penalty(elapsed, duration);
+        int quality = Mathf.Max(0, score.quality - overtime);
+        float bonus = patience.Bonus(elapsed, duration, quality);
+
         float multiplier = StencilLibrary.Multiplier(current.difficulty);
-        int points = Mathf.RoundToInt(score.quality * multiplier);
+        int points = Mathf.RoundToInt(quality * multiplier * (1f + bonus));
         TotalScore += points;
-        var mood = moods.For(score.quality);
-        Debug.Log($"[TattooJob] {current.displayName}: accuracy {score.accuracy:P0}, mess area {score.messRatio:0.00}x design (-{score.messPenalty}), quality {score.quality}, +{points}, mood {mood}");
+        var mood = moods.For(quality);
+        Debug.Log($"[TattooJob] {current.displayName}: accuracy {score.accuracy:P0}, mess area {score.messRatio:0.00}x design (-{score.messPenalty}), quality {score.quality}, time {elapsed:0}/{duration:0}s (-{overtime}, bonus +{bonus:P0}) -> {quality}, +{points}, mood {mood}");
 
         // The customer reacts: emote above the head (stays until they leave) and a voice line.
         if (skin.TryGetComponent(out CustomerEmote emote))
@@ -145,20 +203,58 @@ public class TattooJobManager : MonoBehaviour
             voice.PlayMood(mood);
 
         // Only the result is shown; the formula (accuracy, mess, multiplier) stays in the log above.
+        resultSkin = skin;
         if (card != null)
-            card.ShowResult(score.quality, points, TotalScore);
+            card.ShowResult(quality, points, TotalScore, bonus);
 
         yield return new WaitForSeconds(scoreDisplaySeconds);
 
+        resultSkin = null;
         if (card != null)
             card.ShowWaiting(TotalScore);
+        FinishJob(skin);
+    }
+
+    // The pain reached 100 %: the customer gets up angry straight away and the job earns nothing.
+    IEnumerator WalkOutRoutine(CustomerTattooSkin skin)
+    {
+        submitting = true;
+        Debug.Log($"[TattooJob] {current.displayName}: the customer walked out in pain (tolerance {bedPain.Tolerance:0.00}), +0");
+
+        if (bedPatience != null)
+            bedPatience.Stop();
+        if (skin.TryGetComponent(out CustomerEmote emote))
+            emote.Show(CustomerMood.Angry);
+        if (skin.TryGetComponent(out CustomerVoice voice))
+            voice.PlayMood(CustomerMood.Angry);
+        if (card != null)
+            card.ShowWalkout(TotalScore);
+        FinishJob(skin);
+
+        yield return new WaitForSeconds(scoreDisplaySeconds);
+
+        // Unless the next customer has already lain down and the card shows their job.
+        if (card != null && current == null)
+            card.ShowWaiting(TotalScore);
+    }
+
+    void FinishJob(CustomerTattooSkin skin)
+    {
         if (skin != null)
             skin.HideStencil();
         previous = current;
         current = null;
+        bedPain = null;
+        bedPatience = null;
         CompletedCustomers++;
         queue.CompleteTattoo();
         submitting = false;
+    }
+
+    void OnThreeStars()
+    {
+        if (resultSkin != null)
+            resultSkin.PlayGlint();
     }
 
     // Chooses a difficulty by weight (easy designs early, harder ones the longer the shift goes),

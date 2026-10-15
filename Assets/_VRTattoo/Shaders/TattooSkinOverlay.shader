@@ -3,6 +3,7 @@
 // metres around × along the arm, scaled into the 0..1 canvas.
 //   ink:     _InkTex (TattooCanvas, premultiplied: rgb = colour x alpha, so each stroke keeps its own colour)
 //   stencil: st = 0.5 + (dot(uv - center, axisX), dot(uv - center, axisY)), visible where st is in [0,1]
+//   glint:   _Glint = position of a bright band over the ink (CustomerTattooSkin.PlayGlint), -1 = off
 Shader "VRTattoo/TattooSkinOverlay"
 {
     Properties
@@ -13,6 +14,9 @@ Shader "VRTattoo/TattooSkinOverlay"
         _Center ("Center UV", Vector) = (0.5, 0.5, 0, 0)
         _AxisX ("UV to stencil X", Vector) = (1, 0, 0, 0)
         _AxisY ("UV to stencil Y", Vector) = (0, 1, 0, 0)
+        _Glint ("Glint position", Float) = -1
+        _GlintWidth ("Glint width", Float) = 0.06
+        _GlintStrength ("Glint strength (HDR)", Float) = 2.5
     }
     SubShader
     {
@@ -42,6 +46,9 @@ Shader "VRTattoo/TattooSkinOverlay"
                 float4 _Center;
                 float4 _AxisX;
                 float4 _AxisY;
+                float _Glint;
+                float _GlintWidth;
+                float _GlintStrength;
             CBUFFER_END
 
             struct Attributes
@@ -79,6 +86,9 @@ Shader "VRTattoo/TattooSkinOverlay"
                 half3 inkRGB = ink.rgb / max(inkA, 0.001);
 
                 half3 color = lerp(_StencilColor.rgb, inkRGB, inkA);
+                // 3-star glint: a bright diagonal band sweeping over the ink only.
+                half band = saturate(1.0 - abs((i.uv.x + i.uv.y) * 0.5 - _Glint) / _GlintWidth);
+                color += band * band * inkA * _GlintStrength;
                 half alpha = max(inkA, stencilA);
                 clip(alpha - 0.004);
                 return half4(color, alpha);

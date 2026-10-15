@@ -24,6 +24,13 @@
 - ตำแหน่งเลือกจากมุมมองตอนนั่ง: ขอบบนต่ำกว่ากรอบรูปวงรี (Painting_6 เริ่มที่ −2°) และ flash art (Painting_4 เริ่มที่ −9° ทางขวา), ขอบล่างสูงกว่าตัวลูกค้าที่นอน (ลำตัวสูงสุด ~−18°) แขนที่สักอยู่ที่ −40° ถึง −52° ถ้าย้ายเตียง/เก้าอี้/รูป ให้คำนวณมุมใหม่
 - สถานะ: รอลูกค้า ("Waiting for a customer"), กำลังสัก (ชื่อลาย + ป้ายระดับ easy เขียว / medium ส้ม / hard แดง + ปุ่ม DONE), ผลงาน (ตัวเลข 0–100 นับขึ้น ~0.8 วิ แล้วเด้ง, ดาว 1–3 ทีละดวง, "+คะแนน", คะแนนรวมนับขึ้น) คะแนนรวมอยู่ล่างสุดตลอด
 - ดาว: `starThresholds` (70, 90) = 2 และ 3 ดาว ต่ำกว่านั้น 1 ดาว
+- ผังตอนสัก (พิกัดในการ์ด ม., x ขวามือผู้เล่น): ชื่อลาย y 0.071 / ป้ายระดับ x −0.1 + แถบเวลา x 0.068 (ยาว 0.15) y 0.026 / หน้า + เกจเจ็บ (ยาว 0.19) + % y −0.014 / DONE y −0.054 / คะแนนรวมชิดซ้าย + "QUEUE" + แถบจิ๋ว 2 เส้น (ความอดทนลูกค้าบนโซฟา) y −0.093 ตรวจด้วย `textBounds` ไม่ทับกัน
+- เกจ: `NeonBar` (ลูก Track + Fill เป็น `NeonPanel` ทรงแคปซูล, `Set(value, color)`) — เจ็บ เขียว→เหลือง→แดง; เวลา ขาว → ส้ม (< 25%) → แดงกะพริบเมื่อเกินเวลา; หน้า: สบาย (`Emote_Happy`) < `tenseFrom` 30 ≤ เกร็ง (`Emote_Tense`) < `flinchThreshold` 60 ≤ เจ็บ (`Emote_Hurt`) ขยาย 1.25 เท่าตอนสะดุ้ง
+- ผลงาน: "FAST +x%" สีทองใต้ดาวถ้าได้โบนัสเร็ว; เดินออกเพราะเจ็บ → "0" + "WALKED OUT" สีแดง ไม่มีดาว
+- **3 ดาว:** ตอนดาวดวงที่ 3 ติด `JobCard` เล่น `ThreeStarBurst` (ลูกของการ์ด) และยิง `onThreeStars`
+  - `ThreeStarBurst`: ประกายดาว 24 อนุภาค (`Materials/FX/StarSparkle.mat`, URP Particles Unlit additive, `star.png`, HDR ทอง) + ลูก `Confetti` กระดาษสีชมพู/ฟ้า/ทอง 28 อนุภาค (alpha blend) ปล่อยจากขอบการ์ด (shape BoxEdge 0.34×0.22) ครั้งเดียว อายุ ≤ 1.8 วิ ไม่มี collision/light/shadow
+  - แขน: `CustomerTattooSkin.PlayGlint()` แถบสว่างกวาดเฉียงผ่านหมึก 0.9 วิ (`_Glint` ใน `TattooSkinOverlay.shader`, เฉพาะที่มีหมึก) + `Prefabs/FX/ArmSparkle` 16 ประกายเล็กจาก mesh ผิว (shape Mesh = collider ของผิว)
+  - รวม ≤ 70 อนุภาคชั่วคราว เบาสำหรับแว่น
 - `TattooJobManager` สั่งการ์ด (`ShowWaiting/ShowJob/ShowResult/SetDoneAvailable`) สูตรคะแนนไม่แสดงบนการ์ด ดูได้ใน Console (`[TattooJob] ...`)
 
 ## ปุ่ม DONE (`NeonButton`)

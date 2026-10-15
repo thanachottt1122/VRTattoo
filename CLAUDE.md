@@ -15,7 +15,7 @@
 - `Scenes/TattooRoom.unity` scene หลัก
 - `Scripts/Tattoo/` เครื่องสัก canvas หมึก หัวเข็ม เก้าอี้ test mode · `Scripts/Ink/` · `Scripts/Needles/` · `Scripts/Customers/` · `Scripts/Stencils/` ลาย+คะแนน (มี `Editor/`) · `Scripts/Room/` ของตกแต่ง · `Scripts/UI/` การ์ดงาน ปุ่ม ป้าย
 - `Materials/Shop/` วัสดุห้อง · `Textures/FlashArt/` (`Tools/flash/make_flash_art.py`) · `Lighting/` lighting settings
-- `Fonts/` Pacifico + Inter-UI (TMP Font Asset) · `UI/Emotes/` PNG อิโมจิ (`Tools/emotes/draw_emotes.py`) · `UI/Icons/star.png` (`Tools/ui/draw_star.py`) · `Data/Voices/` ชุดเสียงลูกค้า
+- `Fonts/` Pacifico + Inter-UI (TMP Font Asset) · `UI/Emotes/` PNG อิโมจิ + หน้าหงุดหงิด/เกร็ง/เจ็บ (`Tools/emotes/draw_emotes.py`) · `Prefabs/FX/` + `Materials/FX/` particle · `UI/Icons/star.png` (`Tools/ui/draw_star.py`) · `Data/Voices/` ชุดเสียงลูกค้า
 - `Prefabs/` (`Customer`, `Characters/`, `Ink/`, `Needles/`) · `Characters/` (โมเดลไม่อยู่ใน git) · `Stencils/` PNG ลาย · `Data/StencilLibrary.asset` · `Shaders/` · `Materials/` · `Models/`
 - นอก Assets: `docs/` · `Tools/stencils/extract_stencils.py` · `SourceArt/`
 
@@ -28,7 +28,10 @@
 - **นั่ง (`Chair43`):** วาร์ปไปท่าก้มเหนือแขน ปิด locomotion เครื่องเข้ามือขวา ปล่อย grip = วางคืน; จำกัดหัว (`SeatHeadLimit`)
 - **ลูกค้า:** สูงสุด 3 คน (เตียง 1 + โซฟา 2) เดินตาม waypoint แล้ววาร์ปเข้าท่า ตัวละคร 4 ตัวสุ่มไม่ซ้ำ
 - **ความพึงพอใจ:** ส่งงานแล้วอิโมจิเด้งเหนือหัวตามคะแนน (≥90 ตาหัวใจ / ≥70 ยิ้ม / ≥40 เฉย / ต่ำกว่าโกรธ, ปรับ `moods` ได้) ค้างจนเดินออกประตู; เสียงลูกค้า (ทักทาย ร้องเจ็บ ตามอารมณ์) แยกชาย/หญิง/รายตัว ยังไม่มีไฟล์ → [วิธีใส่เสียง](docs/customer-reactions.md)
-- **ลายและคะแนน:** นอนแล้วสุ่มลาย ส่งงาน (ปุ่ม DONE บนการ์ด / J) → คุณภาพ 0–100 = Accuracy × ตัวหักความเลอะ (ถ่วงตามระยะ ผ่อนตามขนาดหัว) × ตัวคูณระดับ
+- **ลายและคะแนน:** นอนแล้วสุ่มลาย ส่งงาน (ปุ่ม DONE บนการ์ด / J) → คุณภาพ 0–100 = Accuracy × ตัวหักความเลอะ (ถ่วงตามระยะ ผ่อนตามขนาดหัว) − หักเกินเวลา; แต้ม = คุณภาพ × ตัวคูณระดับ × (1 + โบนัสเร็ว)
+- **ความเจ็บ (`CustomerPain`):** 0–100% บนการ์ด ขึ้นตามหัวเข็มใหญ่ ค้างจุดเดิม ลากเร็ว ลดเมื่อหยุด ทนไม่เท่ากัน (สุ่ม); ≥60% สะดุ้ง (แขนกระตุก เส้นกระโดด 1.5 มม. หน้าเจ็บ) 100% เดินออก +0 อิโมจิโกรธ → [customer-reactions.md](docs/customer-reactions.md)
+- **ความอดทน (`CustomerPatience`):** โซฟา 150–220 วิ หมดแล้วเดินออก; เตียงตามระดับลาย 60/90/130 วิ (แถบเวลาบนการ์ด + แถบจิ๋วคิวโซฟา) ใกล้หมดอิโมจิหงุดหงิด; เร็วได้โบนัสสูงสุด +25%, เกินเวลาหัก 1/วิ → [scoring.md](docs/scoring.md#เวลา)
+- **3 ดาว:** ประกาย + พลุกระดาษรอบการ์ด (particle ≤ 52) + แขนวิ้ง (`_Glint` + ประกาย 16) → [ui.md](docs/ui.md)
 - **ห้อง/แสง:** ร้านสักโทนมืด แสง bake (ไฟ realtime ดวงเดียว = โคม spot เหนือเตียง), ป้ายนีออนตัวหวัด Pacifico TATTOO (ชมพู) + No Regrets (ฟ้าอมม่วง) กะพริบเบา ๆ ไม่พร้อมกัน (`NeonFlicker`), LED ชมพูใต้ขอบเพดาน, ลำแสงปลอม (`LightShaft` additive) ใต้โคม, โคมตั้งพื้นข้างโซฟา, ภาพ flash art จากคลังลาย; ย้ายของ static/ไฟ baked ต้อง bake ใหม่ → [lighting.md](docs/lighting.md)
 - **UI (สไตล์นีออน):** แผ่นดำโปร่ง ขอบชมพู (`NeonPanel`) ฟอนต์ Inter Bold; การ์ดงานเดียวตรงหน้าตอนนั่ง (`JobCard`: ชื่อลาย+ระดับ+DONE → คะแนนนับขึ้น ดาว แต้ม, คะแนนรวม), ป้ายปุ่มที่เก้าอี้ตามโหมด (`SeatHintPanel`) → [ui.md](docs/ui.md)
 - **Desktop Test Mode (K, Editor):** เมาส์คุมเครื่อง วาด เติมหมึก เปลี่ยนหัว ซูม
@@ -36,9 +39,9 @@
 ## สคริปต์สำคัญ
 - สัก: `TattooMachine` (วาด, `ExternalTrigger`), `TattooCanvas` (RT หมึก + needle map), `TattooInk`/`InkCap`, `TattooNeedle`/`NeedleCartridge`, `InkHologram`/`InkGauge`, `ReturnToSocket`
 - ผู้เล่น: `TattooSeat`, `SeatHeadLimit`, `TattooDesktopTestMode` (reflection เข้า simulator)
-- ลูกค้า: `CustomerQueueManager`, `Customer`, `CustomerRoute`, `CustomerCharacter` (ท่า/IK), `CustomerCharacterPicker`, `CustomerTattooSkin`, `CustomerEmote`, `CustomerVoice`/`CustomerVoiceSet`
+- ลูกค้า: `CustomerQueueManager`, `Customer`, `CustomerRoute`, `CustomerCharacter` (ท่า/IK), `CustomerCharacterPicker`, `CustomerTattooSkin`, `CustomerEmote`, `CustomerVoice`/`CustomerVoiceSet`, `CustomerPain`, `CustomerPatience` (+ `PatienceScoring`)
 - งาน/คะแนน: `TattooJobManager` (`scoring`), `TattooScorer`, `StencilPlacement`, `StencilLibrary`
-- UI: `JobCard`, `NeonButton`, `NeonPanel` (shader `NeonPanel`), `SeatHintPanel`
+- UI: `JobCard`, `NeonButton`, `NeonPanel` (shader `NeonPanel`), `NeonBar` (เกจ), `SeatHintPanel`
 
 เมนู: `VRTattoo/Simulate Tattoo Scores` (ตารางคะแนนจำลอง ~30 วิ), `VRTattoo/Rebuild Stencil Library`, `VRTattoo/Characters/Setup Selected Models`
 
@@ -77,6 +80,7 @@
 - คะแนน: ลายพื้นทึบได้เปรียบเล็กน้อยตอนมือสั่น, ส่งงาน ~200 ms
 - หมึกค้างข้ามลูกค้า, รอยสักไม่ถาวร, ขอบเส้นขรุขระ (RT 1024), ผิวที่สักเป็นภาพนิ่ง, ลายบิดใกล้ข้อมือ/ข้อศอก
 - ยังไม่มีไฟล์เสียงลูกค้า (ช่องว่างอยู่)
+- ค่าความเจ็บ/ความอดทนจูนจากการวาดจำลอง ยังไม่ได้ลองเล่นจริง
 - แสงใหม่ยังไม่ได้ลองบนแว่นจริง (ความมืด/ความลื่น)
 - ลูกค้าไม่มี collider และไม่มีท่าลุก/นั่งลง, socket ไม่กรอง layer, ป้ายเป็นภาษาอังกฤษ
 - **ก่อนเผยแพร่:** โมเดลตัวละครติดลิขสิทธิ์และไม่อยู่ใน git (ก๊อป `Characters/Models/` + `SourceArt/Characters/` รวม `.meta`); ลายติดลิขสิทธิ์ `angry_duck`, `ghost_monster`, `cloud`
