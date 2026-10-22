@@ -1,0 +1,209 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &5577864070307347315
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7236657556267680593}
+  - component: {fileID: 2769533937438880294}
+  - component: {fileID: 8845718113989250478}
+  - component: {fileID: 3375893016400426577}
+  - component: {fileID: 7007207390092891522}
+  - component: {fileID: 5717667264541886561}
+  - component: {fileID: 3143004614321767897}
+  - component: {fileID: 1710886068718926062}
+  - component: {fileID: 4330090252324385355}
+  m_Layer: 0
+  m_Name: Customer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7236657556267680593
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5577864070307347315}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2769533937438880294
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5577864070307347315}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 80a8862ddb869cf4aac6b77f9d65399e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Customer
+  walkSpeed: 1.1
+  turnSpeed: 360
+  visual: {fileID: 8845718113989250478}
+--- !u!114 &8845718113989250478
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5577864070307347315}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 334b5866fad663b4facbbb402a6593c1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AnimatorCustomerVisual
+  animator: {fileID: 0}
+  character: {fileID: 0}
+  speedParameter: Speed
+  sitParameter: Sit
+  lieParameter: Lie
+--- !u!114 &3375893016400426577
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5577864070307347315}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16bf425e79453714dbee22d4eec96911, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CustomerCharacterPicker
+  characters:
+  - {fileID: 6660410148003074127, guid: 5fcba67b62f0b00418557371eb040c35, type: 3}
+  - {fileID: 837510690784376846, guid: 0a08ab006c790d3448d5881f973bc569, type: 3}
+  - {fileID: 5087049860116824625, guid: 6dda9c6b98bbec54391bc3e1a05654e0, type: 3}
+  - {fileID: 6533347969470875001, guid: 4e5bf710551bb764e85acc5a7c964cbc, type: 3}
+--- !u!114 &7007207390092891522
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5577864070307347315}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f5f71f029e879d34b88dcaa076c641d7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CustomerTattooSkin
+  brushMaterial: {fileID: 2100000, guid: d9419d45b2ef5c04ebfe9cf517a22f7c, type: 2}
+  overlayMaterial: {fileID: 2100000, guid: cc5d9c819a0819e4e8e0589e569e5b56, type: 2}
+  canvasSize: 0.2
+  textureSize: 1024
+  brushDiameter: 0.005
+  inkColor: {r: 0.02, g: 0.02, b: 0.02, a: 1}
+  stencilSize: 0.14
+  stencilAlong: 0.5
+  stencilTurnTowardsArtist: 15
+  minForearmWeight: 0.5
+  settleDelay: 0.5
+  glintSeconds: 0.9
+  sparklePrefab: {fileID: 6704854846021233066, guid: 509133dac03d8c1488f1697a0457fab1, type: 3}
+--- !u!114 &5717667264541886561
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5577864070307347315}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 812be4fdb50dfac4796bc9986b103186, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CustomerEmote
+  ecstatic: {fileID: 21300000, guid: a0896a18a7a3b39488a5a0cc39c54f7f, type: 3}
+  happy: {fileID: 21300000, guid: 2527e19cd0d5c4c40813559738b9651a, type: 3}
+  neutral: {fileID: 21300000, guid: 2bf5bb1cb00fcf044b1ef7240ca5d3d1, type: 3}
+  angry: {fileID: 21300000, guid: 739ec7f6027760540b817aaff704a804, type: 3}
+  annoyed: {fileID: 21300000, guid: 81837a0dfd86c034fbb539aba7ae3a6e, type: 3}
+  size: 0.28
+  heightAboveHead: 0.32
+  bobHeight: 0.02
+  bobSpeed: 2
+  popDuration: 0.4
+  popRise: 0.12
+  viewer: {fileID: 0}
+--- !u!114 &3143004614321767897
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5577864070307347315}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e197bda3b5ea4b944b3e524f3059d47c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CustomerVoice
+  maleVoice: {fileID: 11400000, guid: 11c677682728d294fab19756e79b29fa, type: 2}
+  femaleVoice: {fileID: 11400000, guid: eacc3d36526953d4684660cf9ee60540, type: 2}
+  minDistance: 0.5
+  maxDistance: 8
+  greetOnArrival: 1
+  greetingDelay: {x: 0.2, y: 0.8}
+  painMinTattooSeconds: 1.5
+  painCooldown: {x: 6, y: 12}
+  painChancePerSecond: 0.35
+  drawGrace: 0.2
+  debugLog: 0
+--- !u!114 &1710886068718926062
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5577864070307347315}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4ff254689d4b864e802376f33198486, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CustomerPain
+  toleranceRange: {x: 0.7, y: 1.4}
+  baseRate: 1.5
+  referenceDiameter: 0.005
+  needleExponent: 1.5
+  dwellRadius: 0.006
+  dwellGrace: 0.8
+  dwellRate: 10
+  dwellMaxRate: 30
+  fastSpeed: 0.12
+  fastRate: 8
+  fastMaxRate: 20
+  decayDelay: 0.4
+  decayRate: 8
+  flinchThreshold: 60
+  flinchInterval: {x: 1.5, y: 3}
+  flinchAngle: 4
+  flinchSeconds: 0.25
+  flinchInkOffset: 0.0015
+  flinchHapticAmplitude: 0.5
+  flinchHapticDuration: 0.1
+  debugLog: 0
+--- !u!114 &4330090252324385355
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5577864070307347315}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 803b6ff953208294ebde0eaecdd2e5f4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CustomerPatience
+  waitSeconds: {x: 150, y: 220}
+  annoyedFraction: 0.25
