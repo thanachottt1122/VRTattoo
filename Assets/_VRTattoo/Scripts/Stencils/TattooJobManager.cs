@@ -88,11 +88,9 @@ public class TattooJobManager : MonoBehaviour
 
     void Update()
     {
-#if UNITY_EDITOR
         var keyboard = Keyboard.current;
         if (submitKey != Key.None && keyboard != null && keyboard[submitKey].wasPressedThisFrame)
             Submit();
-#endif
         bool tattooing = !submitting && current != null && queue != null && queue.IsCustomerReady;
         if (tattooing && bedPain != null && bedPain.MaxedOut)
         {

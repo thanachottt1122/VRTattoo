@@ -167,6 +167,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 42b93f9aea9722d49ad6d2bd33113c25, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5087049860116824625}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 42b93f9aea9722d49ad6d2bd33113c25, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2265743958210535515}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 42b93f9aea9722d49ad6d2bd33113c25, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6456397636887149074}
   m_SourcePrefab: {fileID: 100100000, guid: 42b93f9aea9722d49ad6d2bd33113c25, type: 3}
 --- !u!95 &4517837279733520780 stripped
 Animator:
@@ -191,17 +197,136 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CustomerCharacter
   animator: {fileID: 4517837279733520780}
+  gender: 0
+  voiceOverride: {fileID: 0}
   sitOffset: {x: 0, y: -0.405, z: 0.07}
   sitRotation: {x: 0, y: 0, z: 0}
   lieOffset: {x: -0.153, y: 0, z: 0.038}
   lieRotation: {x: 0, y: 180, z: 0}
-  skinColor: {r: 0.66809106, g: 0.45606473, b: 0.36507824, a: 1}
-  alignArm: 1
-  handInset: 0.02
-  armDrop: 0.06
   armsAlongBody: 1
   handOutward: 0.05
   armRestHeight: 0.04
   feetOnBed: 1
   footSpread: 0.11
   ankleHeight: 0.08
+--- !u!82 &2265743958210535515
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7140854587560630604}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 0
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+--- !u!114 &6456397636887149074
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7140854587560630604}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 64b9bf9eb5215f24eb7e55f5a7bd275c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CustomerFootsteps
+  footsteps:
+  - {fileID: 8300000, guid: 87a66db87421f8e4590436172d2e6542, type: 3}
+  - {fileID: 8300000, guid: 9bde5df63dc395b4a8aa9ed64b999ac7, type: 3}
+  - {fileID: 8300000, guid: 485f5c20e3725d14689d74d3728b42e9, type: 3}
+  - {fileID: 8300000, guid: ec1ab502b00dfb8419859c4638b550aa, type: 3}
+  - {fileID: 8300000, guid: 5ad80154a5ca6dd4c818f6b7748eac9b, type: 3}
+  - {fileID: 8300000, guid: fc715e404f6af174fbc3bd2d5d603e14, type: 3}
+  - {fileID: 8300000, guid: 9ae209263f24161459e606d0630fc956, type: 3}
+  - {fileID: 8300000, guid: 304beab7182d76842ad0478ba9eb24a0, type: 3}
+  stepInterval: 0.5
+  minWalkSpeed: 0.3
+  volume: 0.6

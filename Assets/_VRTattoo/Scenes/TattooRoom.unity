@@ -40332,7 +40332,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TattooDesktopTestMode
   enabledMode: 0
-  editorOnly: 1
+  editorOnly: 0
   toggleKey: 25
   seat: {fileID: 1846268032}
   machine: {fileID: 1972448015}
