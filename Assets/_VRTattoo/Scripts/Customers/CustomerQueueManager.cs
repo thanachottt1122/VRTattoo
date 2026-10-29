@@ -31,6 +31,8 @@ public class CustomerQueueManager : MonoBehaviour
     public Key completeKey = Key.None;
 
     [Header("Events")]
+    [Tooltip("A new customer came in through the door")]
+    public UnityEvent<Customer> onCustomerEntered;
     public UnityEvent<Customer> onCustomerLayDown;
     public UnityEvent<Customer> onCustomerLeft;
     [Tooltip("A waiting customer ran out of patience and is leaving")]
@@ -141,7 +143,7 @@ public class CustomerQueueManager : MonoBehaviour
             if (c.TryGetComponent(out CustomerEmote emote))
                 emote.Show(CustomerMood.Angry);
             if (c.TryGetComponent(out CustomerVoice voice))
-                voice.PlayMood(CustomerMood.Angry);
+                voice.PlayReaction(CustomerVoiceLine.Angry);
             onCustomerGaveUp?.Invoke(c);
             SendHome(slot);
             return;  // the queue changed; check the rest next frame
@@ -159,6 +161,7 @@ public class CustomerQueueManager : MonoBehaviour
         if (spawnsLeft != int.MaxValue)
             spawnsLeft--;
         slots[slot] = customer;
+        onCustomerEntered?.Invoke(customer);
         SendToSlot(customer);
     }
 

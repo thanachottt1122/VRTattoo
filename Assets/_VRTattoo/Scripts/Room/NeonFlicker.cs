@@ -5,6 +5,7 @@ using UnityEngine;
 // Old-neon flicker: every few seconds the sign dims for a few quick blinks, then returns to full.
 // Works on runtime material instances (TMP face/glow + additive halo), so assets are untouched.
 // Each sign rolls its own random timings, so two signs never stay in sync.
+// Brightness is read by LightBuzz so the sign's hum dips with each blink.
 public class NeonFlicker : MonoBehaviour
 {
     public TextMeshPro text;
@@ -33,6 +34,9 @@ public class NeonFlicker : MonoBehaviour
     static readonly int FaceColorId = Shader.PropertyToID("_FaceColor");
     static readonly int GlowColorId = Shader.PropertyToID("_GlowColor");
     static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
+
+    // 1 = full, dimLevel while blinking.
+    public float Brightness { get; private set; } = 1f;
 
     Material textMaterial;
     Material haloMaterial;
@@ -75,6 +79,7 @@ public class NeonFlicker : MonoBehaviour
 
     void SetBrightness(float k)
     {
+        Brightness = k;
         if (textMaterial != null)
         {
             textMaterial.SetColor(FaceColorId, Scale(faceColor, k));

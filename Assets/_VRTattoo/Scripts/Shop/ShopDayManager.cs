@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Events;
 
 // What happened during one day, for the summary panel.
 public class DayStats
@@ -36,6 +37,9 @@ public class ShopDayManager : MonoBehaviour
     public int customersPerDay = 5;
     [Tooltip("Seconds between the last customer leaving and the summary")]
     public float summaryDelay = 1f;
+
+    [Tooltip("A day starts (the Day N banner appears)")]
+    public UnityEvent onDayStarted;
 
     [Header("Harder every day")]
     [Tooltip("Days until the design weights reach the job manager's end weights (day 1 = start weights)")]
@@ -144,6 +148,7 @@ public class ShopDayManager : MonoBehaviour
             card.ShowWaiting(Money);
         }
         Debug.Log($"[ShopDay] Day {Day}/{totalDays} starts: {customersPerDay} customers, hard-design ramp {DifficultyRamp:0.00}, patience x{PatienceScale:0.00}, bank ${Money}");
+        onDayStarted?.Invoke();
 
         if (banner != null)
             yield return banner.Show($"Day {Day} / {totalDays}");

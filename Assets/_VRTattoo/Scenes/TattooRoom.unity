@@ -689,6 +689,11 @@ Transform:
   - {fileID: 511209218}
   m_Father: {fileID: 1241370437}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &18497142 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1717954561962503725, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
+  m_PrefabInstance: {fileID: 1666901912}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &27972454 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 202364688, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
@@ -11703,6 +11708,12 @@ MonoBehaviour:
   - {fileID: 289454936}
   - {fileID: 1824041370}
   grade: {fileID: 476162531}
+  labels:
+  - {fileID: 1480253405}
+  - {fileID: 927515933}
+  - {fileID: 1744019075}
+  - {fileID: 16722949}
+  gradeLabel: {fileID: 1582633504}
   playAgainButton: {fileID: 2108826405}
   sBurst: {fileID: 80527298}
   onPlayAgain:
@@ -11715,6 +11726,10 @@ MonoBehaviour:
   aColor: {r: 1, g: 0.45, b: 0.9, a: 1}
   bColor: {r: 0.45, g: 0.75, b: 1, a: 1}
   cColor: {r: 0.8, g: 0.8, b: 0.85, a: 1}
+  firstRowY: 0.115
+  rowSpacing: 0.033
+  gradeY: -0.06
+  gradeX: 0.105
   viewer: {fileID: 0}
   distance: 0.8
   rowInterval: 0.15
@@ -12034,6 +12049,81 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 3.15497, y: -0, z: 2.65719}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &222988175
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 222988177}
+  - component: {fileID: 222988176}
+  m_Layer: 0
+  m_Name: ShopSounds
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &222988176
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 222988175}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7ea1d66b00103ac4991042bcc2d17243, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShopSounds
+  ambienceOutput: {fileID: 4477089665514348768, guid: c6d748b66a8864f4c8b7c3e41d79a30b, type: 2}
+  sfxOutput: {fileID: 2468269088372010309, guid: c6d748b66a8864f4c8b7c3e41d79a30b, type: 2}
+  queue: {fileID: 832939858}
+  day: {fileID: 1241370436}
+  card: {fileID: 932046230}
+  ambience: {fileID: 8300000, guid: 40ac4a00423aeaa468c930c8f6a01a4f, type: 3}
+  ambienceVolume: 0.25
+  click: {fileID: 8300000, guid: af61e3ae1ff4a4b4cb9a5d6d2d000202, type: 3}
+  clickVolume: 0.6
+  hover: {fileID: 8300000, guid: c219f187fb1d6eb43b597d14caace9ee, type: 3}
+  hoverVolume: 0.15
+  hoverPitchJitter: 0.06
+  threeStars: {fileID: 8300000, guid: 0efbec50b5f8dec41b721986dd7cee7e, type: 3}
+  threeStarsVolume: 0.8
+  bell: {fileID: 8300000, guid: 9650f828f1c60e140970d28ba72155d3, type: 3}
+  bellVolume: 0.35
+  bellCooldown: 1
+  bellMinDistance: 1
+  bellMaxDistance: 15
+  doorClips:
+  - {fileID: 8300000, guid: afcfd6a46f3d8dc4292f4955eed4d58a, type: 3}
+  - {fileID: 8300000, guid: ad535296077ca5a4897a0be598e1f454, type: 3}
+  - {fileID: 8300000, guid: 60281a8b0afd27842a9e648239679675, type: 3}
+  doorVolume: 0.7
+  bellAfterDoor: 0.25
+  doorMinDistance: 2.5
+  doorHeight: 1.2
+  gameComplete: {fileID: 8300000, guid: 929516039a4758f40a88915a1190989c, type: 3}
+  gameCompleteVolume: 0.8
+  gradeCVolumeScale: 0.75
+  debugLog: 0
+--- !u!4 &222988177
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 222988175}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -14276,6 +14366,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 447749251}
+  - component: {fileID: 447749252}
   m_Layer: 0
   m_Name: CeilingLamp_Back
   m_TagString: Untagged
@@ -14301,6 +14392,26 @@ Transform:
   - {fileID: 832821350}
   m_Father: {fileID: 1310948671}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &447749252
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 447749250}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 08ac82f0123c91048b9ce56d4f0ee1eb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LightBuzz
+  clip: {fileID: 8300000, guid: 1a62ee21145fbd64597a5f2ee364dbb5, type: 3}
+  output: {fileID: 4477089665514348768, guid: c6d748b66a8864f4c8b7c3e41d79a30b, type: 2}
+  volume: 0.06
+  minDistance: 0.4
+  maxDistance: 3.5
+  flicker: {fileID: 0}
+  dimVolume: 0.15
+  debugLog: 0
 --- !u!1 &448281116
 GameObject:
   m_ObjectHideFlags: 0
@@ -14849,7 +14960,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 476162528}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -0.002}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -16146,6 +16257,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8264330174047560729, guid: eafcc285ab1da13449451f968c1ea2e1, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1846268033}
+    - targetCorrespondingSourceObject: {fileID: 8264330174047560729, guid: eafcc285ab1da13449451f968c1ea2e1, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1846268034}
     - targetCorrespondingSourceObject: {fileID: 2376270262810943712, guid: eafcc285ab1da13449451f968c1ea2e1, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1288879970}
@@ -17099,9 +17213,11 @@ MonoBehaviour:
   padding: {x: 0.03, y: 0.02}
   standingAnchor: {fileID: 120248854}
   seatedAnchor: {fileID: 1327708413}
-  showSeconds: 5
+  showSeconds: 12
+  fadeOutSeconds: 3
   fadeSpeed: 3
   keyColor: '#FF7ADB'
+  debugLog: 0
 --- !u!1 &628718194
 GameObject:
   m_ObjectHideFlags: 0
@@ -17274,7 +17390,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -17826,12 +17942,37 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1178791450436251564, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
   m_PrefabInstance: {fileID: 1666901912}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 18497142}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e0cb9aa70a22847b5925ee5f067c10a9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &652549421
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 18497142}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01a94849b36821d469953a3dc600fb47, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerRoomBounds
+  xrOrigin: {fileID: 652549416}
+  seat: {fileID: 1846268032}
+  blockerRoots:
+  - {fileID: 2002831465}
+  - {fileID: 2005516518}
+  - {fileID: 1442531179}
+  blockSimulatorHead: 1
+  maxStep: 0.5
+  headRadius: 0.1
+  fadeSpeed: 3
+  fadeRenderer: {fileID: 1057174053}
+  seatHeadLimit: {fileID: 1846268033}
+  debugLog: 0
 --- !u!1 &653285869
 GameObject:
   m_ObjectHideFlags: 0
@@ -18445,7 +18586,7 @@ MonoBehaviour:
   rise: 0.12
   startScale: 0.7
   endScale: 1.1
-  sound: {fileID: 0}
+  sound: {fileID: 8300000, guid: 2936b1692191ac043a6226fa5d8dced6, type: 3}
   volume: 0.7
 --- !u!1 &709640538
 GameObject:
@@ -23413,6 +23554,7 @@ GameObject:
   - component: {fileID: 762703235}
   - component: {fileID: 762703234}
   - component: {fileID: 762703236}
+  - component: {fileID: 762703237}
   m_Layer: 0
   m_Name: NeonSign
   m_TagString: Untagged
@@ -23609,6 +23751,26 @@ MonoBehaviour:
   minGapTime: 0.05
   maxGapTime: 0.15
   logFlickers: 0
+--- !u!114 &762703237
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 762703232}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 08ac82f0123c91048b9ce56d4f0ee1eb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LightBuzz
+  clip: {fileID: 8300000, guid: 1a62ee21145fbd64597a5f2ee364dbb5, type: 3}
+  output: {fileID: 4477089665514348768, guid: c6d748b66a8864f4c8b7c3e41d79a30b, type: 2}
+  volume: 0.05
+  minDistance: 0.4
+  maxDistance: 3
+  flicker: {fileID: 762703236}
+  dimVolume: 0.15
+  debugLog: 0
 --- !u!1 &766490220
 GameObject:
   m_ObjectHideFlags: 0
@@ -24189,6 +24351,9 @@ MonoBehaviour:
   tattooCanvas: {fileID: 0}
   spawnInterval: 1.5
   completeKey: 0
+  onCustomerEntered:
+    m_PersistentCalls:
+      m_Calls: []
   onCustomerLayDown:
     m_PersistentCalls:
       m_Calls: []
@@ -24235,30 +24400,30 @@ MonoBehaviour:
   scoreDisplaySeconds: 3.5
   submitKey: 24
   scoring:
-    coverTolerance: 0.0015
-    messTolerance: 0
-    messFalloff: 0.0032
-    needleSlack: 1.1
-    messLimit: 1
-    messPower: 0.58
+    coverTolerance: 0.00175
+    messTolerance: 0.0005
+    messFalloff: 0.004
+    needleSlack: 0.8
+    messLimit: 0.8
+    messPower: 1
   money:
     easyPrice: 50
     mediumPrice: 80
     hardPrice: 120
     tipFraction: {x: 0.1, y: 0.3}
   patience:
-    easySeconds: 60
-    mediumSeconds: 90
-    hardSeconds: 130
+    easySeconds: 90
+    mediumSeconds: 120
+    hardSeconds: 170
     fastFraction: 0.5
     fastBonus: 0.25
     bonusMinQuality: 40
-    overtimePenaltyPerSecond: 1
-    maxOvertimePenalty: 30
+    overtimePenaltyPerSecond: 0.5
+    maxOvertimePenalty: 15
   moods:
-    ecstatic: 90
-    happy: 70
-    neutral: 40
+    ecstatic: 80
+    happy: 55
+    neutral: 30
   rampCustomers: 10
   startWeights: {x: 0.7, y: 0.25, z: 0.05}
   endWeights: {x: 0.2, y: 0.4, z: 0.4}
@@ -25114,7 +25279,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -26199,7 +26364,7 @@ MonoBehaviour:
   onThreeStars:
     m_PersistentCalls:
       m_Calls: []
-  starThresholds: {x: 70, y: 90}
+  starThresholds: {x: 55, y: 80}
   starOn: {r: 1, g: 0.82, b: 0.3, a: 1}
   starOff: {r: 1, g: 1, b: 1, a: 0.18}
   countUpSeconds: 0.8
@@ -32008,7 +32173,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -34907,6 +35072,9 @@ MonoBehaviour:
   totalDays: 5
   customersPerDay: 5
   summaryDelay: 1
+  onDayStarted:
+    m_PersistentCalls:
+      m_Calls: []
   rampDays: 5
   patiencePerDay: 0.92
   minPatience: 0.6
@@ -36268,7 +36436,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -37399,6 +37567,11 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 5, y: 0.2999649, z: 4.999999}
   m_Center: {x: 0, y: 0.14998245, z: 0.0000004917383}
+--- !u!4 &1442531179 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4227889827151656, guid: a119e130096f5df45a4eefc45b1a0264, type: 3}
+  m_PrefabInstance: {fileID: 2047780528}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1456392475
 GameObject:
   m_ObjectHideFlags: 0
@@ -39001,7 +39174,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1582633502}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -0.002}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -39720,6 +39893,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1602324643}
+  - component: {fileID: 1602324644}
   m_Layer: 0
   m_Name: CeilingLamp_Sofas
   m_TagString: Untagged
@@ -39745,6 +39919,26 @@ Transform:
   - {fileID: 1671321010}
   m_Father: {fileID: 1310948671}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1602324644
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1602324642}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 08ac82f0123c91048b9ce56d4f0ee1eb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LightBuzz
+  clip: {fileID: 8300000, guid: 1a62ee21145fbd64597a5f2ee364dbb5, type: 3}
+  output: {fileID: 4477089665514348768, guid: c6d748b66a8864f4c8b7c3e41d79a30b, type: 2}
+  volume: 0.06
+  minDistance: 0.4
+  maxDistance: 3.5
+  flicker: {fileID: 0}
+  dimVolume: 0.15
+  debugLog: 0
 --- !u!1 &1602469548
 GameObject:
   m_ObjectHideFlags: 0
@@ -40810,6 +41004,9 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 1556616756}
     m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 1717954561962503725, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 652549421}
     - targetCorrespondingSourceObject: {fileID: 1767192433, guid: f6336ac4ac8b4d34bc5072418cdc62a0, type: 3}
       insertIndex: -1
       addedObject: {fileID: 154601212}
@@ -43627,6 +43824,32 @@ MonoBehaviour:
   fadeRenderer: {fileID: 1057174053}
   lockSimulatorHead: 1
   deviceSimulator: {fileID: 0}
+--- !u!114 &1846268034
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1692001264}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 55da998bd7bcb5040b867715c455a117, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TattooSeatSound
+  output: {fileID: 2468269088372010309, guid: c6d748b66a8864f4c8b7c3e41d79a30b, type: 2}
+  sitClip: {fileID: 0}
+  fallbackClips:
+  - {fileID: 8300000, guid: 1b6d57a18b7a9f14a90a24d78f6b7e6f, type: 3}
+  - {fileID: 8300000, guid: 4d7e509ba7fe355408b5401e14bff000, type: 3}
+  - {fileID: 8300000, guid: a7616d336e9938243b60f25171715b82, type: 3}
+  volume: 0.8
+  sitPitch: 1
+  standPitch: 1.12
+  pitchJitter: 0.03
+  minDistance: 1
+  maxDistance: 8
+  height: 0.4
+  debugLog: 0
 --- !u!1 &1848839919 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: ff3c41b253b4d8e44938e1daee4aceed, type: 3}
@@ -45066,6 +45289,7 @@ GameObject:
   - component: {fileID: 1962763578}
   - component: {fileID: 1962763577}
   - component: {fileID: 1962763576}
+  - component: {fileID: 1962763579}
   m_Layer: 0
   m_Name: NeonSign_NoRegrets
   m_TagString: Untagged
@@ -45262,6 +45486,26 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &1962763579
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1962763574}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 08ac82f0123c91048b9ce56d4f0ee1eb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LightBuzz
+  clip: {fileID: 8300000, guid: 1a62ee21145fbd64597a5f2ee364dbb5, type: 3}
+  output: {fileID: 4477089665514348768, guid: c6d748b66a8864f4c8b7c3e41d79a30b, type: 2}
+  volume: 0.05
+  minDistance: 0.4
+  maxDistance: 3
+  flicker: {fileID: 1962763576}
+  dimVolume: 0.15
+  debugLog: 0
 --- !u!1 &1964686194
 GameObject:
   m_ObjectHideFlags: 0
@@ -45431,6 +45675,7 @@ GameObject:
   - component: {fileID: 1972448022}
   - component: {fileID: 1972448024}
   - component: {fileID: 1972448025}
+  - component: {fileID: 1972448026}
   m_Layer: 0
   m_Name: TattooMachine
   m_TagString: Untagged
@@ -45755,6 +46000,56 @@ MonoBehaviour:
   onChanged:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &1972448026
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1972448013}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93bb7cb261dfdf74fbdf1991c2291e81, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TattooMachineSound
+  output: {fileID: 2468269088372010309, guid: c6d748b66a8864f4c8b7c3e41d79a30b, type: 2}
+  minDistance: 0.3
+  maxDistance: 6
+  loops:
+  - {fileID: 8300000, guid: 482c8862e8b41024d89d3dbd7c7f3f8c, type: 3}
+  - {fileID: 8300000, guid: 8e4e642696d484d4d8f391b86a6a86f2, type: 3}
+  - {fileID: 8300000, guid: 1f078b5167829b544992fb8aaac71716, type: 3}
+  runVolume: 0.35
+  touchVolume: 0.5
+  fadeIn: 0.15
+  fadeOut: 0.25
+  pressPitchRange: 0.05
+  referenceDiameter: 0.005
+  needlePitchExponent: 0.12
+  touchPitch: 0.97
+  waverDepth: 0.02
+  waverRate: 6
+  waverFullSpeed: 0.12
+  pitchFollow: 8
+  needleSnap: {fileID: 8300000, guid: ada563206b788b244b1d36780ca19b91, type: 3}
+  needleTighten: {fileID: 8300000, guid: 10169a48dd3408b44a63e3f55d2a8442, type: 3}
+  tightenDelay: 0.15
+  needleVolume: 0.8
+  inkClips:
+  - {fileID: 8300000, guid: a5594869450202e4fb1d3ab8440c3242, type: 3}
+  - {fileID: 8300000, guid: c5f608c8a9e402d4c84bdc471ee26641, type: 3}
+  - {fileID: 8300000, guid: 3712dd4d66d06c543a93d5e0673ed19b, type: 3}
+  - {fileID: 8300000, guid: 81672077ed2c6344c8489a2193fdf36a, type: 3}
+  - {fileID: 8300000, guid: 4824e20c555de3e458eee8a41c3acd7b, type: 3}
+  - {fileID: 8300000, guid: 481a51edc055340428b81946558bf864, type: 3}
+  - {fileID: 8300000, guid: 7aab691774a540646a88e901c3525bf7, type: 3}
+  - {fileID: 8300000, guid: 754f11b3dc925a344809a03870bdabee, type: 3}
+  - {fileID: 8300000, guid: d0bc8b14a8305374db1e1329016d34fe, type: 3}
+  - {fileID: 8300000, guid: a74df5a642eca3f45a855744633a7f1f, type: 3}
+  inkVolume: 0.8
+  inkPitchRange: 0.1
+  newColourGap: 0.02
+  debugLog: 0
 --- !u!1 &1974143194
 GameObject:
   m_ObjectHideFlags: 0
@@ -47428,3 +47723,4 @@ SceneRoots:
   - {fileID: 832939859}
   - {fileID: 1276102098}
   - {fileID: 1241370437}
+  - {fileID: 222988177}

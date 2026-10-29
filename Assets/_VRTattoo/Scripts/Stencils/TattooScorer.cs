@@ -35,12 +35,12 @@ public struct TattooScoringRules
     // Tuned with VRTattoo/Simulate Tattoo Scores.
     public static TattooScoringRules Default => new TattooScoringRules
     {
-        coverTolerance = 0.0015f,
-        messTolerance = 0f,
+        coverTolerance = 0.0025f,
+        messTolerance = 0.001f,
         needleSlack = 1.1f,
-        messFalloff = 0.0032f,
-        messLimit = 1f,
-        messPower = 0.58f,
+        messFalloff = 0.005f,
+        messLimit = 1.5f,
+        messPower = 0.9f,
     };
 }
 

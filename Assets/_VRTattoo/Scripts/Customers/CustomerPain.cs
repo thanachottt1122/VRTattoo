@@ -10,11 +10,11 @@ public class CustomerPain : MonoBehaviour
 {
     [Header("Tolerance")]
     [Tooltip("Random per customer. Pain builds up divided by this (1.4 = takes 40% longer to hurt)")]
-    public Vector2 toleranceRange = new Vector2(0.7f, 1.4f);
+    public Vector2 toleranceRange = new Vector2(0.85f, 1.5f);
 
     [Header("Pain while tattooing (% per second)")]
     [Tooltip("Pain per second of tattooing with the reference needle")]
-    public float baseRate = 1.5f;
+    public float baseRate = 1.2f;
     [Tooltip("Needle diameter for baseRate (m)")]
     public float referenceDiameter = 0.005f;
     [Tooltip("Bigger needles hurt more: rate x (diameter / reference) ^ this")]
@@ -25,7 +25,7 @@ public class CustomerPain : MonoBehaviour
     [Tooltip("Time on one spot before it starts to hurt more (s)")]
     public float dwellGrace = 0.8f;
     [Tooltip("Extra pain per second, growing by this much for every second on the same spot")]
-    public float dwellRate = 10f;
+    public float dwellRate = 8f;
     [Tooltip("Most extra pain per second from staying on one spot")]
     public float dwellMaxRate = 30f;
 
@@ -40,7 +40,7 @@ public class CustomerPain : MonoBehaviour
     [Tooltip("Pain starts falling this long after the needle stops (s)")]
     public float decayDelay = 0.4f;
     [Tooltip("Pain lost per second when not being tattooed")]
-    public float decayRate = 8f;
+    public float decayRate = 10f;
 
     [Header("Flinch")]
     [Range(0f, 100f)] public float flinchThreshold = 60f;
@@ -152,7 +152,7 @@ public class CustomerPain : MonoBehaviour
         if (canvas != null && flinchInkOffset > 0f)
             canvas.Nudge = Random.insideUnitCircle.normalized * flinchInkOffset;
         if (voice != null)
-            voice.Play(CustomerVoiceLine.Pain);
+            voice.PlayPain(true);
         if (machine == null)
             machine = FindFirstObjectByType<TattooMachine>();
         if (machine != null)

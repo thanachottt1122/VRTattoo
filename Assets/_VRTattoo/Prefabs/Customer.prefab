@@ -17,6 +17,7 @@ GameObject:
   - component: {fileID: 3143004614321767897}
   - component: {fileID: 1710886068718926062}
   - component: {fileID: 4330090252324385355}
+  - component: {fileID: 5625143182609475216}
   m_Layer: 0
   m_Name: Customer
   m_TagString: Untagged
@@ -151,14 +152,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CustomerVoice
   maleVoice: {fileID: 11400000, guid: 11c677682728d294fab19756e79b29fa, type: 2}
   femaleVoice: {fileID: 11400000, guid: eacc3d36526953d4684660cf9ee60540, type: 2}
+  customerPitchRange: {x: 0.94, y: 1.06}
+  output: {fileID: -6570183305414139046, guid: c6d748b66a8864f4c8b7c3e41d79a30b, type: 2}
   minDistance: 0.5
   maxDistance: 8
+  painLoudness: 1.5
   greetOnArrival: 1
   greetingDelay: {x: 0.2, y: 0.8}
   painMinTattooSeconds: 1.5
   painCooldown: {x: 6, y: 12}
   painChancePerSecond: 0.35
   drawGrace: 0.2
+  painVolume: {x: 0.5, y: 0.85}
+  flinchVolume: 1
+  minPainGap: 3
+  reactionMaxWait: 2
   debugLog: 0
 --- !u!114 &1710886068718926062
 MonoBehaviour:
@@ -172,19 +180,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4ff254689d4b864e802376f33198486, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CustomerPain
-  toleranceRange: {x: 0.7, y: 1.4}
-  baseRate: 1.5
+  toleranceRange: {x: 0.85, y: 1.5}
+  baseRate: 1.2
   referenceDiameter: 0.005
   needleExponent: 1.5
   dwellRadius: 0.006
   dwellGrace: 0.8
-  dwellRate: 10
+  dwellRate: 8
   dwellMaxRate: 30
   fastSpeed: 0.12
   fastRate: 8
   fastMaxRate: 20
   decayDelay: 0.4
-  decayRate: 8
+  decayRate: 10
   flinchThreshold: 60
   flinchInterval: {x: 1.5, y: 3}
   flinchAngle: 4
@@ -207,3 +215,37 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CustomerPatience
   waitSeconds: {x: 150, y: 220}
   annoyedFraction: 0.25
+  scale: 1
+--- !u!114 &5625143182609475216
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5577864070307347315}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9d6cc96754cddb94494fb14ab3d0fa94, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CustomerFoley
+  output: {fileID: 2468269088372010309, guid: c6d748b66a8864f4c8b7c3e41d79a30b, type: 2}
+  minDistance: 1.5
+  maxDistance: 10
+  height: 0.3
+  sitClips:
+  - {fileID: 8300000, guid: 1b6d57a18b7a9f14a90a24d78f6b7e6f, type: 3}
+  - {fileID: 8300000, guid: 4d7e509ba7fe355408b5401e14bff000, type: 3}
+  - {fileID: 8300000, guid: a7616d336e9938243b60f25171715b82, type: 3}
+  lieClips:
+  - {fileID: 8300000, guid: b2c48c305618dc24284a3cbd077dad2c, type: 3}
+  - {fileID: 8300000, guid: bf7291bf60d915f4c9c04edb677a8afd, type: 3}
+  - {fileID: 8300000, guid: 20bb37c9b6b3b6146912e0fc6f6a9938, type: 3}
+  settleVolume: 0.7
+  rustleVolume: 0.5
+  flinchVolume: 0.7
+  flinchWait: 1.5
+  firstRustle: {x: 2, y: 4}
+  rustleInterval: {x: 6, y: 12}
+  drawGrace: 0.2
+  minGap: 1.5
+  debugLog: 0

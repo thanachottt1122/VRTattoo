@@ -72,7 +72,7 @@ public class TattooMachine : MonoBehaviour
     }
 
     // The trigger is pressed for a refill or a needle swap here, not to draw.
-    bool AtTrolley => (ink != null && ink.DippedCap != null) || (needle != null && needle.TouchedCartridge != null);
+    public bool AtTrolley => (ink != null && ink.DippedCap != null) || (needle != null && needle.TouchedCartridge != null);
 
     void OnEnable()
     {

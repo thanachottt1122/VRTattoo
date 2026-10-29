@@ -96,7 +96,11 @@ public class TattooDesktopTestMode : MonoBehaviour
             grabInteractable = machine.GetComponent<XRGrabInteractable>();
     }
 
-    void OnDisable() => SetOverride(false);
+    void OnDisable()
+    {
+        SetOverride(false);
+        NeonButton.HoverWithRay(null);
+    }
 
     void Update()
     {
@@ -111,6 +115,7 @@ public class TattooDesktopTestMode : MonoBehaviour
         }
 
         bool seated = enabledMode && seat != null && seat.IsSeated;
+        HoverButtons(seated);
         if (seated && ClickedButton())
             return;
         if (seated)
@@ -164,6 +169,16 @@ public class TattooDesktopTestMode : MonoBehaviour
         {
             machine.ExternalTrigger = false;
         }
+    }
+
+    // The mouse points at NeonButtons like a controller ray does (glow + hover sound), only where it can click them.
+    void HoverButtons(bool seated)
+    {
+        var cam = viewCamera != null ? viewCamera : Camera.main;
+        var mouse = Mouse.current;
+        NeonButton.HoverWithRay(seated && cam != null && mouse != null
+            ? cam.ScreenPointToRay(mouse.position.ReadValue())
+            : (Ray?)null);
     }
 
     // A click on a shown NeonButton (the job card's DONE) presses it instead of tattooing.

@@ -5,8 +5,8 @@ using UnityEngine.XR.Interaction.Toolkit.Inputs.Simulation;
 // Button hints at the artist chair, in the NeonPanel style, matching what the player is using:
 // headset, XR Device Simulator on the computer, or Desktop Test Mode (mouse).
 //   standing near the chair: one line ("[B] Sit"), floating above the chair and facing the player
-//   seated: two short lines beside the work area for showSeconds, then fades away
-//           (shown again when sitting down again or when the input mode changes)
+//   seated: two short lines beside the work area for showSeconds, then slowly fades away over fadeOutSeconds
+//           (shown again when standing up and sitting down again, or when the input mode changes)
 public class SeatHintPanel : MonoBehaviour
 {
     public TattooSeat seat;
@@ -27,11 +27,17 @@ public class SeatHintPanel : MonoBehaviour
     public Transform seatedAnchor;
 
     [Header("Timing")]
-    public float showSeconds = 5f;
+    [Tooltip("How long the seated hint stays fully visible after sitting down (s)")]
+    public float showSeconds = 12f;
+    [Tooltip("How long the seated hint takes to fade away after showSeconds (s)")]
+    public float fadeOutSeconds = 3f;
+    [Tooltip("Fade change per second when appearing, and for the standing hint")]
     public float fadeSpeed = 3f;
 
     [Header("Look")]
     public string keyColor = "#FF7ADB";
+
+    public bool debugLog;
 
     enum InputMode { Headset, Simulator, Desktop }
 
@@ -67,7 +73,11 @@ public class SeatHintPanel : MonoBehaviour
         lastMode = mode;
 
         bool show = seated ? Time.time - seatedShownTime < showSeconds : seat.IsPlayerInRange();
-        alpha = Mathf.MoveTowards(alpha, show ? 1f : 0f, fadeSpeed * Time.deltaTime);
+        float speed = seated && !show && fadeOutSeconds > 0f ? 1f / fadeOutSeconds : fadeSpeed;
+        float before = alpha;
+        alpha = Mathf.MoveTowards(alpha, show ? 1f : 0f, speed * Time.deltaTime);
+        if (debugLog && seated && before > 0f && alpha <= 0f)
+            Debug.Log($"[SeatHintPanel] seated hint gone after {Time.time - seatedShownTime:0.0} s");
 
         SetText(seated ? SeatedText(mode) : StandingText(mode));
         Place(seated);

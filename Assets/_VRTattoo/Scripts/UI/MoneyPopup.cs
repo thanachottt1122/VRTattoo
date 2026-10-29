@@ -4,7 +4,7 @@ using UnityEngine;
 
 // "+$50" that floats up off the job card, grows a little and fades out, then destroys itself.
 // The card keeps an inactive template and plays copies of it (JobCard.SpawnPopup).
-// An optional coin sound can be set later; it is played once when the popup starts.
+// The coin sound is played once when the popup starts (through ShopSounds' SFX group when there is one).
 public class MoneyPopup : MonoBehaviour
 {
     public TMP_Text label;
@@ -24,7 +24,12 @@ public class MoneyPopup : MonoBehaviour
         label.text = text;
         label.color = color;
         if (sound != null)
-            AudioSource.PlayClipAtPoint(sound, transform.position, volume);
+        {
+            if (ShopSounds.Instance != null)
+                ShopSounds.Instance.PlayAt(sound, transform.position, volume);
+            else
+                AudioSource.PlayClipAtPoint(sound, transform.position, volume);
+        }
         StartCoroutine(Rise(color));
     }
 

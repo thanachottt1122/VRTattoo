@@ -211,11 +211,17 @@ public class TattooJobManager : MonoBehaviour
             sessionMoney += pay + tip;
         Debug.Log($"[TattooJob] {current.displayName}: accuracy {score.accuracy:P0}, mess area {score.messRatio:0.00}x design (-{score.messPenalty}), quality {score.quality}, time {elapsed:0}/{duration:0}s (-{overtime}, bonus +{bonus:P0}) -> {quality}, +{points} pts, {stars} stars, ${pay} + tip ${tip} (bank ${Money}), mood {mood}");
 
-        // The customer reacts: emote above the head (stays until they leave) and a voice line.
+        // The customer reacts: emote above the head (stays until they leave) and, once the stars are on the
+        // card, a voice line by stars: 1 = insult, 2 = compliment, 3 = big compliment.
         if (skin.TryGetComponent(out CustomerEmote emote))
             emote.Show(mood);
         if (skin.TryGetComponent(out CustomerVoice voice))
-            voice.PlayMood(mood);
+        {
+            if (card != null)
+                voice.PlayReaction(LineForStars(stars), card.StarsShownSeconds(quality));
+            else
+                voice.PlayMood(mood);
+        }
 
         // Only the result is shown; the formula (accuracy, mess, multiplier) stays in the log above.
         resultSkin = skin;
@@ -243,7 +249,7 @@ public class TattooJobManager : MonoBehaviour
         if (skin.TryGetComponent(out CustomerEmote emote))
             emote.Show(CustomerMood.Angry);
         if (skin.TryGetComponent(out CustomerVoice voice))
-            voice.PlayMood(CustomerMood.Angry);
+            voice.PlayReaction(CustomerVoiceLine.Angry);
         if (card != null)
             card.ShowWalkout(Money);
         FinishJob(skin);
@@ -267,6 +273,9 @@ public class TattooJobManager : MonoBehaviour
         queue.CompleteTattoo();
         submitting = false;
     }
+
+    static CustomerVoiceLine LineForStars(int stars) =>
+        stars >= 3 ? CustomerVoiceLine.Ecstatic : stars == 2 ? CustomerVoiceLine.Happy : CustomerVoiceLine.Angry;
 
     void OnThreeStars()
     {

@@ -94,14 +94,14 @@ public struct PatienceScoring
 
     public static PatienceScoring Default => new PatienceScoring
     {
-        easySeconds = 60f,
-        mediumSeconds = 90f,
-        hardSeconds = 130f,
+        easySeconds = 90f,
+        mediumSeconds = 120f,
+        hardSeconds = 170f,
         fastFraction = 0.5f,
         fastBonus = 0.25f,
         bonusMinQuality = 40,
-        overtimePenaltyPerSecond = 1f,
-        maxOvertimePenalty = 30,
+        overtimePenaltyPerSecond = 0.5f,
+        maxOvertimePenalty = 15,
     };
 
     public float Seconds(StencilDifficulty difficulty) => difficulty switch

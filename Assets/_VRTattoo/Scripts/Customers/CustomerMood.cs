@@ -18,7 +18,7 @@ public struct CustomerMoodThresholds
     [Tooltip("This quality and above: neutral / not quite satisfied. Below it: angry")]
     [Range(0, 100)] public int neutral;
 
-    public static CustomerMoodThresholds Default => new CustomerMoodThresholds { ecstatic = 90, happy = 70, neutral = 40 };
+    public static CustomerMoodThresholds Default => new CustomerMoodThresholds { ecstatic = 80, happy = 55, neutral = 30 };
 
     public CustomerMood For(int quality)
     {

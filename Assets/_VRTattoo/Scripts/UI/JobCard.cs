@@ -79,7 +79,7 @@ public class JobCard : MonoBehaviour
 
     [Header("Stars")]
     [Tooltip("Quality needed for 2 and 3 stars (1 star below the first)")]
-    public Vector2Int starThresholds = new Vector2Int(70, 90);
+    public Vector2Int starThresholds = new Vector2Int(55, 80);
     public Color starOn = new Color(1f, 0.82f, 0.3f, 1f);
     public Color starOff = new Color(1f, 1f, 1f, 0.18f);
 
@@ -223,6 +223,9 @@ public class JobCard : MonoBehaviour
     }
 
     public int Stars(int quality) => quality >= starThresholds.y ? 3 : quality >= starThresholds.x ? 2 : 1;
+
+    // Seconds from ShowResult until the last star lights up (the count-up, its bounce, then one star per starInterval).
+    public float StarsShownSeconds(int quality) => countUpSeconds + popSeconds + (Stars(quality) - 1) * starInterval;
 
     IEnumerator ResultRoutine(int quality, int pay, int tipAmount, int bank, float bonusFraction)
     {

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -8,7 +9,8 @@ using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 // World-space button in the NeonPanel style (the job card's DONE). Pressed by pointing at it and pulling
 // the trigger, by grabbing it (grip), or by poking it. Glows brighter while pointed at, gives a short
-// haptic pulse and a small bounce when pressed.
+// haptic pulse and a small bounce when pressed. Starting to point at a pressable button raises AnyHoverStarted
+// once (not again while the pointer stays on it), from any hand or from the mouse in Desktop Test Mode.
 [RequireComponent(typeof(XRSimpleInteractable))]
 public class NeonButton : MonoBehaviour
 {
@@ -26,10 +28,16 @@ public class NeonButton : MonoBehaviour
     public float pressBounce = 0.12f;
     public float bounceSeconds = 0.25f;
 
+    // Any button was pressed (ShopSounds plays the click).
+    public static event Action<NeonButton> AnyPressed;
+    // Something started pointing at a shown, pressable button (ShopSounds plays the hover tick).
+    public static event Action<NeonButton> AnyHoverStarted;
+
     static readonly List<NeonButton> Shown = new List<NeonButton>();
 
     XRSimpleInteractable interactable;
     readonly List<IXRHoverInteractor> hovering = new List<IXRHoverInteractor>();
+    bool mouseHover;
     Vector3 baseScale;
     float hoverAmount;
     float lastPressTime = -10f;
@@ -55,11 +63,30 @@ public class NeonButton : MonoBehaviour
         interactable.hoverExited.RemoveListener(OnHoverExited);
         interactable.selectEntered.RemoveListener(OnSelectEntered);
         hovering.Clear();
+        mouseHover = false;
         hoverAmount = 0f;
         transform.localScale = baseScale;
     }
 
-    void OnHoverEntered(HoverEnterEventArgs args) => hovering.Add(args.interactorObject);
+    bool IsHovered => hovering.Count > 0 || mouseHover;
+
+    // Hidden, switched off or still cooling down from the last press: pointing at it does nothing.
+    bool CanPress => isActiveAndEnabled && interactable.enabled && Time.time - lastPressTime >= cooldown;
+
+    void OnHoverEntered(HoverEnterEventArgs args)
+    {
+        bool wasHovered = IsHovered;
+        hovering.Add(args.interactorObject);
+        if (!wasHovered)
+            OnHoverStarted();
+    }
+
+    void OnHoverStarted()
+    {
+        if (CanPress)
+            AnyHoverStarted?.Invoke(this);
+    }
+
     void OnHoverExited(HoverExitEventArgs args) => hovering.Remove(args.interactorObject);
     void OnSelectEntered(SelectEnterEventArgs args) => Press(args.interactorObject);
 
@@ -75,7 +102,7 @@ public class NeonButton : MonoBehaviour
             }
         }
 
-        hoverAmount = Mathf.MoveTowards(hoverAmount, hovering.Count > 0 ? 1f : 0f, hoverSpeed * Time.deltaTime);
+        hoverAmount = Mathf.MoveTowards(hoverAmount, IsHovered ? 1f : 0f, hoverSpeed * Time.deltaTime);
         if (panel != null)
             panel.hover = hoverAmount;
 
@@ -92,7 +119,34 @@ public class NeonButton : MonoBehaviour
 
         if (interactor is XRBaseInputInteractor input)
             input.SendHapticImpulse(hapticAmplitude, hapticDuration);
+        AnyPressed?.Invoke(this);
         onPressed.Invoke();
+    }
+
+    // Desktop Test Mode: the mouse ray hovers the button under it (null = mouse not pointing at buttons).
+    public static void HoverWithRay(Ray? ray, float maxDistance = 10f)
+    {
+        for (int i = Shown.Count - 1; i >= 0; i--)
+        {
+            var button = Shown[i];
+            bool hit = ray.HasValue && button.HitBy(ray.Value, maxDistance);
+            if (hit == button.mouseHover)
+                continue;
+            bool wasHovered = button.IsHovered;
+            button.mouseHover = hit;
+            if (hit && !wasHovered)
+                button.OnHoverStarted();
+        }
+    }
+
+    bool HitBy(Ray ray, float maxDistance)
+    {
+        foreach (var c in interactable.colliders)
+        {
+            if (c != null && c.enabled && c.Raycast(ray, out _, maxDistance))
+                return true;
+        }
+        return false;
     }
 
     // Desktop Test Mode: a mouse click on a shown button presses it.
@@ -100,13 +154,10 @@ public class NeonButton : MonoBehaviour
     {
         foreach (var button in Shown)
         {
-            foreach (var c in button.interactable.colliders)
+            if (button.HitBy(ray, maxDistance))
             {
-                if (c != null && c.enabled && c.Raycast(ray, out _, maxDistance))
-                {
-                    button.Press(null);
-                    return true;
-                }
+                button.Press(null);
+                return true;
             }
         }
         return false;

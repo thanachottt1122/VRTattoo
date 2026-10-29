@@ -7,12 +7,19 @@ using UnityEngine.Events;
 // in front of the player at eye level: bank, stars, happy / angry customers over the whole game, then a
 // big grade S/A/B/C by the bank. S sets off the same sparkle + confetti burst as 3 stars on the job card.
 // PLAY AGAIN is a NeonButton (controller ray + trigger / grip / poke, mouse click in Desktop Test Mode).
+// ShopSounds plays the game-complete jingle as the panel appears.
+// The stat rows are laid out here on Show (one row per label/value pair, grade label level with the grade),
+// so the panel never depends on hand-placed text positions.
 public class GameCompletePanel : MonoBehaviour
 {
     public TMP_Text title;
     [Tooltip("Values, in order: bank, stars, happy, angry")]
     public TMP_Text[] values;
     public TMP_Text grade;
+    [Tooltip("Row labels, in the same order as values")]
+    public TMP_Text[] labels;
+    [Tooltip("Shown to the left of the big grade letter")]
+    public TMP_Text gradeLabel;
     public NeonButton playAgainButton;
     [Tooltip("Played when the grade is S")]
     public ParticleSystem sBurst;
@@ -29,6 +36,13 @@ public class GameCompletePanel : MonoBehaviour
     public Color aColor = new Color(1f, 0.45f, 0.9f);
     public Color bColor = new Color(0.45f, 0.75f, 1f);
     public Color cColor = new Color(0.8f, 0.8f, 0.85f);
+
+    [Header("Layout (panel-local, m)")]
+    public float firstRowY = 0.115f;
+    public float rowSpacing = 0.033f;
+    public float gradeY = -0.06f;
+    [Tooltip("Centre x of the grade letter, right-aligned with the values")]
+    public float gradeX = 0.105f;
 
     [Header("Placement")]
     [Tooltip("Defaults to the main camera")]
@@ -69,14 +83,39 @@ public class GameCompletePanel : MonoBehaviour
     public void Show(int bank, int stars, int happy, int angry)
     {
         PlaceInFrontOfViewer();
+        LayoutRows();
         gameObject.SetActive(true);
         StopAllCoroutines();
         StartCoroutine(Reveal(bank, stars, happy, angry));
+        if (ShopSounds.Instance != null)
+            ShopSounds.Instance.PlayGameComplete(Grade(bank));
     }
 
     public void Hide() => gameObject.SetActive(false);
 
     void PressPlayAgain() => onPlayAgain?.Invoke();
+
+    void LayoutRows()
+    {
+        for (int i = 0; i < values.Length; i++)
+        {
+            float y = firstRowY - i * rowSpacing;
+            SetY(values[i], y);
+            if (labels != null && i < labels.Length)
+                SetY(labels[i], y);
+        }
+        SetY(gradeLabel, gradeY);
+        if (grade != null)
+            grade.transform.localPosition = new Vector3(gradeX, gradeY, grade.transform.localPosition.z);
+    }
+
+    static void SetY(TMP_Text text, float y)
+    {
+        if (text == null)
+            return;
+        var p = text.transform.localPosition;
+        text.transform.localPosition = new Vector3(p.x, y, p.z);
+    }
 
     void PlaceInFrontOfViewer()
     {

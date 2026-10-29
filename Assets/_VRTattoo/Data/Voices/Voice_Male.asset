@@ -13,10 +13,26 @@ MonoBehaviour:
   m_Name: Voice_Male
   m_EditorClassIdentifier: Assembly-CSharp::CustomerVoiceSet
   greeting: []
-  pain: []
-  ecstatic: []
-  happy: []
+  pain:
+  - {fileID: 8300000, guid: 472f7a4b97068d4489a37eb804c10f8c, type: 3}
+  - {fileID: 8300000, guid: 4c37dfcea9e8bf74aacafd7953e6179a, type: 3}
+  - {fileID: 8300000, guid: b4cc91432695e5e448e3e57fb6411226, type: 3}
+  - {fileID: 8300000, guid: d7aa42023a0988a468a5b06354f82c92, type: 3}
+  ecstatic:
+  - {fileID: 8300000, guid: 7b48c841117249a40a9178df66d1cbca, type: 3}
+  - {fileID: 8300000, guid: 18e5f66830aee094d9a5e1b21519af57, type: 3}
+  - {fileID: 8300000, guid: 80ab40581c2e3fa4899886fb73f374f9, type: 3}
+  - {fileID: 8300000, guid: 00b7282c3243ad547ade8669c5d10626, type: 3}
+  - {fileID: 8300000, guid: 5b2bd529ae03be449b24a8c58576cfc4, type: 3}
+  happy:
+  - {fileID: 8300000, guid: 7b48c841117249a40a9178df66d1cbca, type: 3}
+  - {fileID: 8300000, guid: 18e5f66830aee094d9a5e1b21519af57, type: 3}
+  - {fileID: 8300000, guid: 80ab40581c2e3fa4899886fb73f374f9, type: 3}
+  - {fileID: 8300000, guid: 00b7282c3243ad547ade8669c5d10626, type: 3}
+  - {fileID: 8300000, guid: 5b2bd529ae03be449b24a8c58576cfc4, type: 3}
   neutral: []
-  angry: []
+  angry:
+  - {fileID: 8300000, guid: 5e87f515413694f41a7c41c76e5b2eb0, type: 3}
+  - {fileID: 8300000, guid: cdfdced05ddc950409f156170475d163, type: 3}
   volume: 1
   pitchRange: {x: 0.95, y: 1.05}
