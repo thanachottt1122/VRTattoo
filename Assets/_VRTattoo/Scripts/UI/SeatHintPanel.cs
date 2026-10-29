@@ -72,7 +72,8 @@ public class SeatHintPanel : MonoBehaviour
         wasSeated = seated;
         lastMode = mode;
 
-        bool show = seated ? Time.time - seatedShownTime < showSeconds : seat.IsPlayerInRange();
+        // Nothing to sit for while the main menu is up.
+        bool show = seated ? Time.time - seatedShownTime < showSeconds : seat.IsPlayerInRange() && !MainMenuPanel.IsOpen;
         float speed = seated && !show && fadeOutSeconds > 0f ? 1f / fadeOutSeconds : fadeSpeed;
         float before = alpha;
         alpha = Mathf.MoveTowards(alpha, show ? 1f : 0f, speed * Time.deltaTime);

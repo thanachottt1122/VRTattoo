@@ -9,6 +9,7 @@ using UnityEngine.Audio;
 //     customer comes in or walks out (3D at the door's approach point; the Door location's own transform
 //     sits at the room origin). An enter is skipped while the door is still sounding; a leave never is.
 //   - a jingle when Game Complete shows (2D), a little quieter for grade C
+//   - the bell (2D) when START is pressed on the main menu
 // PlayAt plays any clip at a point through the SFX group (MoneyPopup's coin).
 public class ShopSounds : MonoBehaviour
 {
@@ -81,11 +82,15 @@ public class ShopSounds : MonoBehaviour
         ambienceSource.clip = ambience;
         ambienceSource.loop = true;
         ambienceSource.volume = ambienceVolume;
+        ambienceSource.ignoreListenerPause = true;  // the room stays audible on the pause menu
         if (ambience != null)
             ambienceSource.Play();
 
+        // Menu clicks still play while game audio is paused (GamePause).
         uiSource = CreateSource("UI", sfxOutput, 0f);
+        uiSource.ignoreListenerPause = true;
         hoverSource = CreateSource("UI Hover", sfxOutput, 0f);
+        hoverSource.ignoreListenerPause = true;
 
         bellSource = CreateSource("Bell", sfxOutput, 1f);
         bellSource.minDistance = bellMinDistance;
@@ -196,6 +201,16 @@ public class ShopSounds : MonoBehaviour
         float volume = gameCompleteVolume * (grade == "C" ? gradeCVolumeScale : 1f);
         uiSource.PlayOneShot(gameComplete, volume);
         Debug.Log($"[ShopSounds] game complete (grade {grade}) -> {gameComplete.name}, volume {volume:0.00}");
+    }
+
+    // The main menu's START: the bell in the player's ears (2D); the day-start ring right after is skipped.
+    public void PlayStartBell()
+    {
+        if (bell == null)
+            return;
+        lastBellTime = Time.time;
+        uiSource.PlayOneShot(bell, bellVolume);
+        Debug.Log($"[ShopSounds] start bell, volume {bellVolume:0.00}");
     }
 
     public void RingBell()

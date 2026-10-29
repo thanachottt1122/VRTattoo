@@ -6,7 +6,7 @@ using UnityEngine.Events;
 // "Game Complete" after the last day's summary (ShopDayManager), in the job card's neon style, floating
 // in front of the player at eye level: bank, stars, happy / angry customers over the whole game, then a
 // big grade S/A/B/C by the bank. S sets off the same sparkle + confetti burst as 3 stars on the job card.
-// PLAY AGAIN is a NeonButton (controller ray + trigger / grip / poke, mouse click in Desktop Test Mode).
+// PLAY AGAIN and MENU are NeonButtons (controller ray + trigger / grip / poke, mouse click in Desktop Test Mode).
 // ShopSounds plays the game-complete jingle as the panel appears.
 // The stat rows are laid out here on Show (one row per label/value pair, grade label level with the grade),
 // so the panel never depends on hand-placed text positions.
@@ -21,10 +21,13 @@ public class GameCompletePanel : MonoBehaviour
     [Tooltip("Shown to the left of the big grade letter")]
     public TMP_Text gradeLabel;
     public NeonButton playAgainButton;
+    [Tooltip("Optional: back to the main menu, beside PLAY AGAIN")]
+    public NeonButton menuButton;
     [Tooltip("Played when the grade is S")]
     public ParticleSystem sBurst;
 
     public UnityEvent onPlayAgain;
+    public UnityEvent onMenu;
 
     [Header("Grade (bank at the end of the game, $)")]
     [Tooltip("5 days x 5 customers: excellent play (quality ~90+, tips, fast bonus) ends near $2,000, " +
@@ -43,6 +46,9 @@ public class GameCompletePanel : MonoBehaviour
     public float gradeY = -0.06f;
     [Tooltip("Centre x of the grade letter, right-aligned with the values")]
     public float gradeX = 0.105f;
+    public float buttonsY = -0.145f;
+    [Tooltip("Centre x of PLAY AGAIN and MENU when both are there (MENU on the right)")]
+    public float buttonsX = 0.08f;
 
     [Header("Placement")]
     [Tooltip("Defaults to the main camera")]
@@ -62,12 +68,16 @@ public class GameCompletePanel : MonoBehaviour
     {
         if (playAgainButton != null)
             playAgainButton.onPressed.AddListener(PressPlayAgain);
+        if (menuButton != null)
+            menuButton.onPressed.AddListener(PressMenu);
     }
 
     void OnDisable()
     {
         if (playAgainButton != null)
             playAgainButton.onPressed.RemoveListener(PressPlayAgain);
+        if (menuButton != null)
+            menuButton.onPressed.RemoveListener(PressMenu);
     }
 
     public string Grade(int bank) => bank >= sFrom ? "S" : bank >= aFrom ? "A" : bank >= bFrom ? "B" : "C";
@@ -94,6 +104,7 @@ public class GameCompletePanel : MonoBehaviour
     public void Hide() => gameObject.SetActive(false);
 
     void PressPlayAgain() => onPlayAgain?.Invoke();
+    void PressMenu() => onMenu?.Invoke();
 
     void LayoutRows()
     {
@@ -107,6 +118,18 @@ public class GameCompletePanel : MonoBehaviour
         SetY(gradeLabel, gradeY);
         if (grade != null)
             grade.transform.localPosition = new Vector3(gradeX, gradeY, grade.transform.localPosition.z);
+
+        float x = menuButton != null ? buttonsX : 0f;
+        SetButtonPosition(playAgainButton, -x);
+        SetButtonPosition(menuButton, x);
+    }
+
+    void SetButtonPosition(NeonButton button, float x)
+    {
+        if (button == null)
+            return;
+        var p = button.transform.localPosition;
+        button.transform.localPosition = new Vector3(x, buttonsY, p.z);
     }
 
     static void SetY(TMP_Text text, float y)

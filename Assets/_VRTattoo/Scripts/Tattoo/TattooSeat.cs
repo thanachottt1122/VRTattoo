@@ -118,6 +118,8 @@ public class TattooSeat : MonoBehaviour
 
     public void Toggle()
     {
+        if (GamePause.IsPaused)
+            return;
         if (IsSeated)
             StandUp();
         else
@@ -126,7 +128,8 @@ public class TattooSeat : MonoBehaviour
 
     public void SitDown()
     {
-        if (IsSeated || xrOrigin == null)
+        // Not while the main menu is up: the day has not started.
+        if (IsSeated || xrOrigin == null || MainMenuPanel.IsOpen)
             return;
 
         SetBehavioursEnabled(false);

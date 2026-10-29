@@ -89,7 +89,7 @@ public class TattooJobManager : MonoBehaviour
     void Update()
     {
         var keyboard = Keyboard.current;
-        if (submitKey != Key.None && keyboard != null && keyboard[submitKey].wasPressedThisFrame)
+        if (submitKey != Key.None && keyboard != null && keyboard[submitKey].wasPressedThisFrame && !GamePause.IsPaused)
             Submit();
         bool tattooing = !submitting && current != null && queue != null && queue.IsCustomerReady;
         if (tattooing && bedPain != null && bedPain.MaxedOut)
@@ -153,6 +153,17 @@ public class TattooJobManager : MonoBehaviour
             bedPatience.StartTimer(patience.Seconds(current.difficulty) * bedPatience.scale);
         if (card != null)
             card.ShowJob(current, Money);
+    }
+
+    // Back to the main menu mid-day: the job in progress is forgotten (its customer is gone).
+    public void DropJob()
+    {
+        StopAllCoroutines();
+        current = null;
+        submitting = false;
+        bedPain = null;
+        bedPatience = null;
+        resultSkin = null;
     }
 
     public void Submit()

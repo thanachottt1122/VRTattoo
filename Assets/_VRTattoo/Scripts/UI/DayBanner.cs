@@ -55,6 +55,9 @@ public class DayBanner : MonoBehaviour
         label.gameObject.SetActive(false);
     }
 
+    // Cut short (back to the main menu mid-banner).
+    public void Hide() => label.gameObject.SetActive(false);
+
     void SetLook(float alpha, float scale)
     {
         label.alpha = alpha;

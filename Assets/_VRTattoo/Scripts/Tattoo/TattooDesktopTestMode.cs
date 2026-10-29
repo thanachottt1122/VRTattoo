@@ -115,9 +115,17 @@ public class TattooDesktopTestMode : MonoBehaviour
         }
 
         bool seated = enabledMode && seat != null && seat.IsSeated;
-        HoverButtons(seated);
-        if (seated && ClickedButton())
+        // The main menu is used standing, before the chair; the pause menu wherever the player is.
+        bool buttonsUsable = seated || (enabledMode && (MainMenuPanel.IsOpen || MainMenuPanel.IsPauseOpen));
+        HoverButtons(buttonsUsable);
+        if (buttonsUsable && ClickedButton())
             return;
+        if (GamePause.IsPaused)
+        {
+            if (machine != null)
+                machine.ExternalTrigger = false;
+            return;
+        }
         if (seated)
             HandlePickUp(keyboard);
 
@@ -172,11 +180,11 @@ public class TattooDesktopTestMode : MonoBehaviour
     }
 
     // The mouse points at NeonButtons like a controller ray does (glow + hover sound), only where it can click them.
-    void HoverButtons(bool seated)
+    void HoverButtons(bool usable)
     {
         var cam = viewCamera != null ? viewCamera : Camera.main;
         var mouse = Mouse.current;
-        NeonButton.HoverWithRay(seated && cam != null && mouse != null
+        NeonButton.HoverWithRay(usable && cam != null && mouse != null
             ? cam.ScreenPointToRay(mouse.position.ReadValue())
             : (Ray?)null);
     }

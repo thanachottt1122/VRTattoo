@@ -57,6 +57,19 @@ public class CustomerQueueManager : MonoBehaviour
         nextSpawnTime = Time.time;
     }
 
+    // Back to the main menu mid-day: everyone in the shop is removed and no one else comes in.
+    public void ClearAll()
+    {
+        spawnsLeft = 0;
+        walkingOut = 0;
+        for (int i = 0; i < slots.Length; i++)
+            slots[i] = null;
+        foreach (var c in GetComponentsInChildren<Customer>(true))
+            Destroy(c.gameObject);
+        if (tattooCanvas != null)
+            tattooCanvas.Clear();
+    }
+
     public Customer CustomerOnBed => slots != null ? slots[0] : null;
 
     // True when the customer on the bed is lying down and can be tattooed.

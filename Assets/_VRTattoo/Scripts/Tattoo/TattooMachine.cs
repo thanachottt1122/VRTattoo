@@ -124,7 +124,8 @@ public class TattooMachine : MonoBehaviour
 
     void Update()
     {
-        if ((!triggerHeld && !ExternalTrigger) || tip == null)
+        // No tattooing while the game is paused.
+        if ((!triggerHeld && !ExternalTrigger) || tip == null || GamePause.IsPaused)
         {
             lastCanvas = null;
             IsDrawing = false;

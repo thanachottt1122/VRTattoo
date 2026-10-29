@@ -11,6 +11,7 @@ using UnityEngine.XR.Interaction.Toolkit.Interactors;
 // the trigger, by grabbing it (grip), or by poking it. Glows brighter while pointed at, gives a short
 // haptic pulse and a small bounce when pressed. Starting to point at a pressable button raises AnyHoverStarted
 // once (not again while the pointer stays on it), from any hand or from the mouse in Desktop Test Mode.
+// Runs on unscaled time so it still works while the game is paused (Time.timeScale = 0).
 [RequireComponent(typeof(XRSimpleInteractable))]
 public class NeonButton : MonoBehaviour
 {
@@ -34,6 +35,9 @@ public class NeonButton : MonoBehaviour
     public static event Action<NeonButton> AnyHoverStarted;
 
     static readonly List<NeonButton> Shown = new List<NeonButton>();
+
+    // While set, only buttons under this transform can be pointed at or pressed (the pause menu).
+    public static Transform OnlyUnder { get; set; }
 
     XRSimpleInteractable interactable;
     readonly List<IXRHoverInteractor> hovering = new List<IXRHoverInteractor>();
@@ -71,7 +75,9 @@ public class NeonButton : MonoBehaviour
     bool IsHovered => hovering.Count > 0 || mouseHover;
 
     // Hidden, switched off or still cooling down from the last press: pointing at it does nothing.
-    bool CanPress => isActiveAndEnabled && interactable.enabled && Time.time - lastPressTime >= cooldown;
+    bool CanPress => Usable && Time.unscaledTime - lastPressTime >= cooldown;
+
+    bool Usable => isActiveAndEnabled && interactable.enabled && (OnlyUnder == null || transform.IsChildOf(OnlyUnder));
 
     void OnHoverEntered(HoverEnterEventArgs args)
     {
@@ -102,20 +108,20 @@ public class NeonButton : MonoBehaviour
             }
         }
 
-        hoverAmount = Mathf.MoveTowards(hoverAmount, IsHovered ? 1f : 0f, hoverSpeed * Time.deltaTime);
+        hoverAmount = Mathf.MoveTowards(hoverAmount, IsHovered && Usable ? 1f : 0f, hoverSpeed * Time.unscaledDeltaTime);
         if (panel != null)
             panel.hover = hoverAmount;
 
-        float t = (Time.time - lastPressTime) / Mathf.Max(bounceSeconds, 0.01f);
+        float t = (Time.unscaledTime - lastPressTime) / Mathf.Max(bounceSeconds, 0.01f);
         float bounce = t < 1f ? -pressBounce * Mathf.Sin(t * Mathf.PI) : 0f;
         transform.localScale = baseScale * (1f + (hoverScale - 1f) * hoverAmount + bounce);
     }
 
     void Press(IXRInteractor interactor)
     {
-        if (Time.time - lastPressTime < cooldown)
+        if (!CanPress)
             return;
-        lastPressTime = Time.time;
+        lastPressTime = Time.unscaledTime;
 
         if (interactor is XRBaseInputInteractor input)
             input.SendHapticImpulse(hapticAmplitude, hapticDuration);
@@ -129,7 +135,7 @@ public class NeonButton : MonoBehaviour
         for (int i = Shown.Count - 1; i >= 0; i--)
         {
             var button = Shown[i];
-            bool hit = ray.HasValue && button.HitBy(ray.Value, maxDistance);
+            bool hit = ray.HasValue && button.Usable && button.HitBy(ray.Value, maxDistance);
             if (hit == button.mouseHover)
                 continue;
             bool wasHovered = button.IsHovered;
@@ -154,7 +160,7 @@ public class NeonButton : MonoBehaviour
     {
         foreach (var button in Shown)
         {
-            if (button.HitBy(ray, maxDistance))
+            if (button.Usable && button.HitBy(ray, maxDistance))
             {
                 button.Press(null);
                 return true;

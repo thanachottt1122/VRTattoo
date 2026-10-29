@@ -23,6 +23,9 @@ public class DayStats
 // The game lasts totalDays days: the last day's summary has FINISH instead of NEXT DAY, which opens
 // the Game Complete panel (bank, stars, happy / angry over the whole game, grade); PLAY AGAIN = day 1, $0.
 // Day, money and the game totals are saved to a JSON file (ShopSave) at the end of every day.
+// With a main menu the game waits on it: START loads the saved day (a finished game starts again at
+// day 1); MENU on Game Complete resets the save and opens the menu again. MAIN MENU on the pause menu
+// (GamePause) drops the day in progress: customers gone, the save still holds the start of that day.
 public class ShopDayManager : MonoBehaviour
 {
     public CustomerQueueManager queue;
@@ -30,6 +33,12 @@ public class ShopDayManager : MonoBehaviour
     public DayBanner banner;
     public DaySummaryPanel summary;
     public GameCompletePanel gameComplete;
+    [Tooltip("Optional: shown when the game opens; the first day starts from its START")]
+    public MainMenuPanel menu;
+    [Tooltip("Optional: the player stands up (machine back on its holder) when the menu opens")]
+    public TattooSeat seat;
+    [Tooltip("Optional: its job in progress is dropped when the pause menu goes back to the main menu")]
+    public TattooJobManager jobs;
 
     [Tooltip("Days in one game; the Game Complete panel follows the last day's summary")]
     [Min(1)] public int totalDays = 5;
@@ -55,6 +64,8 @@ public class ShopDayManager : MonoBehaviour
     public bool DayRunning { get; private set; }
     public bool IsLastDay => Day >= totalDays;
     public bool GameOver { get; private set; }
+    // Between START and going back to the menu (GamePause only works then).
+    public bool InGame { get; private set; }
 
     // Over the finished days of this game.
     public int TotalStars { get; private set; }
@@ -85,7 +96,12 @@ public class ShopDayManager : MonoBehaviour
             summary.onRestart.AddListener(Restart);
         }
         if (gameComplete != null)
+        {
             gameComplete.onPlayAgain.AddListener(Restart);
+            gameComplete.onMenu.AddListener(ReturnToMenu);
+        }
+        if (menu != null)
+            menu.onStart.AddListener(BeginGame);
     }
 
     void OnDisable()
@@ -101,11 +117,49 @@ public class ShopDayManager : MonoBehaviour
             summary.onRestart.RemoveListener(Restart);
         }
         if (gameComplete != null)
+        {
             gameComplete.onPlayAgain.RemoveListener(Restart);
+            gameComplete.onMenu.RemoveListener(ReturnToMenu);
+        }
+        if (menu != null)
+            menu.onStart.RemoveListener(BeginGame);
     }
 
     void Start()
     {
+        if (menu != null)
+            OpenMenu();
+        else
+            LoadAndPlay(true);
+    }
+
+    void OpenMenu()
+    {
+        StopAllCoroutines();
+        DayRunning = false;
+        GameOver = false;
+        InGame = false;
+        if (summary != null)
+            summary.Hide();
+        if (gameComplete != null)
+            gameComplete.Hide();
+        if (card != null)
+            card.gameObject.SetActive(false);
+        if (banner != null)
+            banner.Hide();
+        if (seat != null)
+            seat.StandUp();
+        menu.Show();
+    }
+
+    // The menu's START.
+    public void BeginGame() => LoadAndPlay(false);
+
+    // resumeGameComplete: quit on the Game Complete panel last time (no menu) shows it again;
+    // from the menu a finished game starts over at day 1.
+    void LoadAndPlay(bool resumeGameComplete)
+    {
+        InGame = true;
         var save = ShopSave.Load();
         Day = save.day;
         Money = save.money;
@@ -114,11 +168,14 @@ public class ShopDayManager : MonoBehaviour
         TotalAngry = save.angry;
         Debug.Log($"[ShopDay] Loaded day {Day}, ${Money} from {ShopSave.FilePath}");
 
-        // Quit on the Game Complete panel last time: show it again.
-        if (Day > totalDays)
+        if (Day > totalDays && resumeGameComplete)
         {
             Day = totalDays;
             ShowGameComplete();
+        }
+        else if (Day > totalDays)
+        {
+            Restart();
         }
         else
         {
@@ -242,5 +299,31 @@ public class ShopDayManager : MonoBehaviour
         ShopSave.Save(new ShopSaveData());
         Debug.Log("[ShopDay] Restart: day 1, $0");
         StartDay();
+    }
+
+    // MENU on Game Complete: the finished game is cleared, the next START is day 1.
+    public void ReturnToMenu()
+    {
+        if (DayRunning || menu == null)
+            return;
+        Day = 1;
+        Money = 0;
+        TotalStars = TotalHappy = TotalAngry = 0;
+        ShopSave.Save(new ShopSaveData());
+        Debug.Log("[ShopDay] Back to menu (save reset to day 1)");
+        OpenMenu();
+    }
+
+    // MAIN MENU on the pause menu: today is dropped and START plays it again from the save.
+    public void QuitToMenu()
+    {
+        if (menu == null)
+            return;
+        if (queue != null)
+            queue.ClearAll();
+        if (jobs != null)
+            jobs.DropJob();
+        Debug.Log($"[ShopDay] Day {Day} dropped, back to menu (save kept)");
+        OpenMenu();
     }
 }
